@@ -9,51 +9,51 @@
             <field name="model">g2p.crop.registry</field>
             <field name="arch" type="xml">
                 <tree string="Crop Registry">
-                    <field name="zone_name"/>
-<!--                    <field name="woreda_name"/>-->
-<!--                    <field name="kebele_name"/>-->
-<!--                    <field name="kebele_code"/>-->
+                    <field name="zone_name_id"/>
+                    <!--                    <field name="woreda_name"/>-->
+                    <!--                    <field name="kebele_name"/>-->
+                    <!--                    <field name="kebele_code"/>-->
                     <field name="land_id"/>
                     <field name="land_area"/>
                     <field name="owner_name"/>
-<!--                    <field name="ownership_type"/>-->
-<!--                    <field name="land_certificate"/>-->
-<!--                    <field name="soil_fertility"/>-->
-<!--                    <field name="current_land_use"/>-->
-<!--                    <field name="crop_name"/>-->
-<!--                    <field name="crop_verity"/>-->
-<!--                    <field name="crop_area"/>-->
-<!--                    <field name="crop_season"/>-->
-<!--                    <field name="crop_produce_min"/>-->
-<!--                    <field name="crop_produce_max"/>-->
-<!--                    <field name="crop_wholesale_min"/>-->
-<!--                    <field name="crop_wholesale_max"/>-->
-<!--                    <field name="crop_retail_min"/>-->
-<!--                    <field name="crop_retail_max"/>-->
-<!--                    <field name="crop_volume"/>-->
-<!--                    <field name="live_stock_type"/>-->
-<!--                    <field name="live_stock_number"/>-->
-<!--                    <field name="live_strock_water_source"/>-->
-<!--                    <field name="cultivation_land"/>-->
-<!--                    <field name="cultivation_area"/>-->
-<!--                    <field name="cultivation_crop_name"/>-->
-<!--                    <field name="sown_land"/>-->
-<!--                    <field name="sown_area"/>-->
-<!--                    <field name="sown_crop_name"/>-->
-<!--                    <field name="harvested_land"/>-->
-<!--                    <field name="harvested_area"/>-->
-<!--                    <field name="harvested_crop_name"/>-->
-<!--                    <field name="irrigation_type"/>-->
-<!--                    <field name="surveyor_name"/>-->
-<!--                    <field name="surveyor_fullname"/>-->
-<!--                    <field name="surveyor_mobile_number"/>-->
-<!--                    <field name="supervisor_name"/>-->
-<!--                    <field name="supervisor_fullname"/>-->
-<!--                    <field name="supervisor_mobile_number"/>-->
-<!--                    <field name="first_approvel_status"/>-->
-<!--                    <field name="second_approvel_status"/>-->
-<!--                    <field name="verifier_name"/>-->
-<!--                    <field name="verifier_mobile_number"/>-->
+                    <!--                    <field name="ownership_type"/>-->
+                    <!--                    <field name="land_certificate"/>-->
+                    <!--                    <field name="soil_fertility"/>-->
+                    <!--                    <field name="current_land_use"/>-->
+                    <!--                    <field name="crop_name"/>-->
+                    <!--                    <field name="crop_verity"/>-->
+                    <!--                    <field name="crop_area"/>-->
+                    <!--                    <field name="crop_season"/>-->
+                    <!--                    <field name="crop_produce_min"/>-->
+                    <!--                    <field name="crop_produce_max"/>-->
+                    <!--                    <field name="crop_wholesale_min"/>-->
+                    <!--                    <field name="crop_wholesale_max"/>-->
+                    <!--                    <field name="crop_retail_min"/>-->
+                    <!--                    <field name="crop_retail_max"/>-->
+                    <!--                    <field name="crop_volume"/>-->
+                    <!--                    <field name="live_stock_type"/>-->
+                    <!--                    <field name="live_stock_number"/>-->
+                    <!--                    <field name="live_strock_water_source"/>-->
+                    <!--                    <field name="cultivation_land"/>-->
+                    <!--                    <field name="cultivation_area"/>-->
+                    <!--                    <field name="cultivation_crop_name"/>-->
+                    <!--                    <field name="sown_land"/>-->
+                    <!--                    <field name="sown_area"/>-->
+                    <!--                    <field name="sown_crop_name"/>-->
+                    <!--                    <field name="harvested_land"/>-->
+                    <!--                    <field name="harvested_area"/>-->
+                    <!--                    <field name="harvested_crop_name"/>-->
+                    <!--                    <field name="irrigation_type"/>-->
+                    <!--                    <field name="surveyor_name"/>-->
+                    <!--                    <field name="surveyor_fullname"/>-->
+                    <!--                    <field name="surveyor_mobile_number"/>-->
+                    <!--                    <field name="supervisor_name"/>-->
+                    <!--                    <field name="supervisor_fullname"/>-->
+                    <!--                    <field name="supervisor_mobile_number"/>-->
+                    <!--                    <field name="first_approvel_status"/>-->
+                    <!--                    <field name="second_approvel_status"/>-->
+                    <!--                    <field name="verifier_name"/>-->
+                    <!--                    <field name="verifier_mobile_number"/>-->
                 </tree>
             </field>
         </record>
@@ -67,9 +67,9 @@
                     <sheet>
                         <group>
                             <group>
-                                <field name="zone_name"/>
-                                <field name="woreda_name"/>
-                                <field name="kebele_name"/>
+                                <field name="zone_name_id"/>
+                                <field name="woreda_name_id"/>
+                                <field name="kebele_name_id"/>
                                 <field name="kebele_code"/>
                                 <field name="land_id"/>
                                 <field name="land_area"/>
@@ -78,8 +78,8 @@
                                 <field name="land_certificate"/>
                                 <field name="soil_fertility"/>
                                 <field name="current_land_use"/>
-                                <field name="crop_name"/>
-                                <field name="crop_verity"/>
+                                <field name="crop_name_id"/>
+                                <field name="crop_verity_id"/>
                                 <field name="crop_area"/>
                                 <field name="crop_season"/>
                                 <field name="crop_produce_min"/>
@@ -89,20 +89,20 @@
                                 <field name="crop_retail_min"/>
                                 <field name="crop_retail_max"/>
                                 <field name="crop_volume"/>
-                                <field name="live_stock_type"/>
+                                <field name="live_stock_type_id"/>
                                 <field name="live_stock_number"/>
                             </group>
                             <group>
                                 <field name="live_strock_water_source"/>
                                 <field name="cultivation_land"/>
                                 <field name="cultivation_area"/>
-                                <field name="cultivation_crop_name"/>
+                                <field name="cultivation_crop_name_id"/>
                                 <field name="sown_land"/>
                                 <field name="sown_area"/>
-                                <field name="sown_crop_name"/>
+                                <field name="sown_crop_name_id"/>
                                 <field name="harvested_land"/>
                                 <field name="harvested_area"/>
-                                <field name="harvested_crop_name"/>
+                                <field name="harvested_crop_name_id"/>
                                 <field name="irrigation_type"/>
                                 <field name="surveyor_name"/>
                                 <field name="surveyor_fullname"/>
@@ -116,6 +116,49 @@
                                 <field name="verifier_mobile_number"/>
                             </group>
                         </group>
+                        <notebook>
+                            <page string="Basic Info">
+                                <group>
+                                    <field name="region_id"/>
+                                    <field name="land_plan"/>
+                                    <field name="production_plan"/>
+                                    <field name="productivity"/>
+                                    <field name="gps"/>
+                                </group>
+                            </page>
+                            <page string="Land Details">
+                                <group>
+                                    <field name="total_cultivated_land"/>
+                                    <field name="cultivated_land_by_tractor"/>
+                                    <field name="total_sown_land"/>
+                                    <field name="sown_land_by_tractor"/>
+                                </group>
+                            </page>
+                            <page string="Farmers">
+                                <group>
+                                    <field name="male_farmers"/>
+                                    <field name="female_farmers"/>
+                                    <field name="total_farmers"/>
+                                </group>
+                            </page>
+                            <page string="Cluster Information">
+                                <group>
+                                    <field name="cluster_plan"/>
+                                    <field name="cluster_collected_land"/>
+                                    <field name="cluster_collected_quintal"/>
+                                    <field name="cluster_participant_farmers"/>
+                                </group>
+                            </page>
+                            <page string="Harvest and Production">
+                                <group>
+                                    <field name="collected_land"/>
+                                    <field name="collected_land_quintal"/>
+                                    <field name="collected_by_combiner"/>
+                                    <field name="production_in_quintal"/>
+                                    <field name="total_plan"/>
+                                </group>
+                            </page>
+                        </notebook>
                     </sheet>
                 </form>
             </field>
@@ -133,12 +176,11 @@
                   name="Crop Registry"/>
 
         <menuitem
-            id="menu_gn_division"
-            name="Crop Registry"
-            parent="g2p_crop_registry_menu_item_id"
-            action="action_g2p_crop_registry"
-            we
-            sequence="6"
+                id="menu_gn_division"
+                name="Crop Registry"
+                parent="g2p_crop_registry_menu_item_id"
+                action="action_g2p_crop_registry"
+                sequence="6"
         />
 
     </data>
