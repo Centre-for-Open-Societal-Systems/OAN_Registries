@@ -56,7 +56,7 @@ class G2PCrop(models.Model):
     ('other', 'Other'),
     ], string="Current Land Use")
     crop_name_id = fields.Many2one('g2p.crop', string="Crop Name")
-    crop_verity_id = fields.Many2one('g2p.crop.category', string="Crop Verity")
+    crop_varity_id = fields.Many2one('g2p.crop.category', string="Crop Varity")
     crop_area = fields.Float(string="Crop Area")
     crop_season_id = fields.Many2one('g2p.season', string="Crop Season")
     crop_produce_min = fields.Float(string="Crop Produce Min")
@@ -68,7 +68,7 @@ class G2PCrop(models.Model):
     crop_volume = fields.Float(string="Crop Volume")
     live_stock_type_id = fields.Many2one('g2p.livestock.type', string="Live Stock Type")
     live_stock_number = fields.Integer(string="Live Stock Number")
-    live_strock_water_source = fields.Selection([
+    live_stock_water_source = fields.Selection([
     ('river', 'River'),
     ('lake', 'Lake'),
     ('pond', 'Pond'),
