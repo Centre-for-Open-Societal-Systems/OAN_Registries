@@ -6,7 +6,7 @@
     "website": "https://openg2p.org",
     "license": "LGPL-3",
     "depends": [
-        'web','base','mail','g2p_ati',
+        'web','base','mail','g2p_ati','g2p_odk_importer',
     ],
     "data": [
         'security/ir.model.access.csv',
