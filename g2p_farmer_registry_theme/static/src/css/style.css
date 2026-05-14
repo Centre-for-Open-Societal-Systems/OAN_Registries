@@ -72,7 +72,7 @@ body {
 
 /* FIX 4: Logo properly centered, full image visible */
 .o_menu_sections {
-    background-image: url("/g2p_social_registry_theme/static/src/img/logo-famer.png");
+    background-image: url("/g2p_farmer_registry_theme/static/src/img/logo-famer.png");
     background-repeat: no-repeat;
     background-position: center center;
     background-size: auto 75px;
