@@ -42,7 +42,7 @@
                                 <field name="soil_fertility"/>
                                 <field name="current_land_use"/>
                                 <field name="crop_name_id"/>
-                                <field name="crop_varity_id"/>
+                                <field name="crop_variety_id"/>
                                 <field name="crop_area"/>
                                 <field name="crop_season_id"/>
                                 <field name="crop_produce_min"/>
