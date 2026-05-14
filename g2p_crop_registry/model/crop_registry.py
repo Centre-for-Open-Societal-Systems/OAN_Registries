@@ -7,32 +7,28 @@ class G2PCrop(models.Model):
     _name = 'g2p.crop.registry'
     _description = 'G2p Crop Registry'
 
-    farmer_id = fields.Many2one(
-        'res.partner',
-        string='Farmer',required=True,
-        domain=[('farmer_unique_id', '!=', False)],  # only show actual farmers
-        context={'show_farmer_id': True}
-    )
+    # farmer_id = fields.Many2one(
+    #     'res.partner',
+    #     string='Farmer',required=True,
+    #     domain=[('farmer_unique_id', '!=', False)],  # only show actual farmers
+    #     context={'show_farmer_id': True}
+    # )
     farmer_display_id = fields.Char(
         string='Farmer ID',
-        related='farmer_id.farmer_unique_id',
         store=True
     )
-    zone_name = fields.Char(
+    zone_name_id = fields.Many2one('g2p.zone',
         string='Zone Name',
-        related='farmer_id.zone.name',
         store=True
     )
-    woreda_name = fields.Char(
+    woreda_name_id = fields.Many2one('g2p.woreda',
         string='Woreda Name',
-        related='farmer_id.woreda.name',
         store=True
     )
     kebele_name = fields.Char(
-        related='farmer_id.kebele.name',
         store=True
     )
-    kebele_code = fields.Char(related='farmer_id.kebele.code',string="Kebele Code")
+    kebele_code = fields.Char(string="Kebele Code")
     land_id = fields.Char(string="Land ID")
     land_area = fields.Float(string="Land Area")
     owner_name = fields.Char(string="Owner Name")
@@ -41,7 +37,7 @@ class G2PCrop(models.Model):
     ('leased', 'Leased'),
     ('government', 'Government')
     ])
-    land_certificate = fields.Char(string="Land Certificate")
+    land_certificate = fields.Char(string="Land Certificate NO")
     soil_fertility = fields.Selection([
     ('low', 'Low'),
     ('medium', 'Medium'),
@@ -62,11 +58,7 @@ class G2PCrop(models.Model):
     crop_name_id = fields.Many2one('g2p.crop', string="Crop Name")
     crop_verity_id = fields.Many2one('g2p.crop.category', string="Crop Verity")
     crop_area = fields.Float(string="Crop Area")
-    crop_season = fields.Selection([
-    ('summer', 'Summer'),
-    ('winter', 'Winter'),
-    ('spring', 'Spring')
-    ])
+    crop_season_id = fields.Many2one('g2p.season', string="Crop Season")
     crop_produce_min = fields.Float(string="Crop Produce Min")
     crop_produce_max = fields.Float(string="Crop Produce Max")
     crop_wholesale_min = fields.Float(string="Crop Wholesale Min")
@@ -122,8 +114,7 @@ class G2PCrop(models.Model):
     verifier_name = fields.Char(string="Verifier Name")
     verifier_mobile_number = fields.Char(string="Verifier Mobile Number")
 
-    region_name = fields.Char(
-        related='farmer_id.region.name',
+    region_name_id = fields.Many2one('g2p.region', string="Region",
         store=True
     )
     land_plan = fields.Float(string="Land Plan")
