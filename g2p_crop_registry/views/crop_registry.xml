@@ -9,8 +9,8 @@
             <field name="model">g2p.crop.registry</field>
             <field name="arch" type="xml">
                 <tree string="Crop Sown Registry">
-                    <field name="farmer_id"/>
-                    <field name="zone_name"/>
+<!--                    <field name="farmer_id"/>-->
+                    <field name="zone_name_id"/>
                     <!--                    <field name="woreda_name"/>-->
                     <!--                    <field name="kebele_name"/>-->
                     <!--                    <field name="kebele_code"/>-->
@@ -68,12 +68,12 @@
                     <sheet>
                         <group>
                             <group>
-                                <field name="farmer_id"
-                                       context="{'show_farmer_id': True}"
-                                       options="{'no_create': True}"/>
+<!--                                <field name="farmer_id"-->
+<!--                                       context="{'show_farmer_id': True}"-->
+<!--                                       options="{'no_create': True}"/>-->
                                 <field name="farmer_display_id"/>
-                                <field name="zone_name"/>
-                                <field name="woreda_name"/>
+                                <field name="zone_name_id"/>
+                                <field name="woreda_name_id"/>
                                 <field name="kebele_name"/>
                                 <field name="kebele_code"/>
                                 <field name="land_id"/>
@@ -86,7 +86,7 @@
                                 <field name="crop_name_id"/>
                                 <field name="crop_verity_id"/>
                                 <field name="crop_area"/>
-                                <field name="crop_season"/>
+                                <field name="crop_season_id"/>
                                 <field name="crop_produce_min"/>
                                 <field name="crop_produce_max"/>
                                 <field name="crop_wholesale_min"/>
@@ -124,7 +124,7 @@
                         <notebook>
                             <page string="Basic Info">
                                 <group>
-                                    <field name="region_name"/>
+                                    <field name="region_name_id"/>
                                     <field name="land_plan"/>
                                     <field name="production_plan"/>
                                     <field name="productivity"/>
