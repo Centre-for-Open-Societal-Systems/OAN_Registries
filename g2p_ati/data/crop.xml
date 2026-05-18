@@ -2,31 +2,31 @@
 <odoo noupdate="1">
     <record id="crop_category_cereals" model="g2p.crop.category">
         <field name="name">Cereal Crops</field>
-        <field name="code">cereal Crops</field>
+        <field name="code">cereal_crops</field>
     </record>
     <record id="crop_category_condiments_and_medicinal_plants" model="g2p.crop.category">
         <field name="name">Condiments and Medicinal Plants</field>
-        <field name="code">Condiments and Medicinal Plants</field>
+        <field name="code">condiments_and_medicinal_plants</field>
     </record>
     <record id="crop_category_forage_and_posture" model="g2p.crop.category">
         <field name="name">Forage and Posture</field>
-        <field name="code">Forage and Posture</field>
+        <field name="code">forage_and_posture</field>
     </record>
     <record id="crop_category_fruit_crops" model="g2p.crop.category">
         <field name="name">Fruit Crops</field>
-        <field name="code">Fruit Crops</field>
+        <field name="code">fruit_crops</field>
     </record>
     <record id="crop_category_oil_crops" model="g2p.crop.category">
         <field name="name">Oil Crops</field>
-        <field name="code">Oil Crops</field>
+        <field name="code">oil_crops</field>
     </record>
     <record id="crop_category_Pulse_crops" model="g2p.crop.category">
         <field name="name">Pulse Crops</field>
-        <field name="code">Pulse Crops</field>
+        <field name="code">pulse_crops</field>
     </record>
     <record id="crop_category_none" model="g2p.crop.category">
         <field name="name">None</field>
-        <field name="code">None</field>
+        <field name="code">none</field>
     </record>
 
     <record id="adzuki_bean" model="g2p.crop">
@@ -536,7 +536,7 @@
 
     <record id="Sorghum_Sorghumbicolor" model="g2p.crop">
         <field name="name">Sorghum(Sorghumbicolor)</field>
-        <field name="code">Sorghum_Sorghumbicolor</field>
+        <field name="code">sorghum_sorghumbicolor</field>
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="soybean" model="g2p.crop">
@@ -670,5 +670,3 @@
         <field name="category" ref="crop_category_none"/>
     </record>
 </odoo>
-
-
