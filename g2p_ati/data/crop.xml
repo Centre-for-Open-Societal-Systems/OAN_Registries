@@ -8,9 +8,9 @@
         <field name="name">Condiments and Medicinal Plants</field>
         <field name="code">condiments_and_medicinal_plants</field>
     </record>
-    <record id="crop_category_forage_and_posture" model="g2p.crop.category">
-        <field name="name">Forage and Posture</field>
-        <field name="code">forage_and_posture</field>
+    <record id="crop_category_forage_and_pasture" model="g2p.crop.category">
+        <field name="name">Forage and Pasture</field>
+        <field name="code">forage_and_pasture</field>
     </record>
     <record id="crop_category_fruit_crops" model="g2p.crop.category">
         <field name="name">Fruit Crops</field>
@@ -20,7 +20,7 @@
         <field name="name">Oil Crops</field>
         <field name="code">oil_crops</field>
     </record>
-    <record id="crop_category_Pulse_crops" model="g2p.crop.category">
+    <record id="crop_category_pulse_crops" model="g2p.crop.category">
         <field name="name">Pulse Crops</field>
         <field name="code">pulse_crops</field>
     </record>
@@ -40,7 +40,7 @@
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="african_marigold" model="g2p.crop">
-        <field name="name">african marigold</field>
+        <field name="name">African Marigold</field>
         <field name="code">african_marigold</field>
         <field name="category" ref="crop_category_none"/>
     </record>
@@ -70,9 +70,9 @@
         <field name="code">basil</field>
         <field name="category" ref="crop_category_none"/>
     </record>
-    <record id="black_paper" model="g2p.crop">
-        <field name="name">Black Paper</field>
-        <field name="code">black_paper</field>
+    <record id="black_pepper" model="g2p.crop">
+        <field name="name">Black Pepper</field>
+        <field name="code">black_pepper</field>
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="brachiaria_brizantha_cv" model="g2p.crop">
@@ -104,7 +104,7 @@
     </record>
     <record id="cacao" model="g2p.crop">
         <field name="name">Cacao</field>
-        <field name="code">cocao</field>
+        <field name="code">cacao</field>
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="camelina_sativa" model="g2p.crop">
@@ -118,7 +118,7 @@
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="cardamom" model="g2p.crop">
-        <field name="name">cardamom</field>
+        <field name="name">Cardamom</field>
         <field name="code">cardamom</field>
         <field name="category" ref="crop_category_none"/>
     </record>
@@ -163,7 +163,7 @@
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="coffee" model="g2p.crop">
-        <field name="name">Cofee</field>
+        <field name="name">Coffee</field>
         <field name="code">coffee</field>
         <field name="category" ref="crop_category_none"/>
     </record>
@@ -278,7 +278,7 @@
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="groundnut" model="g2p.crop">
-        <field name="name">GroundNut</field>
+        <field name="name">Groundnut</field>
         <field name="code">groundnut</field>
         <field name="category" ref="crop_category_none"/>
     </record>
@@ -292,9 +292,9 @@
         <field name="code">irish_potato</field>
         <field name="category" ref="crop_category_none"/>
     </record>
-    <record id="kenef" model="g2p.crop">
+    <record id="kenaf" model="g2p.crop">
         <field name="name">Kenaf</field>
-        <field name="code">kenef</field>
+        <field name="code">kenaf</field>
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="kororima" model="g2p.crop">
@@ -302,9 +302,9 @@
         <field name="code">kororima</field>
         <field name="category" ref="crop_category_none"/>
     </record>
-    <record id="lavander" model="g2p.crop">
+    <record id="lavender" model="g2p.crop">
         <field name="name">Lavender</field>
-        <field name="code">lavander</field>
+        <field name="code">lavender</field>
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="lemon_grass" model="g2p.crop">
@@ -328,7 +328,7 @@
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="lima_bean" model="g2p.crop">
-        <field name="name">Lima bean</field>
+        <field name="name">Lima Bean</field>
         <field name="code">lima_bean</field>
         <field name="category" ref="crop_category_none"/>
     </record>
@@ -348,7 +348,7 @@
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="maize" model="g2p.crop">
-        <field name="name">Maize ( Zea mays)</field>
+        <field name="name">Maize (Zea mays)</field>
         <field name="code">maize</field>
         <field name="category" ref="crop_category_none"/>
     </record>
@@ -358,8 +358,8 @@
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="malt_barley" model="g2p.crop">
-        <field name="name">Malt Braley</field>
-        <field name="code">malt_braley</field>
+        <field name="name">Malt Barley</field>
+        <field name="code">malt_barley</field>
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="mango" model="g2p.crop">
@@ -388,7 +388,7 @@
         <field name="category" ref="crop_category_none"/>
     </record>
     <record id="napier_grass" model="g2p.crop">
-        <field name="name">Napier grass</field>
+        <field name="name">Napier Grass</field>
         <field name="code">napier_grass</field>
         <field name="category" ref="crop_category_none"/>
     </record>
