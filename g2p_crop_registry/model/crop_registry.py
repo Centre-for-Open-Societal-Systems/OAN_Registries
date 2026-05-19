@@ -1,4 +1,4 @@
-from odoo import api, fields, models, api
+from odoo import api, fields, models
 import re
 from odoo.exceptions import ValidationError
 
@@ -7,14 +7,10 @@ class G2PCrop(models.Model):
     _name = 'g2p.crop.registry'
     _description = 'G2p Crop Registry'
 
-    # farmer_id = fields.Many2one(
-    #     'res.partner',
-    #     string='Farmer',required=True,
-    #     domain=[('farmer_unique_id', '!=', False)],  # only show actual farmers
-    #     context={'show_farmer_id': True}
-    # )
-    farmer_display_id = fields.Char(
-        string='Farmer ID',
+    farmer_id = fields.Char(string="Farmer ID")
+    fyda_id = fields.Char(string="Fyda ID")
+    farmer_display_id = fields.Many2one('res.partner',
+        string='Farmer Name',
         store=True
     )
     zone_name_id = fields.Many2one('g2p.zone',
@@ -56,7 +52,8 @@ class G2PCrop(models.Model):
     ('other', 'Other'),
     ], string="Current Land Use")
     crop_name_id = fields.Many2one('g2p.crop', string="Crop Name")
-    crop_variety_id = fields.Many2one('g2p.crop.category', string="Crop Variety")
+    crop_category_id = fields.Many2one('g2p.crop.category', string="Crop Variety")
+    crop_variety_id = fields.Many2one("g2p.crop.variety",string="Crop Variety")
     crop_area = fields.Float(string="Crop Area")
     crop_season_id = fields.Many2one('g2p.season', string="Crop Season")
     crop_produce_min = fields.Float(string="Crop Produce Min")
@@ -152,6 +149,22 @@ class G2PCrop(models.Model):
                     if not re.match(r'^\d{10}$', number):
                         raise ValidationError("Please enter a valid mobile number")
 
+    @api.model
+    def create(self, vals):
+        record = super(G2PCrop, self).create(vals)
+        self.env['g2p.crop.information'].create({
+            'farmer_id': record.farmer_id,
+            'partner_id': record.farmer_display_id.id,  # now populated
+            'crop': record.crop_name_id.id,
+            'farmer_fyda_id': record.fyda_id,
+            'season':record.crop_season_id.id,
+        })
+        return record
+
+    @api.onchange('crop_name_id')
+    def _onchange_crop_id(self):
+        self.crop_variety_id = False
+        return {'domain': {'crop_variety_id': [('crop_id', '=', self.crop_name_id.id)]}}
 
 
 
