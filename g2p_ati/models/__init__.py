@@ -14,3 +14,4 @@ from . import livestock_information
 from . import crop_information
 from . import farmer
 from . import group_membership
+from . import crop_variety
