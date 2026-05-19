@@ -8,7 +8,7 @@
         <field name="name">Condiments and Medicinal Plants</field>
         <field name="code">condiments_and_medicinal_plants</field>
     </record>
-    <record id="crop_category_forage_and_posture" model="g2p.crop.category">
+    <record id="crop_category_forage_and_pasture" model="g2p.crop.category">
         <field name="name">Forage and Pasture</field>
         <field name="code">forage_and_pasture</field>
     </record>
