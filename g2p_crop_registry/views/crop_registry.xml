@@ -9,10 +9,14 @@
             <field name="model">g2p.crop.registry</field>
             <field name="arch" type="xml">
                 <tree string="Crop Sown Registry">
+                    <field name="farmer_id"
+                           context="{'show_farmer_id': True}"
+                           options="{'no_create': True}"/>
+                    <field name="fyda_id"/>
                     <field name="zone_name_id"/>
-                    <field name="land_id"/>
-                    <field name="land_area"/>
-                    <field name="owner_name"/>
+                    <field name="crop_name_id"/>
+                    <field name="crop_category_id"/>
+                    <field name="crop_variety_id"/>
                 </tree>
             </field>
         </record>
@@ -26,9 +30,10 @@
                     <sheet>
                         <group>
                             <group>
-                                <!--                                <field name="farmer_id"-->
-                                <!--                                       context="{'show_farmer_id': True}"-->
-                                <!--                                       options="{'no_create': True}"/>-->
+                                <field name="farmer_id"
+                                       context="{'show_farmer_id': True}"
+                                       options="{'no_create': True}"/>
+                                <field name="fyda_id"/>
                                 <field name="farmer_display_id"/>
                                 <field name="zone_name_id"/>
                                 <field name="woreda_name_id"/>
@@ -42,7 +47,8 @@
                                 <field name="soil_fertility"/>
                                 <field name="current_land_use"/>
                                 <field name="crop_name_id"/>
-                                <field name="crop_variety_id"/>
+                                <field name="crop_category_id"/>
+                                <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]"/>
                                 <field name="crop_area"/>
                                 <field name="crop_season_id"/>
                                 <field name="crop_produce_min"/>
@@ -135,7 +141,7 @@
                 <search string="Search Crop Sown Registry">
 
                     <!-- Search Fields -->
-                    <field name="farmer_display_id"/>
+<!--                    <field name="farmer_display_id"/>-->
                     <field name="zone_name_id"/>
                     <field name="woreda_name_id"/>
                     <field name="kebele_name"/>
