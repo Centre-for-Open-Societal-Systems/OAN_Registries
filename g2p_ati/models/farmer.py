@@ -225,6 +225,8 @@ class G2PFarmer(models.Model):
 
     farmer_id = fields.Char(string="Farmer ID", compute="_compute_farmer_id", store=True, index=True)
     is_psnp_user = fields.Boolean(default=False, string="PSNP User")
+    rec_import_source = fields.Many2one("g2p.import.source", string="Import Source")
+    odk_instance_id = fields.Char(string="ODK Instance ID", index=True, copy=False)
 
     @api.onchange("is_member_of_primary_cooperative")
     def _onchange_is_member_of_primary_cooperative(self):

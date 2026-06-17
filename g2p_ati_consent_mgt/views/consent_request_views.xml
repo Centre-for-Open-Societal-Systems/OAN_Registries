@@ -9,6 +9,7 @@
                 <field name="farmer_id" />
                 <field name="partner_record_id" />
                 <field name="status" />
+                <field name="consent_reason_id" />
                 <filter name="pending" string="Pending" domain="[('status', '=', 'pending')]" />
                 <filter name="approved" string="Approved" domain="[('status', '=', 'approved')]" />
                 <filter name="active_status" string="Active" domain="[('status', 'in', ['pending', 'approved'])]" />
@@ -16,6 +17,7 @@
                     <filter name="group_by_status" string="Status" context="{'group_by': 'status'}" />
                     <filter name="group_by_partner" string="Partner" context="{'group_by': 'partner_record_id'}" />
                     <filter name="group_by_farmer" string="Farmer" context="{'group_by': 'farmer_id'}" />
+                    <filter name="group_by_reason" string="Consent Reason" context="{'group_by': 'consent_reason_id'}" />
                 </group>
             </search>
         </field>
@@ -30,6 +32,7 @@
                 <field name="consent_type" />
                 <field name="partner_record_id" />
                 <field name="farmer_id" />
+                <field name="consent_reason_id" />
                 <field name="status" />
                 <field name="validity_from" />
                 <field name="validity_to" />
@@ -97,7 +100,11 @@
                             <field name="consent_creation_request_id" />
                             <field name="consent_type" />
                             <field name="originated_from" />
-                            <field name="purpose" />
+                            <field
+                                name="consent_reason_id"
+                                options="{'no_create': True, 'no_open': True, 'no_create_edit': True}"
+                            />
+                            <field name="purpose" readonly="1" />
                             <field
                                 name="allowed_data_field_ids"
                                 widget="many2many_tags"

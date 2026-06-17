@@ -312,12 +312,17 @@
     </record>
 
     <record id="g2p_validation_base_tree_view_db_import_label" model="ir.ui.view">
-        <field name="name">g2p.validation.base.tree.db.import.label</field>
+        <field name="name">g2p.validation.base.tree.import.source</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="g2p_draft_publish.g2p_validation_base_tree_view" />
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='db_import']" position="attributes">
-                <attribute name="string">DB import</attribute>
+            <xpath expr="//field[@name='db_import']" position="replace">
+                <field
+                    name="rec_import_source"
+                    string="Import Source"
+                    widget="badge"
+                    decoration-info="rec_import_source"
+                />
             </xpath>
         </field>
     </record>

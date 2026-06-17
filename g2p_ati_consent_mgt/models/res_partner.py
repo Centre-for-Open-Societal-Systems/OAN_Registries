@@ -33,6 +33,15 @@ class ResPartner(models.Model):
         string="Portal Users",
         compute="_compute_consent_portal_user_count",
     )
+    consent_portal_role_ids = fields.One2many(
+        "g2p.consent.portal.role",
+        "consent_parent_partner_id",
+        string="Portal Roles",
+    )
+    consent_portal_role_count = fields.Integer(
+        string="Portal Roles",
+        compute="_compute_consent_portal_role_count",
+    )
 
     def _compute_consent_request_count(self):
         consent_obj = self.env["g2p.consent.request"]
@@ -58,6 +67,20 @@ class ResPartner(models.Model):
         for partner in self:
             partner.consent_portal_user_count = counts.get(partner.id, 0)
 
+    @api.depends("consent_portal_role_ids")
+    def _compute_consent_portal_role_count(self):
+        grouped_data = self.env["g2p.consent.portal.role"].sudo().read_group(
+            [("consent_parent_partner_id", "in", self.ids)],
+            ["consent_parent_partner_id"],
+            ["consent_parent_partner_id"],
+        )
+        counts = {
+            item["consent_parent_partner_id"][0]: item["consent_parent_partner_id_count"]
+            for item in grouped_data
+        }
+        for partner in self:
+            partner.consent_portal_role_count = counts.get(partner.id, 0)
+
     def action_view_consent_requests(self):
         self.ensure_one()
         return {
@@ -71,11 +94,42 @@ class ResPartner(models.Model):
 
     def action_open_consent_portal_users(self):
         self.ensure_one()
+        tree_view = self.env.ref(
+            "g2p_ati_consent_mgt.view_g2p_ati_consent_portal_users_tree", raise_if_not_found=False
+        )
         return {
             "type": "ir.actions.act_window",
             "name": _("Portal Users"),
             "res_model": "res.users",
             "view_mode": "tree,form",
+            "views": [(tree_view.id, "tree"), (False, "form")] if tree_view else [(False, "tree"), (False, "form")],
+            "domain": [("consent_parent_partner_id", "=", self.id)],
+            "context": {"default_consent_parent_partner_id": self.id},
+        }
+
+    def action_open_consent_portal_roles(self):
+        self.ensure_one()
+        tree_view = self.env.ref(
+            "g2p_ati_consent_mgt.view_g2p_ati_consent_portal_role_tree", raise_if_not_found=False
+        )
+        form_view = self.env.ref(
+            "g2p_ati_consent_mgt.view_g2p_ati_consent_portal_role_form", raise_if_not_found=False
+        )
+        views = []
+        if tree_view:
+            views.append((tree_view.id, "tree"))
+        else:
+            views.append((False, "tree"))
+        if form_view:
+            views.append((form_view.id, "form"))
+        else:
+            views.append((False, "form"))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Portal Roles"),
+            "res_model": "g2p.consent.portal.role",
+            "view_mode": "tree,form",
+            "views": views,
             "domain": [("consent_parent_partner_id", "=", self.id)],
             "context": {"default_consent_parent_partner_id": self.id},
         }

@@ -11,6 +11,20 @@ class G2PATICreatePortalUserWizard(models.TransientModel):
     login = fields.Char(string="Login", required=True)
     email = fields.Char(string="Email")
     phone = fields.Char(string="Phone")
+    manager_user_id = fields.Many2one(
+        "res.users",
+        string="Portal Manager",
+        domain="[('consent_parent_partner_id', '=', parent_partner_id)]",
+    )
+    role_ids = fields.Many2many(
+        "g2p.consent.portal.role",
+        string="Portal Roles",
+        domain="[('consent_parent_partner_id', '=', parent_partner_id)]",
+    )
+    can_manage_hierarchy = fields.Boolean(
+        string="Can Create Users & Manage Hierarchy",
+        help="Allows this portal user to create portal users, create roles, and manage user hierarchy in the consent portal.",
+    )
     send_reset_password = fields.Boolean(string="Send Reset Password Email", default=False)
 
     @api.model
@@ -38,6 +52,13 @@ class G2PATICreatePortalUserWizard(models.TransientModel):
         if not parent_partner.is_consent_parent:
             parent_partner.write({"is_consent_parent": True})
 
+        if self.manager_user_id and self.manager_user_id.consent_parent_partner_id != parent_partner:
+            raise UserError(_("Selected portal manager does not belong to this consent parent."))
+
+        role_ids = self.role_ids.filtered(
+            lambda role: role.consent_parent_partner_id == parent_partner
+        ).ids
+
         child_partner = self.env["res.partner"].sudo().create(
             {
                 "name": self.name,
@@ -56,6 +77,9 @@ class G2PATICreatePortalUserWizard(models.TransientModel):
                 "email": self.email or False,
                 "partner_id": child_partner.id,
                 "consent_parent_partner_id": parent_partner.id,
+                "consent_portal_manager_user_id": self.manager_user_id.id or False,
+                "consent_portal_role_ids": [(6, 0, role_ids)],
+                "consent_portal_can_manage_hierarchy": self.can_manage_hierarchy,
                 "groups_id": [(6, 0, [portal_group.id])],
             }
         )

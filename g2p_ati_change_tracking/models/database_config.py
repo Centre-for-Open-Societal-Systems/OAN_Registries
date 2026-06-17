@@ -6,6 +6,7 @@ from odoo import api, models, tools
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
+_ENSURED_AUDIT_DATABASES = set()
 
 
 class AuditDatabaseManager(models.AbstractModel):
@@ -24,6 +25,16 @@ class AuditDatabaseManager(models.AbstractModel):
             'user': os.getenv('G2P_CHANGE_LOG_DB_USER') or config_param.get_param('log_db.db.user', 'audit_user'),
             'password': os.getenv('G2P_CHANGE_LOG_DB_PASSWORD') or config_param.get_param('log_db.db.password', ''),
         }
+
+    @api.model
+    def _get_audit_db_signature(self):
+        config = self._get_audit_db_config()
+        return (
+            config["host"],
+            config["port"],
+            config["database"],
+            config["user"],
+        )
 
     @api.model
     def _get_audit_db_connection(self):
@@ -49,6 +60,10 @@ class AuditDatabaseManager(models.AbstractModel):
     @api.model
     def _ensure_audit_tables(self):
         """Ensure audit tables exist in external database"""
+        signature = self._get_audit_db_signature()
+        if signature in _ENSURED_AUDIT_DATABASES:
+            return True
+
         conn = self._get_audit_db_connection()
         try:
             cursor = conn.cursor()
@@ -107,6 +122,7 @@ class AuditDatabaseManager(models.AbstractModel):
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_g2p_change_log_line_log_id ON g2p_change_log_line(log_id)")
             
             conn.commit()
+            _ENSURED_AUDIT_DATABASES.add(signature)
             _logger.info("Audit database tables created/verified successfully")
             
         except Exception as e:
@@ -121,8 +137,8 @@ class AuditDatabaseManager(models.AbstractModel):
         # """Execute query on audit database"""
         # print(f"🔧 Executing audit query: {query[:100]}...")
         # print(f"🔧 Query params: {params}")
-        conn = self._get_audit_db_connection()
         self._ensure_audit_tables()
+        conn = self._get_audit_db_connection()
         try:
             cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             cursor.execute(query, params or ())

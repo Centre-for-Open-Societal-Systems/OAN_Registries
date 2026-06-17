@@ -10,13 +10,13 @@
         <field name="code">Erimo</field>
         <field name="crop_id" ref="adzuki_bean"/>
     </record>
-<!--    ________________________-->
+    <!--    ________________________-->
     <record id="variety_beans_alfalfa" model="g2p.crop.variety">
         <field name="name">Alfalfa - Supersonic</field>
         <field name="code">alfalfa-supersonic</field>
         <field name="crop_id" ref="alfalfa"/>
     </record>
-<!--    __________________________________-->
+    <!--    __________________________________-->
     <record id="variety_beans_avocado_al1" model="g2p.crop.variety">
         <field name="name">Avocado-AL1</field>
         <field name="code">avocado</field>
@@ -27,7 +27,7 @@
         <field name="code">avocado-choquette</field>
         <field name="crop_id" ref="avocado"/>
     </record>
-<!--    _______________________________________-->
+    <!--    _______________________________________-->
     <record id="variety_beans_banana-dinkua" model="g2p.crop.variety">
         <field name="name">Banana-Dinkua-1</field>
         <field name="code">banana-dinkua-1</field>
@@ -38,13 +38,13 @@
         <field name="code">banana-ladyfinger</field>
         <field name="crop_id" ref="banana"/>
     </record>
-<!--    _______________________________________-->
+    <!--    _______________________________________-->
     <record id="variety_brachiaria_brizantha" model="g2p.crop.variety">
         <field name="name">Brachiaria brizantha cv.Xaraes - Xaraes</field>
         <field name="code">brachiaria_brizantha_cv.xaraes-xaraes</field>
         <field name="crop_id" ref="brachiaria_brizantha_cv"/>
     </record>
-<!--    _______________________________________-->
+    <!--    _______________________________________-->
     <record id="variety_breadwheat-mandoyu" model="g2p.crop.variety">
         <field name="name">Bread Wheat - Mandoyu (Worrakatta/Pastor)</field>
         <field name="code">breadwheat-mandoyu(worrakatta/pastor)</field>
@@ -152,7 +152,7 @@
         <field name="code">cauliflower-chambord_rz</field>
         <field name="crop_id" ref="cauliflower"/>
     </record>
-     <!--    _______________________________________-->
+    <!--    _______________________________________-->
     <record id="variety_chich_pea_mastewal" model="g2p.crop.variety">
         <field name="name">chich pea mastewal</field>
         <field name="code">chich_pea_mastewal</field>
@@ -261,7 +261,7 @@
         <field name="crop_id" ref="coriander"/>
     </record>
     <!--    _______________________________________-->
-     <record id="variety_cotton-Jantekel" model="g2p.crop.variety">
+    <record id="variety_cotton-Jantekel" model="g2p.crop.variety">
         <field name="name">Cotton-Jantekel (Amibara I)</field>
         <field name="code">cotton-Jantekel-(Amibara I)</field>
         <field name="crop_id" ref="cotton"/>
@@ -744,7 +744,7 @@
         <field name="crop_id" ref="irish_potato"/>
     </record>
     <!--    _______________________________________-->
-     <record id="variety_korerima-benchi-maji" model="g2p.crop.variety">
+    <record id="variety_korerima-benchi-maji" model="g2p.crop.variety">
         <field name="name">Korerima - Benchi maji-1 (Acc#0211/00)</field>
         <field name="code">korerima-benchi-maji-1-(Acc#0211/00)</field>
         <field name="crop_id" ref="kororima"/>
@@ -1141,4 +1141,5 @@
         <field name="crop_id" ref="rapeseed"/>
     </record>
     <!--    _______________________________________-->
+
 </odoo>

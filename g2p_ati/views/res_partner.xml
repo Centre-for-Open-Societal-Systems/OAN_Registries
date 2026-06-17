@@ -313,13 +313,13 @@
 							<field name="total_land_area" widget="g2p_trim_float" />
 							<field name="land_id" />
 							<field name="land_kebele"/>
-							<!-- <field name="certficate_provided"/> -->
-<!-- 							<field name="land_certificate" /> -->
-<!-- 							<field name="document_slug" column_invisible="1" /> -->
-<!-- 							<field name="document_mimetype" column_invisible="1" /> -->
-<!-- 							<field name="document_name" column_invisible="1" /> -->
-<!-- 							<field name="document_id" column_invisible="1" /> -->
-<!-- 							<field name="document_url" column_invisible="1" /> -->
+							<field name="certficate_provided"/>
+							<field name="land_certificate" />
+							<field name="document_slug" column_invisible="1" />
+							<field name="document_mimetype" column_invisible="1" />
+							<field name="document_name" column_invisible="1" />
+							<field name="document_id" column_invisible="1" />
+							<field name="document_url" column_invisible="1" />
 
 							<widget name="g2p_ati_document_preview" />
 						</tree>
@@ -475,7 +475,7 @@
 			<xpath expr="//field[@name='registration_date']" position="attributes">
 				<attribute name="invisible">1</attribute>
 			</xpath>
-		<xpath expr="//field[@name='kind']" position="after">
+			<xpath expr="//field[@name='kind']" position="after">
 				<field
                     name="rejection_reason"
                     invisible="state!='rejected'"

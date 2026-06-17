@@ -37,12 +37,12 @@
     <record id="alfalfa" model="g2p.crop">
         <field name="name">Alfalfa (Medicago Sativa)</field>
         <field name="code">alfalfa</field>
-        <field name="category" ref="crop_category_forage_and_pasture"/>
+        <field name="category" ref="crop_category_none"/>
     </record>
     <record id="african_marigold" model="g2p.crop">
         <field name="name">African Marigold</field>
         <field name="code">african_marigold</field>
-        <field name="category" ref="crop_category_none"/>
+        <field name="category" ref="crop_category_forage_and_pasture"/>
     </record>
     <record id="anchote" model="g2p.crop">
         <field name="name">Anchote</field>

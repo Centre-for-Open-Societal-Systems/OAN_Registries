@@ -30,6 +30,14 @@
                         >
                             <field name="consent_portal_user_count" string="Portal Users" widget="statinfo" />
                         </button>
+                        <button
+                            name="action_open_consent_portal_roles"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-sitemap"
+                        >
+                            <field name="consent_portal_role_count" string="Portal Roles" widget="statinfo" />
+                        </button>
                     </div>
                     <group>
                         <group>
@@ -57,7 +65,27 @@
                                 <tree>
                                     <field name="name" />
                                     <field name="login" />
-                                    <field name="partner_id" />
+                                    <field name="consent_portal_manager_user_id" />
+                                    <field name="consent_portal_role_ids" widget="many2many_tags" optional="show" />
+                                    <field name="consent_portal_can_manage_hierarchy" optional="show" />
+                                    <field name="active" />
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Portal Roles">
+                            <button
+                                name="action_open_consent_portal_roles"
+                                type="object"
+                                string="Manage Roles"
+                                class="btn-secondary"
+                            />
+                            <field name="consent_portal_role_ids" readonly="1">
+                                <tree>
+                                    <field name="name" />
+                                    <field name="parent_id" />
+                                    <field name="user_count" />
+                                    <field name="create_uid" string="Created By" />
+                                    <field name="create_date" />
                                     <field name="active" />
                                 </tree>
                             </field>
@@ -68,6 +96,22 @@
         </field>
     </record>
 
+    <record id="view_g2p_ati_consent_portal_users_tree" model="ir.ui.view">
+        <field name="name">res.users.tree.consent.portal</field>
+        <field name="model">res.users</field>
+        <field name="arch" type="xml">
+            <tree string="Consent Portal Users">
+                <field name="name" />
+                <field name="login" />
+                <field name="consent_parent_partner_id" />
+                <field name="consent_portal_manager_user_id" />
+                <field name="consent_portal_role_ids" widget="many2many_tags" />
+                <field name="consent_portal_can_manage_hierarchy" />
+                <field name="active" />
+            </tree>
+        </field>
+    </record>
+
     <record id="view_g2p_ati_res_users_form_inherit_consent_parent" model="ir.ui.view">
         <field name="name">res.users.form.inherit.consent.parent</field>
         <field name="model">res.users</field>
@@ -75,6 +119,9 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="consent_parent_partner_id" />
+                <field name="consent_portal_can_manage_hierarchy" />
+                <field name="consent_portal_manager_user_id" />
+                <field name="consent_portal_role_ids" widget="many2many_tags" />
             </xpath>
         </field>
     </record>
@@ -96,6 +143,20 @@
         />
     </record>
 
+    <record id="action_g2p_ati_consent_portal_users" model="ir.actions.act_window">
+        <field name="name">Portal Users</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">tree,form</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('g2p_ati_consent_mgt.view_g2p_ati_consent_portal_users_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('base.view_users_form')})]"
+        />
+        <field name="groups_id" eval="[(4, ref('base.group_system'))]" />
+        <field name="domain">[('consent_parent_partner_id', '!=', False)]</field>
+    </record>
+
     <menuitem
         id="menu_g2p_ati_consent_management_root"
         name="Consent Management"
@@ -109,6 +170,15 @@
         parent="menu_g2p_ati_consent_management_root"
         action="action_g2p_ati_consent_parent_partners"
         sequence="10"
+        groups="base.group_system"
+    />
+
+    <menuitem
+        id="menu_g2p_ati_consent_portal_users"
+        name="Portal Users"
+        parent="menu_g2p_ati_consent_management_root"
+        action="action_g2p_ati_consent_portal_users"
+        sequence="12"
         groups="base.group_system"
     />
 </odoo>

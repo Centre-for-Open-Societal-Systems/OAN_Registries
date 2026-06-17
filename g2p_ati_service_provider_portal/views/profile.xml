@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template id="ati_profile_page_service_provider" name="ATI Service Provider Profile">
+        <t t-call="g2p_agent_portal_base.base">
+            <t t-set="title">My Profile | Registration Portal</t>
+            <div class="container-adjuster ati-sp-profile-page">
+                <style>
+                    .ati-sp-profile-page {
+                        width: min(1160px, 100%);
+                        margin: 0 auto;
+                        padding: 2rem 2rem 3rem;
+                        box-sizing: border-box;
+                    }
+                    .ati-sp-profile-page .all-title,
+                    .ati-sp-profile-breadcrumb {
+                        display: none;
+                    }
+                    .ati-sp-profile-shell {
+                        display: grid;
+                        gap: 1.4rem;
+                    }
+                    .ati-sp-profile-card {
+                        position: relative;
+                        overflow: hidden;
+                        border: 1px solid rgba(0, 145, 71, 0.12);
+                        border-radius: 28px;
+                        background: linear-gradient(180deg, #ffffff 0%, #fbfdfb 100%);
+                        box-shadow: 0 18px 42px rgba(0, 145, 71, 0.08);
+                    }
+                    .ati-sp-profile-card::after {
+                        content: "";
+                        position: absolute;
+                        top: -72px;
+                        right: -48px;
+                        width: 180px;
+                        height: 180px;
+                        border-radius: 50%;
+                        background: radial-gradient(circle, rgba(0, 145, 71, 0.08) 0%, rgba(0, 145, 71, 0.08) 56%, rgba(0, 145, 71, 0) 58%);
+                        pointer-events: none;
+                    }
+                    .ati-sp-profile-hero {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 1.5rem;
+                        padding: 1.75rem;
+                    }
+                    .ati-sp-profile-hero-main {
+                        display: flex;
+                        align-items: center;
+                        gap: 1rem;
+                        min-width: 0;
+                    }
+                    .ati-sp-profile-avatar {
+                        width: 72px;
+                        height: 72px;
+                        border-radius: 22px;
+                        object-fit: cover;
+                        border: 1px solid rgba(0, 145, 71, 0.14);
+                        box-shadow: 0 10px 24px rgba(0, 145, 71, 0.12);
+                        background: #f4faf6;
+                    }
+                    .ati-sp-profile-hero-copy {
+                        min-width: 0;
+                    }
+                    .ati-sp-profile-role {
+                        margin: 0;
+                        color: #2f7a49;
+                        font-size: 1.55rem;
+                        font-weight: 700;
+                        line-height: 1.15;
+                    }
+                    .ati-sp-profile-subtitle {
+                        margin: 0.35rem 0 0;
+                        color: #6f817b;
+                        font-size: 0.98rem;
+                        line-height: 1.5;
+                    }
+                    .ati-sp-profile-details {
+                        padding: 1.5rem 1.75rem 1.8rem;
+                    }
+                    .ati-sp-profile-section-head {
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        margin-bottom: 1.15rem;
+                    }
+                    .ati-sp-profile-section-title {
+                        margin: 0;
+                        color: #1f2d27;
+                        font-size: 1.08rem;
+                        font-weight: 800;
+                    }
+                    .ati-sp-profile-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                        gap: 1.15rem 1.4rem;
+                    }
+                    .ati-sp-profile-field {
+                        padding: 1rem 1.05rem;
+                        border: 1px solid rgba(0, 145, 71, 0.1);
+                        border-radius: 20px;
+                        background: rgba(255, 255, 255, 0.92);
+                    }
+                    .ati-sp-profile-label {
+                        display: block;
+                        margin-bottom: 0.35rem;
+                        color: #6f817b;
+                        font-size: 0.86rem;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.03em;
+                    }
+                    .ati-sp-profile-value {
+                        color: #1f2d27;
+                        font-size: 1.02rem;
+                        font-weight: 700;
+                        line-height: 1.5;
+                        word-break: break-word;
+                    }
+                    @media (max-width: 767.98px) {
+                        .ati-sp-profile-page {
+                            width: 100%;
+                            padding: 1.2rem 1rem 2rem;
+                        }
+                        .ati-sp-profile-hero {
+                            flex-direction: column;
+                            align-items: flex-start;
+                            padding: 1.35rem;
+                        }
+                        .ati-sp-profile-details {
+                            padding: 1.2rem 1.35rem 1.35rem;
+                        }
+                        .ati-sp-profile-grid {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                </style>
+
+                <div class="ati-sp-profile-shell">
+                    <section class="ati-sp-profile-card ati-sp-profile-hero">
+                        <div class="ati-sp-profile-hero-main">
+                            <img
+                                t-attf-src="/web/image?model=res.users&amp;field=avatar_128&amp;id={{request.env.uid}}"
+                                alt="Profile"
+                                class="ati-sp-profile-avatar"
+                            />
+                            <div class="ati-sp-profile-hero-copy">
+                                <p class="ati-sp-profile-role">
+                                    <t t-out="profile_role_name or 'Portal User'" />
+                                </p>
+                                <p class="ati-sp-profile-subtitle">
+                                    Review your account details and contact information from one place.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="ati-sp-profile-card ati-sp-profile-details">
+                        <div class="ati-sp-profile-section-head">
+                            <h2 class="ati-sp-profile-section-title">Personal Information</h2>
+                        </div>
+
+                        <div class="ati-sp-profile-grid">
+                            <div class="ati-sp-profile-field">
+                                <span class="ati-sp-profile-label">Role</span>
+                                <div class="ati-sp-profile-value">
+                                    <t t-out="profile_role_name or '&#8209;'" />
+                                </div>
+                            </div>
+
+                            <div class="ati-sp-profile-field">
+                                <span class="ati-sp-profile-label">Partner</span>
+                                <div class="ati-sp-profile-value">
+                                    <t t-out="profile_partner_name if profile_partner_name else '&#8209;'" />
+                                </div>
+                            </div>
+
+                            <div class="ati-sp-profile-field">
+                                <span class="ati-sp-profile-label">Name</span>
+                                <div class="ati-sp-profile-value">
+                                    <t t-out="current_partner['name'] if current_partner['name'] else '&#8209;'" />
+                                </div>
+                            </div>
+
+                            <div class="ati-sp-profile-field">
+                                <span class="ati-sp-profile-label">Enumerator ID</span>
+                                <div class="ati-sp-profile-value">
+                                    <t
+                                        t-out="current_partner['eid'] if 'eid' in current_partner._fields and current_partner['eid'] else '&#8209;'"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="ati-sp-profile-field">
+                                <span class="ati-sp-profile-label">Email Address</span>
+                                <div class="ati-sp-profile-value">
+                                    <t t-out="current_partner['email'] if current_partner['email'] else '&#8209;'" />
+                                </div>
+                            </div>
+
+                            <div class="ati-sp-profile-field">
+                                <span class="ati-sp-profile-label">Mobile Number</span>
+                                <div class="ati-sp-profile-value">
+                                    <t t-out="current_partner['phone'] if current_partner['phone'] else '&#8209;'" />
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

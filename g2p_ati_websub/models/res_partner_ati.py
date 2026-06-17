@@ -1,13 +1,9 @@
 # Part of OpenG2P. See LICENSE file for full copyright and licensing details.
-from odoo import api, models, _,fields
+from odoo import api, models
 
-class G2pResPartner(models.Model):
-    _inherit="res.partner"
+import logging
 
-    websub_sent_at = fields.Datetime()
-   
-    def recompute_indicators(self, recomputed_fields=None):
-        return
+_logger = logging.getLogger(__name__)
 
 
 class ResPartnerATIWebsub(models.Model):

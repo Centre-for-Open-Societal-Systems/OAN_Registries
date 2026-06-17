@@ -57,8 +57,6 @@
   "education": .socio_economic_data.education_level,
   "hh_income_type": .socio_economic_data.income_source,
   "other_income_type": .socio_economic_data.other_income_source,
-  "crop_name": .socio_economic_data.crop_name,
-  "animal": .socio_economic_data.animal,
 
   "size_of_family": .socio_economic_data.size_of_family,
   "number_of_children_in_family": .socio_economic_data.number_of_children_in_family,
@@ -139,8 +137,6 @@
     "education": .hh_member_socio_economic_data.hh_member_education_level,
     "hh_income_type": .hh_member_socio_economic_data.hh_member_income_source,
     "other_income_type": .hh_member_socio_economic_data.hh_member_other_income_source,
-    "hh_member_crop_name": .hh_member_socio_economic_data.hh_member_crop_name,
-    "hh_member_animal": .hh_member_socio_economic_data.hh_member_animal,
 
     "size_of_family": .socio_economic_data.hh_member_size_of_family,
     "number_of_children_in_family": .socio_economic_data.hh_member_number_of_children_in_family,

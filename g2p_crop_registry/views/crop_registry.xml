@@ -48,7 +48,7 @@
                                 <field name="current_land_use"/>
                                 <field name="crop_name_id"/>
                                 <field name="crop_category_id"/>
-                                <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]"/>
+                                <field name="crop_variety_id"/>
                                 <field name="crop_area"/>
                                 <field name="crop_season_id"/>
                                 <field name="crop_produce_min"/>

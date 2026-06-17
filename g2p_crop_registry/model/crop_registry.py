@@ -156,7 +156,7 @@ class G2PCrop(models.Model):
             'farmer_id': record.farmer_id,
             'partner_id': record.farmer_display_id.id,  # now populated
             'crop': record.crop_name_id.id,
-            'farmer_fyda_id': record.fyda_id,
+            # 'farmer_fyda_id': record.fyda_id,
             'season':record.crop_season_id.id,
         })
         return record

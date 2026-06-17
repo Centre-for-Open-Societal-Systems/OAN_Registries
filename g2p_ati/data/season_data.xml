@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Kiremt Season -->
+    <record id="season_kiremt" model="g2p.season">
+        <field name="name">Kiremt</field>
+        <field name="start_gc">2026-06-01</field>
+        <field name="end_gc">2026-09-30</field>
+    </record>
+
+    <!-- Belg Season -->
+    <record id="season_bleg" model="g2p.season">
+        <field name="name">Belg</field>
+        <field name="start_gc">2026-02-01</field>
+        <field name="end_gc">2026-05-31</field>
+    </record>
+
+    <!-- Bega Season -->
+    <record id="season_bega" model="g2p.season">
+        <field name="name">Bega</field>
+        <field name="start_gc">2026-10-01</field>
+        <field name="end_gc">2027-01-31</field>
+    </record>
+
+</odoo>
