@@ -11,6 +11,9 @@
                     <field name="login" />
                     <field name="email" />
                     <field name="phone" />
+                    <field name="manager_user_id" />
+                    <field name="role_ids" widget="many2many_tags" />
+                    <field name="can_manage_hierarchy" />
                     <field name="send_reset_password" />
                 </group>
                 <footer>
@@ -21,4 +24,3 @@
         </field>
     </record>
 </odoo>
-

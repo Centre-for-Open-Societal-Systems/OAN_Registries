@@ -2,7 +2,7 @@
 <odoo>
 
 
-<!-- <menuitem id="g2p_documents.g2p_documents_main_menu_root" name="Documents" sequence="15" /> -->
+<menuitem id="g2p_documents.g2p_documents_main_menu_root" name="Documents" sequence="15" />
 
 <menuitem
         id="contacts.menu_contacts"

@@ -65,7 +65,12 @@ class G2PConsentRequest(models.Model):
     consent_provider_person_id = fields.Char()
     consent_target_object_ids = fields.Text(help='JSON list[dict], e.g. [{"register": ["<ids>"]}]')
     attribute_lists = fields.Text(help='JSON list[dict], e.g. [{"register": ["<fields>"]}]')
-    purpose = fields.Text(required=True)
+    consent_reason_id = fields.Many2one(
+        "g2p.consent.reason",
+        string="Consent Reason",
+        ondelete="restrict",
+    )
+    purpose = fields.Text()
     validity_from = fields.Datetime(string="Valid From")
     validity_to = fields.Datetime(string="Valid Until")
     originated_from = fields.Selection(
@@ -220,11 +225,11 @@ class G2PConsentRequest(models.Model):
             if rec.validity_from and rec.validity_to and rec.validity_from > rec.validity_to:
                 raise ValidationError(_("Valid From must be earlier than or equal to Valid Until."))
 
-    @api.constrains("purpose", "allowed_data_field_ids", "attachment_ids")
+    @api.constrains("consent_reason_id", "purpose", "allowed_data_field_ids", "attachment_ids")
     def _check_required_request_details(self):
         for rec in self:
-            if not (rec.purpose or "").strip():
-                raise ValidationError(_("Purpose is required for consent requests."))
+            if not rec.consent_reason_id and not (rec.purpose or "").strip():
+                raise ValidationError(_("Consent reason is required for consent requests."))
             if not rec.allowed_data_field_ids:
                 raise ValidationError(_("At least one data field is required for consent requests."))
             if not rec.attachment_ids:
@@ -387,6 +392,14 @@ class G2PConsentRequest(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        vals_list = [dict(vals) for vals in vals_list]
+        reason_model = self.env["g2p.consent.reason"].sudo()
+        for vals in vals_list:
+            reason_id = vals.get("consent_reason_id")
+            if reason_id and not (vals.get("purpose") or "").strip():
+                reason = reason_model.browse(reason_id)
+                if reason.exists():
+                    vals["purpose"] = reason.name
         if self.env.context.get("_skip_attribute_lists_sync"):
             return super().create(vals_list)
         records = super().create(vals_list)
@@ -401,6 +414,12 @@ class G2PConsentRequest(models.Model):
         return records
 
     def write(self, vals):
+        vals = dict(vals)
+        reason_id = vals.get("consent_reason_id")
+        if reason_id and "purpose" not in vals:
+            reason = self.env["g2p.consent.reason"].sudo().browse(reason_id)
+            if reason.exists():
+                vals["purpose"] = reason.name
         if self.env.context.get("_skip_attribute_lists_sync"):
             return super().write(vals)
         result = super().write(vals)

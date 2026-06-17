@@ -40,7 +40,6 @@
         <field name="arch" type="xml">
             <tree create="false" delete="false" edit="false">
                 <field name="farmer_id" />
-                <field name="farmer_fyda_id" />
                 <field name="partner_id" />
                 <field name="crop" />
                 <field name="collected_gc" />
@@ -58,7 +57,7 @@
         <field name="priority" eval="16" />
         <field name="active" eval="True" />
         <field name="arch" type="xml">
-            <tree editable="bottom">
+            <tree create="false" delete="false" edit="false">
                 <field name="farmer_id" />
                 <field name="partner_id" />
                 <field name="livestock_type" />

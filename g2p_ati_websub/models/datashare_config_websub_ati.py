@@ -5,6 +5,7 @@ from odoo import api, fields, models
 
 _logger = logging.getLogger(__name__)
 
+
 class G2PDatashareConfigWebsubATI(models.Model):
     _inherit = "g2p.datashare.config.websub"
 

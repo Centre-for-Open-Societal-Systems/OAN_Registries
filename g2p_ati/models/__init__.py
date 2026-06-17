@@ -12,6 +12,6 @@ from . import language
 from . import land_information
 from . import livestock_information
 from . import crop_information
+from . import import_source
 from . import farmer
 from . import group_membership
-from . import crop_variety

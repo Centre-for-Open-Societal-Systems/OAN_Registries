@@ -2,17 +2,20 @@
 <odoo>
     <template
         id="ati_individual_registrant_notification_view"
-        inherit_id="g2p_registration_portal_base.custom_base"
-        customize_show="True"
+        inherit_id="g2p_agent_portal_base.base"
         name="ATI"
-        priority="200"
+        priority="995"
     >
         <xpath expr="//div[hasclass('search-box')]" position="before">
             <div class="ati-topbar-notifications">
                 <div class="notifications_button_div">
                     <button id="show_notification" type="button" aria-label="Notifications">
                         <p class="notification_number" style="display: none;"><span /></p>
-                        <i class="fa fa-bell-o request_log" aria-hidden="true"></i>
+                        <img
+                            src="/g2p_ati_service_provider_portal/static/src/img/notification.png"
+                            class="notification-icon request_log"
+                            alt="Notifications"
+                        />
                     </button>
 
                     <div class="notification_dd" id="notification_dd">

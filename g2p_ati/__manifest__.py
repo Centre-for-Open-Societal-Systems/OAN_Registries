@@ -7,7 +7,7 @@
     "author": "OpenG2P",
     "website": "https://openg2p.org",
     "license": "LGPL-3",
-    "depends": ["g2p_social_registry", "g2p_enumerator"],
+    "depends": ["g2p_social_registry", "g2p_registry_documents", "g2p_enumerator"],
     "external_dependencies": {},
     "data": [
         "security/groups.xml",
@@ -29,6 +29,7 @@
         "data/primary_language.xml",
         "data/primary_commodity.xml",
         "data/water_source.xml",
+        "data/import_source.xml",
         # "data/farmer_id_cron_job.xml",
         "views/seasons.xml",
         "views/farmer_profile_menu.xml",
@@ -50,6 +51,7 @@
         "views/land_info.xml",
         "views/web_login.xml",
         "views/main_menu.xml",
+        "views/import_source_views.xml",
         "wizard/rejection_reason_wizard.xml",
     ],
     "assets": {

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_g2p_consent_reason_search" model="ir.ui.view">
+        <field name="name">g2p.consent.reason.search</field>
+        <field name="model">g2p.consent.reason</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" />
+                <field name="active" />
+                <filter name="active_reasons" string="Active" domain="[('active', '=', True)]" />
+                <filter name="archived_reasons" string="Archived" domain="[('active', '=', False)]" />
+            </search>
+        </field>
+    </record>
+
+    <record id="view_g2p_consent_reason_tree" model="ir.ui.view">
+        <field name="name">g2p.consent.reason.tree</field>
+        <field name="model">g2p.consent.reason</field>
+        <field name="arch" type="xml">
+            <tree string="Consent Reasons">
+                <field name="name" />
+                <field name="active" />
+                <field name="create_uid" string="Created By" />
+                <field name="create_date" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_consent_reason_form" model="ir.ui.view">
+        <field name="name">g2p.consent.reason.form</field>
+        <field name="model">g2p.consent.reason</field>
+        <field name="arch" type="xml">
+            <form string="Consent Reason">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" />
+                            <field name="active" />
+                        </group>
+                        <group>
+                            <field name="create_uid" string="Created By" readonly="1" />
+                            <field name="create_date" readonly="1" />
+                            <field name="write_uid" string="Last Updated By" readonly="1" />
+                            <field name="write_date" readonly="1" />
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_g2p_consent_reason" model="ir.actions.act_window">
+        <field name="name">Consent Reasons</field>
+        <field name="res_model">g2p.consent.reason</field>
+        <field name="view_mode">tree,form</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('g2p_ati_consent_mgt.view_g2p_consent_reason_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('g2p_ati_consent_mgt.view_g2p_consent_reason_form')})]"
+        />
+        <field name="search_view_id" ref="view_g2p_consent_reason_search" />
+        <field name="groups_id" eval="[(4, ref('base.group_system'))]" />
+        <field name="context">{'search_default_active_reasons': 1}</field>
+    </record>
+
+    <menuitem
+        id="menu_g2p_consent_reasons"
+        name="Consent Reasons"
+        parent="g2p_ati_consent_mgt.menu_g2p_ati_consent_management_root"
+        action="action_g2p_consent_reason"
+        sequence="16"
+        groups="base.group_system"
+    />
+</odoo>

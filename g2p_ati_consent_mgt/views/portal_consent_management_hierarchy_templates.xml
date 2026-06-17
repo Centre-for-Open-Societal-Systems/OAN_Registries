@@ -1,0 +1,1224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template
+        id="portal_consent_management_hierarchy_alerts"
+        inherit_id="g2p_ati_consent_mgt.portal_consent_management"
+    >
+        <xpath expr="//div[@id='portal_management_alerts_anchor']" position="replace">
+            <t t-if="portal_management_enabled and request.httprequest.args.get('mgmt_success')">
+                <div class="alert alert-success alert-dismissible fade show consent_mgmt_alert" role="alert">
+                    <t t-if="request.httprequest.args.get('mgmt_success') == 'role_created'">Portal role created successfully.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_success') == 'role_updated'">Portal role updated successfully.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_success') == 'user_created'">Portal user created successfully.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_success') == 'user_updated'">Portal user updated successfully.</t>
+                    <t t-else="">Portal management action completed successfully.</t>
+                    <t t-if="request.httprequest.args.get('mgmt_message')">
+                        <div class="small mt-1">
+                            <t t-esc="request.httprequest.args.get('mgmt_message')" />
+                        </div>
+                    </t>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" />
+                </div>
+            </t>
+            <t t-if="portal_management_enabled and request.httprequest.args.get('mgmt_error')">
+                <div class="alert alert-danger alert-dismissible fade show consent_mgmt_alert" role="alert">
+                    <t t-if="request.httprequest.args.get('mgmt_error') == 'access_denied'">You are not allowed to manage portal users or roles.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_error') == 'missing_role_name'">Role name is required.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_error') == 'invalid_role_parent'">Select a valid parent role.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_error') == 'invalid_role'">Role not found.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_error') == 'missing_user_fields'">Name, login, and password are required for portal users.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_error') == 'invalid_user_manager'">Select a valid portal manager.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_error') == 'invalid_user'">Portal user not found.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_error') == 'duplicate_login'">That login is already in use.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_error') == 'role_create_failed'">Portal role could not be created.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_error') == 'role_update_failed'">Portal role could not be updated.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_error') == 'user_create_failed'">Portal user could not be created.</t>
+                    <t t-elif="request.httprequest.args.get('mgmt_error') == 'user_update_failed'">Portal user could not be updated.</t>
+                    <t t-else="">Portal management action failed.</t>
+                    <t t-if="request.httprequest.args.get('mgmt_message')">
+                        <div class="small mt-1">
+                            <t t-esc="request.httprequest.args.get('mgmt_message')" />
+                        </div>
+                    </t>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" />
+                </div>
+            </t>
+            <t t-if="portal_management_enabled and (request.httprequest.args.get('mgmt_success') or request.httprequest.args.get('mgmt_error'))">
+                <script><![CDATA[
+                    (function() {
+                        function clearMgmtParams() {
+                            if (!window.history || !window.location) return;
+                            var url = new URL(window.location.href);
+                            ['mgmt_success', 'mgmt_error', 'mgmt_message'].forEach(function(param) {
+                                url.searchParams.delete(param);
+                            });
+                            window.history.replaceState(null, '', url.toString());
+                        }
+
+                        var alertEl = document.querySelector('.consent_mgmt_alert');
+                        if (!alertEl) {
+                            clearMgmtParams();
+                            return;
+                        }
+
+                        setTimeout(function() {
+                            if (window.bootstrap && window.bootstrap.Alert) {
+                                var alertInstance = window.bootstrap.Alert.getOrCreateInstance(alertEl);
+                                alertInstance.close();
+                            } else {
+                                alertEl.classList.remove('show');
+                                alertEl.classList.add('fade');
+                                alertEl.style.display = 'none';
+                            }
+                            clearMgmtParams();
+                        }, 4000);
+                    })();
+                ]]></script>
+            </t>
+        </xpath>
+    </template>
+
+    <template
+        id="portal_consent_management_hierarchy_section"
+        inherit_id="g2p_ati_consent_mgt.portal_consent_management"
+    >
+        <xpath expr="//div[@id='portal_roles_section_anchor']" position="replace">
+            <t t-if="portal_management_enabled">
+                <div class="mb-4">
+                    <style>
+                        .o_consent_portal .consent_mgmt_header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 1rem;
+                        margin-bottom: 1rem;
+                        }
+                        .o_consent_portal .consent_mgmt_actions {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 0.65rem;
+                        }
+                        .o_consent_portal .consent_mgmt_inner_tabs {
+                        margin-bottom: 1rem;
+                        }
+                        .o_consent_portal .consent_mgmt_inner_tabs .nav {
+                        gap: 0.75rem;
+                        flex-wrap: wrap;
+                        }
+                        .o_consent_portal .consent_mgmt_inner_tabs .nav-link {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 0.55rem;
+                        border: 1px solid #d8e6df;
+                        border-radius: 999px;
+                        background: #fff;
+                        color: #2b3a37;
+                        font-size: 0.9rem;
+                        font-weight: 700;
+                        padding: 0.72rem 1.15rem;
+                        box-shadow: 0 10px 22px rgba(25, 40, 32, 0.05);
+                        }
+                        .o_consent_portal .consent_mgmt_inner_tabs .nav-link:hover,
+                        .o_consent_portal .consent_mgmt_inner_tabs .nav-link:focus {
+                        border-color: #bfd8cb;
+                        color: #173630;
+                        background: #fff;
+                        }
+                        .o_consent_portal .consent_mgmt_inner_tabs .nav-link.active {
+                        border-color: var(--consent-primary);
+                        background: linear-gradient(135deg, #009147 0%, #0a7b42 100%);
+                        color: #fff;
+                        box-shadow: 0 14px 28px rgba(0, 145, 71, 0.16);
+                        }
+                        .o_consent_portal .consent_mgmt_tab_count {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-width: 26px;
+                        min-height: 26px;
+                        padding: 0 0.45rem;
+                        border-radius: 999px;
+                        background: rgba(237, 246, 241, 0.95);
+                        color: #1d5a43;
+                        font-size: 0.76rem;
+                        font-weight: 800;
+                        line-height: 1;
+                        }
+                        .o_consent_portal .consent_mgmt_inner_tabs .nav-link.active .consent_mgmt_tab_count {
+                        background: rgba(255, 255, 255, 0.2);
+                        color: #fff;
+                        }
+                        .o_consent_portal .consent_mgmt_panel_header {
+                        display: flex;
+                        align-items: flex-start;
+                        justify-content: space-between;
+                        gap: 1rem;
+                        margin-bottom: 1rem;
+                        }
+                        .o_consent_portal .consent_mgmt_panel_subtitle {
+                        margin: 0.2rem 0 0;
+                        color: #74837f;
+                        font-size: 0.88rem;
+                        line-height: 1.45;
+                        }
+                        .o_consent_portal .consent_mgmt_table_wrap {
+                        overflow-x: auto;
+                        border: 1px solid #e4ebe7;
+                        border-radius: 18px;
+                        background: linear-gradient(180deg, #ffffff 0%, #fbfdfc 100%);
+                        }
+                        .o_consent_portal .consent_mgmt_table {
+                        width: 100%;
+                        min-width: 760px;
+                        border-collapse: separate;
+                        border-spacing: 0;
+                        }
+                        .o_consent_portal .consent_mgmt_table thead th {
+                        padding: 0.9rem 1rem;
+                        font-size: 0.78rem;
+                        font-weight: 700;
+                        letter-spacing: 0.04em;
+                        text-transform: uppercase;
+                        color: #62716e;
+                        background: #f7faf8;
+                        border-bottom: 1px solid #e7efeb;
+                        white-space: nowrap;
+                        }
+                        .o_consent_portal .consent_mgmt_table tbody td {
+                        padding: 0.95rem 1rem;
+                        border-bottom: 1px solid #edf2ef;
+                        vertical-align: top;
+                        color: #2d3a38;
+                        font-size: 0.92rem;
+                        }
+                        .o_consent_portal .consent_mgmt_table tbody tr:last-child td {
+                        border-bottom: 0;
+                        }
+                        .o_consent_portal .consent_mgmt_name {
+                        font-weight: 700;
+                        color: #16201e;
+                        }
+                        .o_consent_portal .consent_mgmt_secondary {
+                        margin-top: 0.2rem;
+                        color: #70807c;
+                        font-size: 0.82rem;
+                        line-height: 1.35;
+                        }
+                        .o_consent_portal .consent_mgmt_tags {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 0.35rem;
+                        }
+                        .o_consent_portal .consent_mgmt_tag {
+                        display: inline-flex;
+                        align-items: center;
+                        padding: 0.2rem 0.55rem;
+                        border-radius: 999px;
+                        background: #edf6f1;
+                        color: #23523f;
+                        font-size: 0.78rem;
+                        font-weight: 600;
+                        line-height: 1.2;
+                        }
+                        .o_consent_portal .consent_mgmt_contact {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 0.2rem;
+                        }
+                        .o_consent_portal .consent_mgmt_contact strong {
+                        font-size: 0.86rem;
+                        color: #20302d;
+                        }
+                        .o_consent_portal .consent_mgmt_row_actions {
+                        display: flex;
+                        justify-content: flex-end;
+                        }
+                        .o_consent_portal .consent_mgmt_icon_btn {
+                        width: 38px;
+                        height: 38px;
+                        border-radius: 12px;
+                        border: 1px solid #dce6e1;
+                        background: #fff;
+                        color: #2f4e44;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        box-shadow: 0 8px 16px rgba(25, 40, 32, 0.05);
+                        }
+                        .o_consent_portal .consent_mgmt_icon_btn:hover,
+                        .o_consent_portal .consent_mgmt_icon_btn:focus {
+                        border-color: #bcd7ca;
+                        background: #f8fcfa;
+                        color: #173b2f;
+                        }
+                        .o_consent_portal .consent_mgmt_empty {
+                        padding: 1rem 0;
+                        color: #6f7e7b;
+                        font-size: 0.9rem;
+                        }
+                        .consent_mgmt_modal .modal-dialog {
+                        max-width: min(88vw, 920px);
+                        margin: 2.25rem auto;
+                        }
+                        #create_role_modal.consent_mgmt_modal .modal-dialog {
+                        max-width: min(84vw, 640px);
+                        }
+                        #create_user_modal.consent_mgmt_modal .modal-dialog,
+                        [id^="role_detail_modal_"].consent_mgmt_modal .modal-dialog {
+                        max-width: min(88vw, 840px);
+                        }
+                        [id^="user_detail_modal_"].consent_mgmt_modal .modal-dialog {
+                        max-width: min(90vw, 900px);
+                        }
+                        .consent_mgmt_modal .modal-content {
+                        width: 100%;
+                        margin: 0 !important;
+                        border: 1px solid #dbe5df;
+                        border-radius: 28px;
+                        box-shadow: 0 26px 56px rgba(25, 40, 32, 0.2);
+                        background: linear-gradient(180deg, #ffffff 0%, #fcfefd 100%);
+                        overflow: hidden;
+                        display: flex;
+                        flex-direction: column;
+                        }
+                        .consent_mgmt_modal .modal-header,
+                        .consent_mgmt_modal .modal-footer {
+                        border: 0;
+                        }
+                        .consent_mgmt_modal .modal-header {
+                        padding: 1.7rem 2.85rem 1.2rem;
+                        border-bottom: 1px solid #edf2ef;
+                        background: linear-gradient(180deg, #fbfdfc 0%, #f6faf7 100%);
+                        }
+                        .consent_mgmt_modal .modal-body {
+                        padding: 1.8rem 2.85rem;
+                        background: #ffffff;
+                        }
+                        .consent_mgmt_modal .modal-title {
+                        font-weight: 800;
+                        color: #182422;
+                        font-size: 1.15rem;
+                        margin-bottom: 0.2rem;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_modal_subtitle {
+                        color: #71817d;
+                        font-size: 0.92rem;
+                        line-height: 1.5;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_meta_grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+                        gap: 0.95rem;
+                        margin-bottom: 1.35rem;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_meta_item {
+                        border: 1px solid #e6ede9;
+                        border-radius: 20px;
+                        background: linear-gradient(180deg, #fbfdfc 0%, #f6faf7 100%);
+                        padding: 1.05rem 1.1rem;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_meta_label {
+                        display: block;
+                        margin-bottom: 0.3rem;
+                        color: #7a8784;
+                        font-size: 0.76rem;
+                        font-weight: 700;
+                        letter-spacing: 0.04em;
+                        text-transform: uppercase;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_meta_value {
+                        color: #10211c;
+                        font-size: 1rem;
+                        font-weight: 700;
+                        line-height: 1.4;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_section_title {
+                        margin-bottom: 0.65rem;
+                        font-size: 0.98rem;
+                        font-weight: 700;
+                        color: #1f2d2a;
+                        }
+                        .consent_mgmt_modal .row.g-3 {
+                        --bs-gutter-x: 1.25rem;
+                        --bs-gutter-y: 1.25rem;
+                        margin-left: 0;
+                        margin-right: 0;
+                        padding-left: 1.35rem;
+                        padding-right: 1.35rem;
+                        }
+                        .consent_mgmt_modal .modal-body > .mb-3,
+                        .consent_mgmt_modal .modal-body > div:not(.row.g-3):not(.consent_mgmt_meta_grid) {
+                        padding-left: 1.35rem;
+                        padding-right: 1.35rem;
+                        }
+                        .consent_mgmt_modal .form-label {
+                        margin-bottom: 0.48rem;
+                        color: #5e6c69;
+                        font-size: 0.88rem;
+                        font-weight: 700;
+                        letter-spacing: 0.01em;
+                        }
+                        .consent_mgmt_modal .form-control,
+                        .consent_mgmt_modal .form-select {
+                        min-height: 54px;
+                        border: 1px solid #d9e5df;
+                        border-radius: 14px;
+                        background: linear-gradient(180deg, #ffffff 0%, #fbfdfc 100%);
+                        color: #152320;
+                        padding: 0.85rem 1rem;
+                        font-size: 0.96rem;
+                        line-height: 1.4;
+                        box-shadow: inset 0 1px 2px rgba(17, 24, 39, 0.03);
+                        transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease, transform .2s ease;
+                        }
+                        .consent_mgmt_modal .form-control::placeholder {
+                        color: #98a7a2;
+                        }
+                        .consent_mgmt_modal .form-control:hover,
+                        .consent_mgmt_modal .form-select:hover {
+                        border-color: #bfd8cb;
+                        background: #ffffff;
+                        }
+                        .consent_mgmt_modal .form-control:focus,
+                        .consent_mgmt_modal .form-select:focus {
+                        border-color: rgba(0, 145, 71, 0.72);
+                        box-shadow: 0 0 0 0.24rem rgba(0, 145, 71, 0.12);
+                        outline: none;
+                        background: #ffffff;
+                        }
+                        .consent_mgmt_modal textarea.form-control {
+                        min-height: 138px;
+                        padding-top: 0.95rem;
+                        resize: vertical;
+                        }
+                        .consent_mgmt_modal select[multiple].form-select {
+                        min-height: 168px;
+                        padding: 0.55rem;
+                        scrollbar-width: thin;
+                        }
+                        .consent_mgmt_modal select[multiple].form-select option {
+                        padding: 0.72rem 0.9rem;
+                        border-radius: 10px;
+                        margin-bottom: 0.22rem;
+                        }
+                        .consent_mgmt_modal select[multiple].form-select option:checked {
+                        background-color: #e9f6ef;
+                        color: #0d6a3a;
+                        font-weight: 700;
+                        background-image: linear-gradient(0deg, #e9f6ef 0%, #e9f6ef 100%);
+                        }
+                        .consent_mgmt_modal .form-text {
+                        color: #7f908a;
+                        font-size: 0.81rem;
+                        margin-top: 0.45rem;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select {
+                        position: relative;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_summary {
+                        list-style: none;
+                        min-height: 54px;
+                        border: 1px solid #d9e5df;
+                        border-radius: 14px;
+                        background: linear-gradient(180deg, #ffffff 0%, #fbfdfc 100%);
+                        color: #152320;
+                        padding: 0.85rem 1rem;
+                        font-size: 0.96rem;
+                        line-height: 1.4;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 0.75rem;
+                        cursor: pointer;
+                        box-shadow: inset 0 1px 2px rgba(17, 24, 39, 0.03);
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_summary::-webkit-details-marker {
+                        display: none;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_summary::marker {
+                        content: "";
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_summary:hover,
+                        .consent_mgmt_modal .consent_mgmt_multi_select[open] .consent_mgmt_multi_select_summary {
+                        border-color: #bfd8cb;
+                        background: #ffffff;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_summary_text {
+                        flex: 1 1 auto;
+                        min-width: 0;
+                        color: #60706c;
+                        display: flex;
+                        align-items: center;
+                        flex-wrap: wrap;
+                        gap: 0.45rem;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select.has-selection .consent_mgmt_multi_select_summary_text {
+                        color: #152320;
+                        font-weight: 600;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_placeholder {
+                        color: #60706c;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_chip {
+                        display: inline-flex;
+                        align-items: center;
+                        max-width: 100%;
+                        padding: 0.28rem 0.72rem;
+                        border-radius: 999px;
+                        background: #f2f4f3;
+                        color: #33413d;
+                        font-size: 0.9rem;
+                        font-weight: 600;
+                        line-height: 1.2;
+                        white-space: nowrap;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_summary_icon {
+                        flex-shrink: 0;
+                        color: #71817d;
+                        transition: transform .2s ease;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select[open] .consent_mgmt_multi_select_summary_icon {
+                        transform: rotate(180deg);
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_menu {
+                        position: absolute;
+                        top: calc(100% + 0.5rem);
+                        left: 0;
+                        right: 0;
+                        z-index: 20;
+                        max-height: 240px;
+                        overflow-y: auto;
+                        border: 1px solid #d9e5df;
+                        border-radius: 18px;
+                        background: #ffffff;
+                        box-shadow: 0 18px 40px rgba(25, 40, 32, 0.14);
+                        padding: 0.55rem;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_option {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                        margin: 0;
+                        padding: 0.8rem 0.9rem;
+                        border-radius: 12px;
+                        cursor: pointer;
+                        transition: background-color .2s ease, color .2s ease;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_option:hover {
+                        background: #f5faf7;
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_option input[type="checkbox"] {
+                        width: 1.05rem;
+                        height: 1.05rem;
+                        margin: 0;
+                        accent-color: var(--consent-primary);
+                        }
+                        .consent_mgmt_modal .consent_mgmt_multi_select_option_text {
+                        color: #22322e;
+                        font-size: 0.94rem;
+                        font-weight: 600;
+                        }
+                        .consent_mgmt_modal .form-check {
+                        min-height: 54px;
+                        margin-top: 0.2rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        gap: 0.65rem;
+                        padding: 0.9rem 1rem;
+                        border: 1px solid #e1e9e5;
+                        border-radius: 14px;
+                        background: #fbfdfc;
+                        }
+                        .consent_mgmt_modal .form-check-input {
+                        flex: 0 0 auto;
+                        width: 1.25rem;
+                        height: 1.25rem;
+                        margin: 0 !important;
+                        margin-top: 0;
+                        border: 1.5px solid #b8cbc2;
+                        border-radius: 0.42rem !important;
+                        background-color: #ffffff;
+                        background-position: center;
+                        background-size: 0.78rem 0.78rem;
+                        cursor: pointer;
+                        box-shadow: none;
+                        transform: none;
+                        }
+                        .consent_mgmt_modal .form-check-input:checked {
+                        background-color: var(--consent-primary);
+                        border-color: var(--consent-primary);
+                        }
+                        .consent_mgmt_modal .form-check-input:hover,
+                        .consent_mgmt_modal .form-check-input:focus {
+                        border-color: #9dc8b1;
+                        box-shadow: 0 0 0 0.18rem rgba(0, 145, 71, 0.1);
+                        }
+                        .consent_mgmt_modal .form-check-label {
+                        margin: 0;
+                        color: #33413d;
+                        font-size: 0.95rem;
+                        font-weight: 600;
+                        line-height: 1.35;
+                        cursor: pointer;
+                        }
+                        .consent_mgmt_modal .modal-footer {
+                        padding: 1.2rem 2.85rem 1.55rem;
+                        border-top: 1px solid #edf2ef;
+                        background: linear-gradient(180deg, #fcfefd 0%, #f8fbf9 100%);
+                        align-items: center;
+                        justify-content: flex-end;
+                        gap: 0.8rem;
+                        }
+                        .consent_mgmt_modal .btn-close {
+                        background-color: #f2f6f4;
+                        border-radius: 50%;
+                        opacity: 0.75;
+                        padding: 0.65rem;
+                        transition: opacity .2s ease, background-color .2s ease, transform .2s ease;
+                        }
+                        .consent_mgmt_modal .btn-close:hover,
+                        .consent_mgmt_modal .btn-close:focus {
+                        opacity: 1;
+                        background-color: #e7efeb;
+                        transform: rotate(90deg);
+                        }
+                        .consent_mgmt_modal .btn-outline-secondary {
+                        border-color: #cad7d1;
+                        color: #596a65;
+                        background: #fff;
+                        border-radius: 14px;
+                        padding: 0.8rem 1.45rem;
+                        font-weight: 600;
+                        transition: border-color .2s ease, background-color .2s ease, color .2s ease;
+                        }
+                        .consent_mgmt_modal .btn-outline-secondary:hover,
+                        .consent_mgmt_modal .btn-outline-secondary:focus {
+                        border-color: #9ab7aa;
+                        background: #f8fbf9;
+                        color: #22332d;
+                        }
+                        .consent_mgmt_modal .consent_btn_primary {
+                        border-radius: 14px;
+                        min-width: 180px;
+                        padding: 0.82rem 1.55rem;
+                        font-weight: 700;
+                        background: linear-gradient(135deg, #009147 0%, #0a7b42 100%);
+                        color: #fff;
+                        border: none;
+                        box-shadow: 0 10px 20px rgba(0, 145, 71, 0.16);
+                        transition: transform .2s ease, box-shadow .2s ease;
+                        }
+                        .consent_mgmt_modal .consent_btn_primary:hover {
+                        transform: translateY(-1px);
+                        box-shadow: 0 14px 24px rgba(0, 145, 71, 0.2);
+                        }
+                        @media (max-width: 991.98px) {
+                        .consent_mgmt_modal .modal-dialog,
+                        #create_role_modal.consent_mgmt_modal .modal-dialog,
+                        #create_user_modal.consent_mgmt_modal .modal-dialog,
+                        [id^="role_detail_modal_"].consent_mgmt_modal .modal-dialog,
+                        [id^="user_detail_modal_"].consent_mgmt_modal .modal-dialog {
+                            max-width: calc(100vw - 2.5rem);
+                            margin: 1.5rem auto;
+                        }
+                        .o_consent_portal .consent_mgmt_header {
+                            flex-direction: column;
+                            align-items: stretch;
+                        }
+                        .o_consent_portal .consent_mgmt_actions {
+                            width: 100%;
+                        }
+                        .o_consent_portal .consent_mgmt_actions .btn {
+                            flex: 1 1 220px;
+                        }
+                        .o_consent_portal .consent_mgmt_panel_header {
+                            flex-direction: column;
+                            align-items: stretch;
+                        }
+                        .consent_mgmt_modal .modal-header {
+                            padding: 1.35rem 2.2rem 1rem;
+                        }
+                        .consent_mgmt_modal .modal-body {
+                            padding: 1.35rem 2.2rem;
+                        }
+                        .consent_mgmt_modal .row.g-3 {
+                            padding-left: 0.9rem;
+                            padding-right: 0.9rem;
+                        }
+                        .consent_mgmt_modal .modal-body > .mb-3,
+                        .consent_mgmt_modal .modal-body > div:not(.row.g-3):not(.consent_mgmt_meta_grid) {
+                            padding-left: 0.9rem;
+                            padding-right: 0.9rem;
+                        }
+                        .consent_mgmt_modal .modal-footer {
+                            padding: 1rem 2.2rem 1.35rem;
+                        }
+                        }
+                        @media (max-width: 575.98px) {
+                        .consent_mgmt_modal .modal-dialog {
+                            max-width: calc(100vw - 1rem);
+                            margin: 0.5rem auto;
+                        }
+                        .consent_mgmt_modal .modal-content {
+                            border-radius: 22px;
+                        }
+                        .consent_mgmt_modal .modal-header {
+                            padding: 1.1rem 1.45rem 0.9rem;
+                        }
+                        .consent_mgmt_modal .modal-body {
+                            padding: 1rem 1.45rem;
+                        }
+                        .consent_mgmt_modal .row.g-3,
+                        .consent_mgmt_modal .modal-body > .mb-3,
+                        .consent_mgmt_modal .modal-body > div:not(.row.g-3):not(.consent_mgmt_meta_grid) {
+                            padding-left: 0.55rem;
+                            padding-right: 0.55rem;
+                        }
+                        .consent_mgmt_modal .modal-footer {
+                            padding: 0.9rem 1.45rem 1rem;
+                            flex-direction: column-reverse;
+                        }
+                        .consent_mgmt_modal .modal-footer .btn {
+                            width: 100%;
+                        }
+                        }
+                    </style>
+                    <div class="consent_card h-100">
+                                <div class="consent_mgmt_panel_header">
+                                    <div>
+                                        <h5 class="consent_card_title mb-0">Portal Roles</h5>
+                                        <p class="consent_mgmt_panel_subtitle">Review role hierarchy, assigned-user counts, and open a popup to inspect or update a role.</p>
+                                    </div>
+                                    <div class="consent_mgmt_actions">
+                                        <button type="button" class="btn consent_btn_primary" data-bs-toggle="modal" data-bs-target="#create_role_modal">
+                                            <i class="fa fa-plus me-1" aria-hidden="true"></i>Create Role
+                                        </button>
+                                    </div>
+                                </div>
+                                <t t-if="portal_role_records">
+                                    <div class="consent_mgmt_table_wrap">
+                                        <table class="consent_mgmt_table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Role</th>
+                                                    <th>Parent</th>
+                                                    <th>Assigned Users</th>
+                                                    <th>Status</th>
+                                                    <th class="text-end">Details</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-foreach="portal_role_records" t-as="role">
+                                                    <tr>
+                                                        <td>
+                                                            <div class="consent_mgmt_name">
+                                                                <t t-esc="role.name" />
+                                                            </div>
+                                                            <div class="consent_mgmt_secondary" t-if="role.description">
+                                                                <t t-esc="role.description" />
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <t t-esc="role.parent_id.name or 'Root role'" />
+                                                        </td>
+                                                        <td>
+                                                            <span class="consent_mgmt_tag">
+                                                                <t t-esc="role.user_count" /> users
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span t-attf-class="consent_status_badge #{'consent_status_approved' if role.active else 'consent_status_rejected'}">
+                                                                <span><t t-esc="'Active' if role.active else 'Inactive'" /></span>
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <div class="consent_mgmt_row_actions">
+                                                                <button
+                                                                    type="button"
+                                                                    class="consent_mgmt_icon_btn"
+                                                                    data-bs-toggle="modal"
+                                                                    t-att-data-bs-target="'#role_detail_modal_%s' % role.id"
+                                                                    title="View role details"
+                                                                    aria-label="View role details"
+                                                                >
+                                                                    <i class="fa fa-eye" aria-hidden="true"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="consent_mgmt_empty">No portal roles have been created yet.</div>
+                                </t>
+                            </div>
+                </div>
+            </t>
+        </xpath>
+<xpath expr="//div[@id='portal_users_section_anchor']" position="replace">
+            <t t-if="portal_management_enabled">
+                <div class="mb-4">
+                    <div class="consent_card h-100">
+                                <div class="consent_mgmt_panel_header">
+                                    <div>
+                                        <h5 class="consent_card_title mb-0">Portal Users</h5>
+                                        <p class="consent_mgmt_panel_subtitle">See who belongs to the portal, their manager, assigned roles, and contact details relevant to this module.</p>
+                                    </div>
+                                    <div class="consent_mgmt_actions">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#create_user_modal">
+                                            <i class="fa fa-user-plus me-1" aria-hidden="true"></i>Create Portal User
+                                        </button>
+                                    </div>
+                                </div>
+                                <t t-if="portal_user_records">
+                                    <div class="consent_mgmt_table_wrap">
+                                        <table class="consent_mgmt_table">
+                                            <thead>
+                                                <tr>
+                                                    <th>User</th>
+                                                    <th>Manager</th>
+                                                    <th>Roles</th>
+                                                    <th>Contact</th>
+                                                    <th>Status</th>
+                                                    <th class="text-end">Details</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-foreach="portal_user_records" t-as="portal_user">
+                                                    <tr>
+                                                        <td>
+                                                            <div class="consent_mgmt_name">
+                                                                <t t-esc="portal_user.name" />
+                                                                <t t-if="portal_user.id == current_portal_user.id">
+                                                                    <span class="consent_mgmt_tag ms-2">You</span>
+                                                                </t>
+                                                            </div>
+                                                            <div class="consent_mgmt_secondary">
+                                                                Login:
+                                                                <t t-esc="portal_user.login" />
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <t t-esc="portal_user.consent_portal_manager_user_id.name or 'None'" />
+                                                        </td>
+                                                        <td>
+                                                            <div class="consent_mgmt_tags">
+                                                                <t t-foreach="portal_user.consent_portal_role_ids" t-as="assigned_role">
+                                                                    <span class="consent_mgmt_tag" t-esc="assigned_role.name" />
+                                                                </t>
+                                                                <t t-if="not portal_user.consent_portal_role_ids">
+                                                                    <span class="consent_mgmt_secondary mt-0">No roles</span>
+                                                                </t>
+                                                                <t t-if="portal_user.consent_portal_can_manage_hierarchy">
+                                                                    <span class="consent_mgmt_tag">Hierarchy Manager</span>
+                                                                </t>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="consent_mgmt_contact">
+                                                                <strong><t t-esc="portal_user.email or '-'" /></strong>
+                                                                <span class="consent_mgmt_secondary mt-0">
+                                                                    <t t-esc="portal_user.partner_id.phone or portal_user.partner_id.mobile or '-'" />
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <span t-attf-class="consent_status_badge #{'consent_status_approved' if portal_user.active else 'consent_status_rejected'}">
+                                                                <span><t t-esc="'Active' if portal_user.active else 'Inactive'" /></span>
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <div class="consent_mgmt_row_actions">
+                                                                <button
+                                                                    type="button"
+                                                                    class="consent_mgmt_icon_btn"
+                                                                    data-bs-toggle="modal"
+                                                                    t-att-data-bs-target="'#user_detail_modal_%s' % portal_user.id"
+                                                                    title="View user details"
+                                                                    aria-label="View user details"
+                                                                >
+                                                                    <i class="fa fa-eye" aria-hidden="true"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="consent_mgmt_empty">No portal users found for this consent partner.</div>
+                                </t>
+                            </div>
+                    <div class="modal fade consent_mgmt_modal" id="create_role_modal" tabindex="-1" aria-labelledby="create_role_modal_label" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form action="/consent/management/role/create" method="post">
+                                    <div class="modal-header">
+                                        <div>
+                                            <h5 class="modal-title" id="create_role_modal_label">Create Role</h5>
+                                            <div class="consent_mgmt_modal_subtitle">Create a role and place it in the consent portal hierarchy.</div>
+                                        </div>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" />
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                        <div class="mb-3">
+                                            <label class="form-label">Role Name</label>
+                                            <input type="text" name="name" class="form-control" required="required" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Parent Role</label>
+                                            <select name="parent_id" class="form-select">
+                                                <option value="">No parent</option>
+                                                <t t-foreach="portal_role_options" t-as="role_option">
+                                                    <option t-att-value="role_option.id">
+                                                        <t t-esc="role_option.name" />
+                                                    </option>
+                                                </t>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Description</label>
+                                            <textarea name="description" class="form-control" rows="4"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn consent_btn_primary">Create Role</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade consent_mgmt_modal" id="create_user_modal" tabindex="-1" aria-labelledby="create_user_modal_label" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content">
+                                <form action="/consent/management/user/create" method="post">
+                                    <div class="modal-header">
+                                        <div>
+                                            <h5 class="modal-title" id="create_user_modal_label">Create Portal User</h5>
+                                            <div class="consent_mgmt_modal_subtitle">Create a portal user, assign roles, and place them in the hierarchy.</div>
+                                        </div>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" />
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Name</label>
+                                                <input type="text" name="name" class="form-control" required="required" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Login / Email</label>
+                                                <input type="text" name="login" class="form-control" required="required" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Phone</label>
+                                                <input type="text" name="phone" class="form-control" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Password</label>
+                                                <input type="password" name="password" class="form-control" required="required" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Manager</label>
+                                                <select name="manager_user_id" class="form-select">
+                                                    <option value="">No manager</option>
+                                                    <t t-foreach="portal_user_options" t-as="portal_user">
+                                                        <option t-att-value="portal_user.id">
+                                                            <t t-esc="portal_user.name" />
+                                                        </option>
+                                                    </t>
+                                                </select>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label">Roles</label>
+                                                <details class="consent_mgmt_multi_select" id="create_user_role_selector">
+                                                    <summary class="consent_mgmt_multi_select_summary">
+                                                        <span class="consent_mgmt_multi_select_summary_text" data-default-text="Select one or more roles">Select one or more roles</span>
+                                                        <i class="fa fa-chevron-down consent_mgmt_multi_select_summary_icon" aria-hidden="true"></i>
+                                                    </summary>
+                                                    <div class="consent_mgmt_multi_select_menu">
+                                                        <t t-foreach="portal_role_options" t-as="role_option">
+                                                            <label class="consent_mgmt_multi_select_option">
+                                                                <input type="checkbox" name="role_ids" t-att-value="role_option.id" />
+                                                                <span class="consent_mgmt_multi_select_option_text">
+                                                                    <t t-esc="role_option.name" />
+                                                                </span>
+                                                            </label>
+                                                        </t>
+                                                    </div>
+                                                </details>
+                                                <div class="form-text">Open the dropdown and tick multiple roles as needed.</div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-check">
+                                                    <input type="checkbox" name="can_manage_hierarchy" class="form-check-input" id="can_manage_hierarchy_create_modal" />
+                                                    <label class="form-check-label" for="can_manage_hierarchy_create_modal">Can create users and manage roles/hierarchy</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn consent_btn_primary">Create Portal User</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <t t-foreach="portal_role_records" t-as="role">
+                        <div class="modal fade consent_mgmt_modal" t-att-id="'role_detail_modal_%s' % role.id" tabindex="-1" t-att-aria-labelledby="'role_detail_modal_label_%s' % role.id" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                <div class="modal-content">
+                                    <form action="/consent/management/role/update" method="post">
+                                        <div class="modal-header">
+                                            <div>
+                                                <h5 class="modal-title" t-att-id="'role_detail_modal_label_%s' % role.id">
+                                                    <t t-esc="role.name" />
+                                                </h5>
+                                                <div class="consent_mgmt_modal_subtitle">View role details and update the hierarchy information.</div>
+                                            </div>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" />
+                                        </div>
+                                        <div class="modal-body">
+                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                            <input type="hidden" name="role_id" t-att-value="role.id" />
+
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Role Name</label>
+                                                    <input type="text" name="name" class="form-control" t-att-value="role.name" required="required" />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Parent Role</label>
+                                                    <select name="parent_id" class="form-select">
+                                                        <option value="">No parent</option>
+                                                        <t t-foreach="portal_role_options" t-as="role_option">
+                                                            <option
+                                                                t-if="role_option.id != role.id"
+                                                                t-att-value="role_option.id"
+                                                                t-att-selected="'selected' if role.parent_id.id == role_option.id else None"
+                                                            >
+                                                                <t t-esc="role_option.name" />
+                                                            </option>
+                                                        </t>
+                                                    </select>
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label">Description</label>
+                                                    <textarea name="description" class="form-control" rows="4"><t t-esc="role.description or ''" /></textarea>
+                                                </div>
+                                                <div class="col-12">
+                                                    <div class="form-check">
+                                                        <input
+                                                            type="checkbox"
+                                                            name="active"
+                                                            class="form-check-input"
+                                                            t-att-id="'role_active_%s' % role.id"
+                                                            t-att-checked="'checked' if role.active else None"
+                                                        />
+                                                        <label class="form-check-label" t-att-for="'role_active_%s' % role.id">Active</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn consent_btn_primary">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+
+                    <t t-foreach="portal_user_records" t-as="portal_user">
+                        <div class="modal fade consent_mgmt_modal" t-att-id="'user_detail_modal_%s' % portal_user.id" tabindex="-1" t-att-aria-labelledby="'user_detail_modal_label_%s' % portal_user.id" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                <div class="modal-content">
+                                    <form action="/consent/management/user/update" method="post">
+                                        <div class="modal-header">
+                                            <div>
+                                                <h5 class="modal-title" t-att-id="'user_detail_modal_label_%s' % portal_user.id">
+                                                    <t t-esc="portal_user.name" />
+                                                </h5>
+                                                <div class="consent_mgmt_modal_subtitle">View user details and update contact, hierarchy, and role assignments.</div>
+                                            </div>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" />
+                                        </div>
+                                        <div class="modal-body">
+                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                            <input type="hidden" name="user_id" t-att-value="portal_user.id" />
+
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Name</label>
+                                                    <input type="text" name="name" class="form-control" t-att-value="portal_user.name" required="required" />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Login / Email</label>
+                                                    <input type="text" name="login" class="form-control" t-att-value="portal_user.login or portal_user.email or ''" required="required" />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Phone</label>
+                                                    <input type="text" name="phone" class="form-control" t-att-value="portal_user.partner_id.phone or portal_user.partner_id.mobile or ''" />
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Manager</label>
+                                                    <select name="manager_user_id" class="form-select">
+                                                        <option value="">No manager</option>
+                                                        <t t-foreach="portal_user_options" t-as="manager_option">
+                                                            <option
+                                                                t-if="manager_option.id != portal_user.id"
+                                                                t-att-value="manager_option.id"
+                                                                t-att-selected="'selected' if portal_user.consent_portal_manager_user_id.id == manager_option.id else None"
+                                                            >
+                                                                <t t-esc="manager_option.name" />
+                                                            </option>
+                                                        </t>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">New Password</label>
+                                                    <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current password" />
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label">Roles</label>
+                                                    <details class="consent_mgmt_multi_select" t-att-id="'user_role_selector_%s' % portal_user.id">
+                                                        <summary class="consent_mgmt_multi_select_summary">
+                                                            <span class="consent_mgmt_multi_select_summary_text" data-default-text="Select one or more roles">Select one or more roles</span>
+                                                            <i class="fa fa-chevron-down consent_mgmt_multi_select_summary_icon" aria-hidden="true"></i>
+                                                        </summary>
+                                                        <div class="consent_mgmt_multi_select_menu">
+                                                            <t t-foreach="portal_role_options" t-as="role_option">
+                                                                <label class="consent_mgmt_multi_select_option">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        name="role_ids"
+                                                                        t-att-value="role_option.id"
+                                                                        t-att-checked="'checked' if role_option.id in portal_user.consent_portal_role_ids.ids else None"
+                                                                    />
+                                                                    <span class="consent_mgmt_multi_select_option_text">
+                                                                        <t t-esc="role_option.name" />
+                                                                    </span>
+                                                                </label>
+                                                            </t>
+                                                        </div>
+                                                    </details>
+                                                    <div class="form-text">Open the dropdown and tick multiple roles as needed.</div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-check mt-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            name="can_manage_hierarchy"
+                                                            class="form-check-input"
+                                                            t-att-id="'portal_manage_%s' % portal_user.id"
+                                                            t-att-checked="'checked' if portal_user.consent_portal_can_manage_hierarchy else None"
+                                                        />
+                                                        <label class="form-check-label" t-att-for="'portal_manage_%s' % portal_user.id">Can create users and manage roles/hierarchy</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-check mt-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            name="active"
+                                                            class="form-check-input"
+                                                            t-att-id="'portal_active_%s' % portal_user.id"
+                                                            t-att-checked="'checked' if portal_user.active else None"
+                                                        />
+                                                        <label class="form-check-label" t-att-for="'portal_active_%s' % portal_user.id">Active</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn consent_btn_primary">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    <script><![CDATA[
+                        (function() {
+                            var modalNodes = document.querySelectorAll('.consent_mgmt_modal');
+                            for (var i = 0; i < modalNodes.length; i++) {
+                                var modalNode = modalNodes[i];
+                                if (modalNode && modalNode.parentNode !== document.body) {
+                                    document.body.appendChild(modalNode);
+                                }
+                            }
+
+                            var multiSelectNodes = document.querySelectorAll('.consent_mgmt_multi_select');
+                            var escapeHtml = function(text) {
+                                return String(text || '').replace(/[&<>"']/g, function(char) {
+                                    return {
+                                        '&': '&amp;',
+                                        '<': '&lt;',
+                                        '>': '&gt;',
+                                        '"': '&quot;',
+                                        "'": '&#39;'
+                                    }[char];
+                                });
+                            };
+                            var getSelectedLabels = function(checkboxes) {
+                                var selected = [];
+                                for (var i = 0; i < checkboxes.length; i++) {
+                                    if (checkboxes[i].checked) {
+                                        selected.push((checkboxes[i].closest('label') || checkboxes[i].parentNode).innerText.trim());
+                                    }
+                                }
+                                return selected;
+                            };
+                            var buildSummaryMarkup = function(selected, defaultText) {
+                                if (!selected.length) {
+                                    return '<span class="consent_mgmt_multi_select_placeholder">' + escapeHtml(defaultText) + '</span>';
+                                }
+                                return selected.map(function(label) {
+                                    return '<span class="consent_mgmt_multi_select_chip">' + escapeHtml(label) + '</span>';
+                                }).join('');
+                            };
+
+                            for (var j = 0; j < multiSelectNodes.length; j++) {
+                                (function(node) {
+                                    var summaryText = node.querySelector('.consent_mgmt_multi_select_summary_text');
+                                    var defaultText = summaryText ? (summaryText.getAttribute('data-default-text') || summaryText.textContent.trim()) : 'Select';
+                                    var checkboxes = node.querySelectorAll('input[type="checkbox"][name="role_ids"]');
+                                    var refreshSummary = function() {
+                                        var selected = getSelectedLabels(checkboxes);
+                                        if (summaryText) {
+                                            summaryText.innerHTML = buildSummaryMarkup(selected, defaultText);
+                                        }
+                                        if (node.classList) {
+                                            node.classList.toggle('has-selection', !!selected.length);
+                                        }
+                                    };
+
+                                    for (var k = 0; k < checkboxes.length; k++) {
+                                        checkboxes[k].addEventListener('change', refreshSummary);
+                                    }
+                                    refreshSummary();
+                                })(multiSelectNodes[j]);
+                            }
+                        })();
+                    ]]></script>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>

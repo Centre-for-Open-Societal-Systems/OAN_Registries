@@ -2,45 +2,203 @@ import base64
 import json
 from datetime import date
 
-from odoo import models
 import logging
+
+import jq
+
+from odoo import _, fields, models
 from odoo.exceptions import ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 class OdkImportInherit(models.Model):
     _inherit = "odk.import"
 
-    def _split_odk_multi_select(self, field_value):
-        if not field_value:
-            return []
-        if isinstance(field_value, str):
-            return [value for value in field_value.split(" ") if value]
-        return []
+    def _get_odk_import_source_id(self):
+        odk_source = self.env.ref("g2p_ati.import_source_odk", raise_if_not_found=False)
+        return odk_source.id if odk_source else False
 
-    def _normalize_crop_code(self, crop_code):
-        crop_aliases = {
-            "false_banana": "enset",
+    def _set_odk_import_source(self, vals):
+        odk_source_id = self._get_odk_import_source_id()
+        if odk_source_id:
+            vals["rec_import_source"] = odk_source_id
+        return vals
+
+    def _get_odk_submission_instance_id(self, mapped_json=None, member=None):
+        for values in (mapped_json or {}, member or {}):
+            if not isinstance(values, dict):
+                continue
+
+            for key in ("odk_instance_id", "instance_id", "__id"):
+                if values.get(key):
+                    return str(values.get(key))
+
+            meta = values.get("meta") or {}
+            if isinstance(meta, dict):
+                for key in ("instanceID", "instanceId", "__id"):
+                    if meta.get(key):
+                        return str(meta.get(key))
+
+            system = values.get("__system") or {}
+            if isinstance(system, dict):
+                for key in ("instanceID", "instanceId", "__id"):
+                    if system.get(key):
+                        return str(system.get(key))
+
+        return False
+
+    def _set_odk_instance_id(self, vals, instance_id):
+        if instance_id:
+            vals["odk_instance_id"] = str(instance_id)
+        return vals
+
+    def _is_odk_instance_imported(self, instance_id):
+        if not instance_id:
+            return False
+        return bool(
+            self.env["res.partner"]
+            .sudo()
+            .with_context(active_test=False)
+            .search_count([("odk_instance_id", "=", str(instance_id))])
+        )
+
+    def _is_odk_instance_queued(self, instance_id):
+        if not instance_id:
+            return False
+        return bool(
+            self.env["odk.instance.id"]
+            .sudo()
+            .search_count(
+                [
+                    ("instance_id", "=", str(instance_id)),
+                    ("status", "in", ["pending", "processing", "done"]),
+                ]
+            )
+        )
+
+    def import_records(self):
+        self.ensure_one()
+        sync_started_at = fields.Datetime.now()
+
+        if self.enable_async:
+            instance_ids = self.odk_config.get_submissions(
+                fields="__id",
+                last_sync_time=self.last_sync_time,
+            )
+            for instance in instance_ids:
+                if isinstance(instance, dict):
+                    extracted_instance_id = instance.get("__id")
+
+                    if extracted_instance_id:
+                        if self._is_odk_instance_imported(
+                            extracted_instance_id
+                        ) or self._is_odk_instance_queued(extracted_instance_id):
+                            continue
+                        self.env["odk.instance.id"].create(
+                            {
+                                "instance_id": extracted_instance_id,
+                                "odk_import_id": self.id,
+                                "status": "pending",
+                            }
+                        )
+                    else:
+                        _logger.error("Missing '__id' in submission: %s", instance)
+
+            self.last_sync_time = sync_started_at
+            return self.process_pending_instances()
+
+        imported = self.process_records(last_sync_time=self.last_sync_time)
+        if "form_updated" in imported:
+            partner_count = imported.get("partner_count", 0)
+            message = f"ODK form {partner_count} records were imported successfully."
+            types = "success"
+            self.last_sync_time = sync_started_at
+        elif "form_failed" in imported:
+            message = "ODK form import failed"
+            types = "danger"
+        else:
+            message = "No new form records were submitted."
+            types = "warning"
+            self.last_sync_time = sync_started_at
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "type": types,
+                "message": message,
+                "next": {"type": "ir.actions.act_window_close"},
+            },
         }
-        return crop_aliases.get(crop_code, crop_code)
 
-    def _prepare_crop_information_from_codes(self, crop_codes):
-        unique_crops = {}
-        for crop_code in crop_codes:
-            crop_id = self.get_value_many2one("g2p.crop", self._normalize_crop_code(crop_code))
-            if crop_id and crop_id not in unique_crops:
-                unique_crops[crop_id] = {"crop": crop_id}
-        return [(0, 0, info) for info in unique_crops.values()]
+    def _process_pending_instance_id(self, instance_ids):
+        for instance in instance_ids:
+            _logger.info("Processing instance ID: %s", instance.instance_id)
+            instance.status = "processing"
+            try:
+                instance.odk_import_id.process_records(instance_id=instance.instance_id)
+                instance.status = "done"
+            except Exception as exc:
+                _logger.exception(
+                    "Failed to import instance ID %s: %s",
+                    instance.instance_id,
+                    exc,
+                )
+                instance.status = "failed"
 
-    def _prepare_livestock_information_from_codes(self, livestock_codes):
-        unique_livestock = {}
-        for livestock_code in livestock_codes:
-            livestock_type = self.get_value_many2one("g2p.livestock.type", livestock_code)
-            if livestock_type and livestock_type not in unique_livestock:
-                unique_livestock[livestock_type] = {
-                    "livestock_type": livestock_type,
-                    "number_of_livestock": 0,
-                }
-        return [(0, 0, info) for info in unique_livestock.values()]
+    def process_records(self, instance_id=None, last_sync_time=None):
+        self.ensure_one()
+
+        if not self.odk_config:
+            raise ValidationError(_("Please configure the ODK."))
+
+        data = self.odk_config.download_records(instance_id=instance_id, last_sync_time=last_sync_time)
+
+        partner_count = 0
+        skipped_count = 0
+        for member in data["value"]:
+            _logger.debug("ODK RAW DATA:%s", member)
+
+            mapped_json = jq.first(self.json_formatter, member)
+            if not isinstance(mapped_json, dict):
+                raise ValidationError(_("The ODK jq formatter must return a JSON object."))
+
+            odk_instance_id = self._get_odk_submission_instance_id(mapped_json, member)
+            if self._is_odk_instance_imported(odk_instance_id):
+                skipped_count += 1
+                _logger.info("Skipping duplicate ODK submission with instance ID: %s", odk_instance_id)
+                continue
+
+            self._set_odk_instance_id(mapped_json, odk_instance_id)
+
+            if self.target_registry == "individual":
+                mapped_json.update({"is_registrant": True, "is_group": False})
+            elif self.target_registry == "group":
+                mapped_json.update({"is_registrant": True, "is_group": True})
+
+            self.process_records_handle_one2many_fields(mapped_json)
+            self.process_records_handle_media_import(mapped_json, member)
+            self._set_odk_instance_id(
+                mapped_json,
+                mapped_json.get("odk_instance_id") or mapped_json.get("instance_id"),
+            )
+            self.process_records_handle_many2one_fields(mapped_json)
+
+            self.process_records_handle_addl_data(mapped_json)
+
+            self._set_odk_import_source(mapped_json)
+            self._set_odk_instance_id(
+                mapped_json,
+                mapped_json.get("odk_instance_id") or mapped_json.get("instance_id"),
+            )
+            self.env["res.partner"].sudo().create(mapped_json)
+            partner_count += 1
+            data.update({"form_updated": True})
+
+        data.update({"partner_count": partner_count, "skipped_count": skipped_count})
+
+        return data
 
     def get_value_ids(self, model, value_list):
         ids = []
@@ -140,12 +298,6 @@ class OdkImportInherit(models.Model):
         return [land_information_ids, supporting_documents_ids]
 
     def process_crop_ids(self, json_data, is_member):
-        crop_codes = self._split_odk_multi_select(
-            json_data.get("hh_member_crop_name" if is_member else "crop_name")
-        )
-        if crop_codes:
-            return self._prepare_crop_information_from_codes(crop_codes)
-
         unique_crops = {}
         if json_data["crop_information_ids"] is not None:
             for crop_info in json_data["crop_information_ids"]:
@@ -168,12 +320,6 @@ class OdkImportInherit(models.Model):
         return crop_information_ids
 
     def process_livestock_ids(self, json_data, is_member):
-        livestock_codes = self._split_odk_multi_select(
-            json_data.get("hh_member_animal" if is_member else "animal")
-        )
-        if livestock_codes:
-            return self._prepare_livestock_information_from_codes(livestock_codes)
-
         unique_livestock = {}
         if json_data["livestock_information_ids"] is not None:
             for livestock_info in json_data["livestock_information_ids"]:
@@ -268,7 +414,10 @@ class OdkImportInherit(models.Model):
 
         language_id = self.process_many2one_field("g2p.lang", individual.get("primary_Language"))
         if language_id:
-            vals["primary_Language"] = language_id
+            if language_id == "other":
+                other_json["Primary Language"] = individual.get("primary_Language")
+            else:
+                vals["primary_Language"] = language_id
 
         vals["given_name"] = individual.get("given_name")
         vals["family_name"] = individual.get("family_name")
@@ -365,9 +514,7 @@ class OdkImportInherit(models.Model):
             )
 
         # CROP INFORMATION
-        if "crop_information_ids" in individual or (
-            individual.get("hh_member_crop_name" if is_member else "crop_name")
-        ):
+        if "crop_information_ids" in individual:
             vals["crop_information_ids"] = self.process_crop_ids(individual, is_member)
         crop_water_sources_ids = self.process_many2many_field(
             "g2p.water.source", individual.get("crop_water_sources")
@@ -378,9 +525,7 @@ class OdkImportInherit(models.Model):
             vals["crop_water_sources"] = [(6, 0, crop_water_sources_ids)]
 
         # LIVESTOCK INFORMATION
-        if "livestock_information_ids" in individual or (
-            individual.get("hh_member_animal" if is_member else "animal")
-        ):
+        if "livestock_information_ids" in individual:
             vals["livestock_information_ids"] = self.process_livestock_ids(individual, is_member)
         livestock_water_sources_ids = self.process_many2many_field(
             "g2p.water.source", individual.get("livestock_water_sources")
@@ -500,6 +645,9 @@ class OdkImportInherit(models.Model):
         if enumerator:
             vals["enumerator_id"] = enumerator.id
 
+        self._set_odk_import_source(vals)
+        self._set_odk_instance_id(vals, individual.get("odk_instance_id") or individual.get("instance_id"))
+
         # Remove any fields that don't exist in res.partner model
         self.remove_non_partner_fields_in_place(vals)
 
@@ -551,10 +699,14 @@ class OdkImportInherit(models.Model):
 
         language_id = self.process_many2one_field("g2p.lang", head.get("primary_Language"))
         if language_id:
-            vals["primary_Language"] = language_id
+            if language_id != "other":
+                vals["primary_Language"] = language_id
 
         if enumerator:
             vals["enumerator_id"] = enumerator.id
+
+        self._set_odk_import_source(vals)
+        self._set_odk_instance_id(vals, head.get("odk_instance_id") or head.get("instance_id"))
 
         # Remove any fields that don't exist in res.partner model
         self.remove_non_partner_fields_in_place(vals)
@@ -679,10 +831,12 @@ class OdkImportInherit(models.Model):
 
         if instance_id:
             mapped_json["instance_id"] = instance_id
+            mapped_json["odk_instance_id"] = instance_id
         else:
             instance_id = member.get("meta", {}).get("instanceID")
             if instance_id:
                 mapped_json["instance_id"] = instance_id
+                mapped_json["odk_instance_id"] = instance_id
 
     def remove_specific_keys_in_place(self, mapped_json):
         keys_to_remove = [
@@ -887,6 +1041,8 @@ class OdkImportInherit(models.Model):
                     "enumerator_id",
                     "group_membership_ids",
                     "kind",
+                    "rec_import_source",
+                    "odk_instance_id",
                 }
 
                 for key in list(mapped_json.keys()):
@@ -928,4 +1084,6 @@ class OdkImportInherit(models.Model):
                 "number_of_females_in_family", False
             )
 
+        self._set_odk_import_source(mapped_json)
+        self._set_odk_instance_id(mapped_json, mapped_json.get("odk_instance_id") or mapped_json.get("instance_id"))
         self.remove_non_partner_fields_in_place(mapped_json)

@@ -16,10 +16,11 @@
     ],
     "data": [
         "security/ir.model.access.csv",
-        "views/ati_language_dropdown.xml",
         "views/dashboard.xml",
         "views/create_group.xml",
+        "views/ati_language_dropdown.xml",
         "views/base.xml",
+        "views/profile.xml",
         "views/views.xml",
         "views/login.xml",
         "views/create_individual.xml",

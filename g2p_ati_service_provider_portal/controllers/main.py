@@ -5,6 +5,7 @@ import re
 from datetime import date
 
 from odoo import http
+from odoo.exceptions import MissingError
 from odoo.http import request
 
 # from odoo.addons.g2p_agent_portal_base.controllers.main import (
@@ -65,6 +66,33 @@ class AtiServiceProviderContorller(G2PregistrationPortalBase):
             "g2p_ati_service_provider_portal.ati_dashboard_template",
             {"households": households, "individuals": individuals},
         )
+
+    @http.route(["/portal/myprofile", "/serviceprovider/myprofile"], type="http", auth="user", website=True)
+    def portal_profile(self, **kwargs):
+        current_user = request.env.user
+        current_partner = request.env.user.partner_id
+        role_name = "Portal User"
+        partner_name = False
+
+        if "consent_portal_role_ids" in current_user._fields:
+            role_names = current_user.consent_portal_role_ids.mapped("name")
+            if role_names:
+                role_name = ", ".join(role_names)
+
+        if "consent_parent_partner_id" in current_user._fields and current_user.consent_parent_partner_id:
+            partner_name = current_user.consent_parent_partner_id.name
+
+        qcontext = {
+            "current_partner": current_partner,
+            "profile_role_name": role_name,
+            "profile_partner_name": partner_name,
+        }
+        try:
+            request.env.ref("g2p_ati_service_provider_portal.ati_profile_page_service_provider")
+            template = "g2p_ati_service_provider_portal.ati_profile_page_service_provider"
+        except (ValueError, MissingError):
+            template = "g2p_agent_portal_base.profile_page"
+        return request.render(template, qcontext)
 
     @http.route(["/serviceprovider/update/suggests"], type="http", auth="user", website=True)
     def portal_update_suggests(self, **kwargs):

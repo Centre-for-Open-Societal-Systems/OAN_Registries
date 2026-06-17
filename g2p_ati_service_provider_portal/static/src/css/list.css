@@ -79,66 +79,15 @@
 
 .tables-values-container {
     width: auto !important;
-    /* overflow-x: unset !important; */
-    /* overflow-y: unset !important; */
-}
-
-.tables-values-container table {
-    table-layout: fixed;
-    border-collapse: collapse;
-}
-
-th {
-    font-weight: 600 !important;
 }
 
 .tables-values-container th {
     padding: 8px;
-    white-space: normal; /* Allows wrapping of text in th elements */
-    overflow: visible; /* Prevents cropping in th elements */
-    text-overflow: clip; /* Removes ellipsis for th elements */
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
 }
 
-/* .tables-values-container td {
-    padding: 8px;
-
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-} */
-
-
-.name-column {
-    /* width: 20%; */
-    /* text-align: center; */
-}
-.sr-column {
-    width: 5% !important;
-    /* text-align: center; */
-}
-
-.fixed-width-column {
-    /* width: calc(60% / 5); */
-    /* text-align: center; */
-}
-.status-column {
-    /* width: calc(15% / 2);  */
-     */
-     /* text-align: center; */
-}
-
-.no-column-group {
-   /* width: 5% !important;  */
-    /* text-align: center; */
-}
-.fixed-width-column-group {
-    /* width: calc(50% / 5); */
-    /* text-align: center; */
-}
-
-.status-column-group {
-    /* width: calc(15% / 2); */
-}
 
 
 

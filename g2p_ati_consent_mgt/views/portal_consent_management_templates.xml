@@ -322,6 +322,42 @@
                     font-size: 0.95rem;
                     margin-bottom: 1.5rem;
                     }
+                    .o_consent_portal .consent_top_tabs {
+                    margin-bottom: 1.35rem;
+                    }
+                    .o_consent_portal .consent_top_tabs .nav {
+                    gap: 0.65rem;
+                    flex-wrap: wrap;
+                    }
+                    .o_consent_portal .consent_top_tabs .nav-link {
+                    border: 1px solid rgba(0, 145, 71, 0.3);
+                    border-radius: 999px;
+                    background: linear-gradient(135deg, rgba(0, 145, 71, 0.82) 0%, rgba(10, 123, 66, 0.88) 100%);
+                    color: #fff;
+                    font-size: 0.92rem;
+                    font-weight: 700;
+                    padding: 0.7rem 1.15rem;
+                    line-height: 1.2;
+                    box-shadow: 0 10px 24px rgba(0, 145, 71, 0.12);
+                    opacity: 0.82;
+                    }
+                    .o_consent_portal .consent_top_tabs .nav-link:hover,
+                    .o_consent_portal .consent_top_tabs .nav-link:focus {
+                    border-color: rgba(0, 145, 71, 0.45);
+                    background: linear-gradient(135deg, #009147 0%, #0a7b42 100%);
+                    color: #fff;
+                    opacity: 1;
+                    }
+                    .o_consent_portal .consent_top_tabs .nav-link.active {
+                    border-color: var(--consent-primary);
+                    background: linear-gradient(135deg, #009147 0%, #0a7b42 100%);
+                    color: #fff;
+                    box-shadow: 0 14px 28px rgba(0, 145, 71, 0.18);
+                    opacity: 1;
+                    }
+                    .o_consent_portal .consent_tab_panel {
+                    outline: 0;
+                    }
                     .o_consent_portal .consent_search_panel {
                     border: 1px solid rgba(48, 161, 102, 0.48);
                     border-radius: 18px;
@@ -348,6 +384,12 @@
                     box-shadow: 0 6px 16px rgba(0, 145, 71, 0.1);
                     flex: 0 0 auto;
                     }
+                    .o_consent_portal .consent_search_panel_icon_img {
+                    width: 22px;
+                    height: 22px;
+                    object-fit: contain;
+                    display: block;
+                    }
                     .o_consent_portal .consent_search_panel_title {
                     font-size: 1rem;
                     line-height: 1.1;
@@ -373,11 +415,21 @@
                     }
                     .o_consent_portal .consent_search_wrapper .form-control {
                     padding-left: 2.8rem;
+                    padding-right: 8.5rem;
                     border-radius: 9px;
                     border: 1px solid rgba(48, 161, 102, 0.65);
                     background: #ffffff;
                     min-height: 46px;
                     box-shadow: inset 0 1px 2px rgba(17, 24, 39, 0.04);
+                    }
+                    .o_consent_portal .consent_search_wrapper .form-control.is-found {
+                    border-color: rgba(48, 161, 102, 0.82);
+                    box-shadow: 0 0 0 0.16rem rgba(0, 145, 71, 0.10);
+                    }
+                    .o_consent_portal .consent_search_wrapper .form-control.is-missing,
+                    .o_consent_portal .consent_search_wrapper .form-control.is-error {
+                    border-color: rgba(220, 53, 69, 0.55);
+                    box-shadow: 0 0 0 0.16rem rgba(220, 53, 69, 0.10);
                     }
                     .o_consent_portal .consent_search_wrapper .form-control:focus {
                     border-color: rgba(0, 145, 71, 0.8);
@@ -391,6 +443,33 @@
                     color: #83908c;
                     pointer-events: none;
                     font-size: 1rem;
+                    }
+                    .o_consent_portal .consent_search_inline_status {
+                    position: absolute;
+                    right: 0.95rem;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.35rem;
+                    font-size: 0.82rem;
+                    font-weight: 700;
+                    opacity: 0;
+                    visibility: hidden;
+                    pointer-events: none;
+                    transition: opacity .2s ease, visibility .2s ease;
+                    white-space: nowrap;
+                    }
+                    .o_consent_portal .consent_search_inline_status.is-visible {
+                    opacity: 1;
+                    visibility: visible;
+                    }
+                    .o_consent_portal .consent_search_inline_status.is-found {
+                    color: #16824a;
+                    }
+                    .o_consent_portal .consent_search_inline_status.is-missing,
+                    .o_consent_portal .consent_search_inline_status.is-error {
+                    color: #c03a45;
                     }
                     .o_consent_portal .consent_search_submit {
                     min-width: 112px;
@@ -645,13 +724,48 @@
                     display: flex;
                     justify-content: center;
                     }
+                    .o_consent_portal .consent_pager_wrap .pagination {
+                    gap: 0.35rem;
+                    align-items: center;
+                    }
+                    .o_consent_portal .consent_pager_wrap .pagination .page-item {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    }
                     .o_consent_portal .consent_pager_wrap .pagination .page-link {
-                    color: #206046;
+                    min-width: 40px;
+                    height: 40px;
+                    border: 0;
+                    border-radius: 14px;
+                    background: transparent;
+                    color: #52625f;
+                    font-size: 1rem;
+                    font-weight: 500;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0 0.7rem;
+                    box-shadow: none;
+                    }
+                    .o_consent_portal .consent_pager_wrap .pagination .page-link:hover,
+                    .o_consent_portal .consent_pager_wrap .pagination .page-link:focus {
+                    background: rgba(0, 145, 71, 0.06);
+                    color: #294b3e;
                     }
                     .o_consent_portal .consent_pager_wrap .pagination .page-item.active .page-link {
-                    background-color: #009147;
-                    border-color: #009147;
-                    color: #fff;
+                    background: rgba(0, 145, 71, 0.12);
+                    color: #0f6c3c;
+                    }
+                    .o_consent_portal .consent_pager_wrap .pagination .page-item.disabled .page-link {
+                    opacity: 0.38;
+                    background: transparent;
+                    color: #8b9794;
+                    pointer-events: none;
+                    }
+                    .o_consent_portal .consent_pager_wrap .pagination .page-item:first-child .page-link,
+                    .o_consent_portal .consent_pager_wrap .pagination .page-item:last-child .page-link {
+                    font-size: 1.05rem;
                     }
                     .o_consent_portal .consent_table_state {
                     text-align: center;
@@ -660,6 +774,199 @@
                     font-size: 0.88rem;
                     border-top: 1px solid #edf1ef;
                     background: #fff;
+                    }
+                    .o_consent_portal.consent_review_modal .modal-dialog {
+                    max-width: min(960px, calc(100vw - 2.5rem));
+                    margin: 1.5rem auto;
+                    }
+                    .o_consent_portal.consent_review_modal .modal-content {
+                    border: 1px solid rgba(0, 145, 71, 0.14);
+                    border-radius: 24px;
+                    box-shadow: 0 24px 60px rgba(18, 45, 31, 0.18);
+                    overflow: hidden;
+                    }
+                    .o_consent_portal .consent_review_modal_header {
+                    display: flex;
+                    align-items: flex-start;
+                    justify-content: space-between;
+                    gap: 1rem;
+                    padding: 1.65rem 1.75rem 1.15rem;
+                    background: linear-gradient(180deg, #ffffff 0%, #f7fcf9 100%);
+                    border-bottom: 1px solid #ebf3ee;
+                    }
+                    .o_consent_portal .consent_review_modal_title {
+                    font-size: 1.18rem;
+                    font-weight: 600;
+                    color: #162120;
+                    margin: 0 0 0.35rem;
+                    }
+                    .o_consent_portal .consent_review_modal_subtitle {
+                    color: #72807d;
+                    font-size: 0.92rem;
+                    margin: 0;
+                    line-height: 1.6;
+                    }
+                    .o_consent_portal .consent_review_modal_close {
+                    width: 42px;
+                    height: 42px;
+                    border-radius: 50%;
+                    border: 1px solid rgba(0, 145, 71, 0.16);
+                    background: rgba(0, 145, 71, 0.06);
+                    color: #227149;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex: 0 0 auto;
+                    }
+                    .o_consent_portal .consent_review_modal_close:hover,
+                    .o_consent_portal .consent_review_modal_close:focus {
+                    background: rgba(0, 145, 71, 0.12);
+                    border-color: rgba(0, 145, 71, 0.24);
+                    color: #0f5d36;
+                    }
+                    .o_consent_portal .consent_review_modal_body {
+                    padding: 1.65rem 1.75rem 1.75rem;
+                    background: linear-gradient(180deg, #ffffff 0%, #fbfdfc 100%);
+                    }
+                    .o_consent_portal .consent_review_layout {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 1.2rem;
+                    }
+                    .o_consent_portal .consent_review_panel {
+                    border: 1px solid #e5eeea;
+                    border-radius: 18px;
+                    background: #fff;
+                    padding: 1.25rem 1.3rem;
+                    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+                    }
+                    .o_consent_portal .consent_review_panel--wide {
+                    grid-column: 1 / -1;
+                    }
+                    .o_consent_portal .consent_review_panel_title {
+                    font-size: 1rem;
+                    font-weight: 600;
+                    color: #1c2825;
+                    margin-bottom: 1rem;
+                    }
+                    .o_consent_portal .consent_review_info_grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 1rem 1.3rem;
+                    }
+                    .o_consent_portal .consent_review_info_item {
+                    min-width: 0;
+                    }
+                    .o_consent_portal .consent_review_label {
+                    display: block;
+                    font-size: 0.79rem;
+                    font-weight: 600;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    color: #7a8885;
+                    margin-bottom: 0.32rem;
+                    }
+                    .o_consent_portal .consent_review_value {
+                    display: block;
+                    font-size: 0.96rem;
+                    font-weight: 400;
+                    color: #1e2a28;
+                    overflow-wrap: anywhere;
+                    line-height: 1.6;
+                    }
+                    .o_consent_portal .consent_review_value.is-body {
+                    font-weight: 400;
+                    color: #31403d;
+                    line-height: 1.7;
+                    }
+                    .o_consent_portal .consent_review_meta_list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.85rem;
+                    }
+                    .o_consent_portal .consent_review_meta_row {
+                    display: flex;
+                    align-items: flex-start;
+                    justify-content: space-between;
+                    gap: 1rem;
+                    padding-bottom: 0.75rem;
+                    border-bottom: 1px solid #eef3f0;
+                    }
+                    .o_consent_portal .consent_review_meta_row:last-child {
+                    border-bottom: 0;
+                    padding-bottom: 0;
+                    }
+                    .o_consent_portal .consent_review_meta_row .consent_review_label {
+                    margin-bottom: 0;
+                    }
+                    .o_consent_portal .consent_review_capture {
+                    display: grid;
+                    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+                    gap: 1.25rem;
+                    align-items: start;
+                    }
+                    .o_consent_portal .consent_review_capture_image {
+                    width: 100%;
+                    border-radius: 16px;
+                    border: 1px solid #e4ece8;
+                    object-fit: cover;
+                    box-shadow: 0 10px 24px rgba(18, 45, 31, 0.08);
+                    }
+                    .o_consent_portal .consent_review_capture_empty {
+                    min-height: 220px;
+                    border-radius: 16px;
+                    border: 1px dashed #d5e3db;
+                    background: linear-gradient(180deg, #fbfdfc 0%, #f5faf7 100%);
+                    color: #81918d;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-align: center;
+                    padding: 1rem;
+                    }
+                    .o_consent_portal .consent_review_capture_notes {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                    }
+                    .o_consent_portal .consent_review_inline_notice {
+                    margin-top: 0.95rem;
+                    padding: 0.9rem 1rem;
+                    border-radius: 14px;
+                    background: #f7fbf8;
+                    border: 1px solid #e5eeea;
+                    color: #556461;
+                    font-size: 0.9rem;
+                    line-height: 1.6;
+                    }
+                    .o_consent_portal .consent_review_attachment_list {
+                    margin: 0;
+                    padding-left: 1.2rem;
+                    color: #31403d;
+                    line-height: 1.7;
+                    }
+                    .o_consent_portal .consent_review_attachment_list li + li {
+                    margin-top: 0.55rem;
+                    }
+                    .o_consent_portal .consent_review_modal_footer {
+                    display: flex;
+                    justify-content: flex-end;
+                    padding: 0 1.75rem 1.75rem;
+                    }
+                    .o_consent_portal .consent_review_back_btn {
+                    min-height: 42px;
+                    border-radius: 999px;
+                    padding: 0.55rem 1.1rem;
+                    border: 1px solid #dbe7e0;
+                    background: #fff;
+                    color: #2d3d39;
+                    font-weight: 500;
+                    }
+                    .o_consent_portal .consent_review_back_btn:hover,
+                    .o_consent_portal .consent_review_back_btn:focus {
+                    border-color: #c7d8cf;
+                    background: #f7fbf8;
+                    color: #1f2b28;
                     }
                     .o_consent_portal .consent_request_card_header {
                     display: flex;
@@ -767,17 +1074,39 @@
                     align-items: center;
                     justify-content: space-between;
                     gap: 1rem;
-                    padding: 0.75rem 1rem;
-                    border: 1px solid #e9ecef;
-                    border-radius: 8px;
+                    padding: 0.95rem 1.05rem;
+                    border: 1px solid #e3ebe7;
+                    border-radius: 16px;
                     margin-bottom: 0.5rem;
-                    background: #fff;
+                    background: linear-gradient(180deg, #ffffff 0%, #fbfdfc 100%);
                     }
                     .o_consent_portal .consent_farmer_identity {
                     display: flex;
                     align-items: center;
                     gap: 0.85rem;
                     min-width: 0;
+                    }
+                    .o_consent_portal .consent_farmer_result_status {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-width: 112px;
+                    min-height: 38px;
+                    padding: 0 0.85rem;
+                    border-radius: 999px;
+                    font-size: 0.8rem;
+                    font-weight: 800;
+                    letter-spacing: 0.02em;
+                    text-transform: uppercase;
+                    line-height: 1.1;
+                    }
+                    .o_consent_portal .consent_farmer_result_status.is-found {
+                    background: rgba(0,145,71,.11);
+                    color: #0f7a45;
+                    }
+                    .o_consent_portal .consent_farmer_result_status.is-missing {
+                    background: rgba(220,53,69,.10);
+                    color: #b02a37;
                     }
                     .o_consent_portal .consent_farmer_identity_text {
                     min-width: 0;
@@ -786,6 +1115,17 @@
                     font-weight: 600;
                     color: #21312c;
                     word-break: break-word;
+                    }
+                    .o_consent_portal .consent_farmer_result_message {
+                    font-size: 1rem;
+                    font-weight: 700;
+                    color: #1c2825;
+                    }
+                    .o_consent_portal .consent_farmer_result_hint {
+                    margin-top: 0.25rem;
+                    color: #70807c;
+                    font-size: 0.88rem;
+                    line-height: 1.45;
                     }
                     .o_consent_portal .consent_farmer_avatar,
                     .o_consent_portal .consent_selected_farmer_image,
@@ -872,6 +1212,91 @@
                     transform: translateY(-2px);
                     outline: none;
                     opacity: 1;
+                    }
+                    .o_consent_portal .consent_verification_gate_notice {
+                    max-width: 620px;
+                    margin: 0 auto 1.1rem;
+                    padding: 0.8rem 0.95rem;
+                    border: 1px solid #e2ebe6;
+                    border-radius: 14px;
+                    background: #f8fbf9;
+                    color: #687774;
+                    font-size: 0.89rem;
+                    text-align: center;
+                    line-height: 1.45;
+                    }
+                    .o_consent_portal .consent_verification_gate_notice.is-success {
+                    border-color: #cfe5d7;
+                    background: rgba(0,145,71,.08);
+                    color: #126f40;
+                    }
+                    .o_consent_portal .consent_request_fields_shell {
+                    border-top: 1px solid #e8eeeb;
+                    padding-top: 1rem;
+                    }
+                    .o_consent_portal .consent_request_fields_intro {
+                    display: flex;
+                    align-items: flex-start;
+                    justify-content: space-between;
+                    flex-wrap: wrap;
+                    gap: 1rem;
+                    margin-bottom: 1rem;
+                    }
+                    .o_consent_portal .consent_request_fields_intro_copy {
+                    flex: 1 1 100%;
+                    min-width: 0;
+                    }
+                    .o_consent_portal .consent_request_fields_intro .consent_card_title {
+                    margin-bottom: 0.25rem;
+                    }
+                    .o_consent_portal .consent_selected_farmer--summary {
+                    width: 100%;
+                    flex: 1 1 100%;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 0.85rem;
+                    padding: 0.9rem 1rem;
+                    box-shadow: 0 10px 22px rgba(25, 40, 32, 0.05);
+                    }
+                    .o_consent_portal .consent_selected_farmer_details {
+                    min-width: 0;
+                    flex: 1 1 auto;
+                    }
+                    .o_consent_portal .consent_selected_farmer_meta_row {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.55rem 1rem;
+                    align-items: center;
+                    }
+                    .o_consent_portal .consent_selected_farmer_label {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 0.22rem 0.55rem;
+                    border-radius: 999px;
+                    background: rgba(0, 145, 71, 0.1);
+                    color: #0f7f45;
+                    font-size: 0.72rem;
+                    font-weight: 700;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    margin-bottom: 0.5rem;
+                    }
+                    .o_consent_portal .consent_selected_farmer_name {
+                    font-size: 1rem;
+                    font-weight: 700;
+                    color: #1c2825;
+                    line-height: 1.3;
+                    margin-bottom: 0.28rem;
+                    word-break: break-word;
+                    }
+                    .o_consent_portal .consent_selected_farmer_media {
+                    flex: 0 0 auto;
+                    margin-left: auto;
+                    }
+                    .o_consent_portal .consent_selected_farmer_placeholder {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
                     }
                     .o_consent_portal .consent_verification_choice_copy {
                     display: block;
@@ -1102,7 +1527,6 @@
                     }
                     .o_consent_portal .consent_farmer_result_item:hover {
                     border-color: #cde2d5;
-                    transform: translateX(2px);
                     }
                     @keyframes consentFadeIn {
                     from { opacity: 0; }
@@ -1167,6 +1591,20 @@
                         height: 96px;
                     }
                     .o_consent_portal .consent_farmer_result_item .btn { width: 100%; }
+                    .o_consent_portal .consent_request_fields_intro {
+                        flex-direction: column;
+                    }
+                    .o_consent_portal .consent_selected_farmer--summary {
+                        width: 100%;
+                        flex: 1 1 auto;
+                    }
+                    .o_consent_portal .consent_review_layout,
+                    .o_consent_portal .consent_review_info_grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .o_consent_portal .consent_review_capture {
+                        grid-template-columns: 1fr;
+                    }
                     }
                     @media (max-width: 576px) {
                     body.consent-portal-page .header-container .nav {
@@ -1231,6 +1669,20 @@
                     .o_consent_portal .consent_verification_selector {
                         padding: .85rem;
                     }
+                    .o_consent_portal.consent_review_modal .modal-dialog {
+                        max-width: calc(100vw - 1rem);
+                        margin: .5rem auto;
+                    }
+                    .o_consent_portal .consent_review_modal_header,
+                    .o_consent_portal .consent_review_modal_body {
+                        padding-left: 1rem;
+                        padding-right: 1rem;
+                    }
+                    .o_consent_portal .consent_review_modal_footer {
+                        padding-left: 1rem;
+                        padding-right: 1rem;
+                        padding-bottom: 1rem;
+                    }
                     .o_consent_portal .consent_verification_selector_options {
                         grid-template-columns: 1fr;
                     }
@@ -1250,6 +1702,25 @@
                     }
                     .o_consent_portal .consent_search_submit {
                         width: 100%;
+                    }
+                    .o_consent_portal .consent_farmer_result_item {
+                        flex-direction: column;
+                        align-items: stretch;
+                    }
+                    .o_consent_portal .consent_farmer_result_item .btn {
+                        width: 100%;
+                    }
+                    .o_consent_portal .consent_selected_farmer--summary {
+                        flex-direction: column-reverse;
+                        align-items: flex-start;
+                    }
+                    .o_consent_portal .consent_selected_farmer_media {
+                        margin-left: 0;
+                    }
+                    .o_consent_portal .consent_selected_farmer_meta_row {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 0.25rem;
                     }
                     }
                     @media (prefers-reduced-motion: reduce) {
@@ -1274,15 +1745,67 @@
                 </div>
                 <p class="consent_page_subtitle">Search farmers and submit consent requests.</p>
 
+                <div class="consent_top_tabs">
+                    <ul class="nav nav-pills" role="tablist" aria-label="Consent portal sections">
+                        <li class="nav-item" role="presentation">
+                            <a
+                                id="consent_workspace_tab_link"
+                                class="nav-link active"
+                                data-bs-toggle="tab"
+                                href="#consent_workspace"
+                                role="tab"
+                                aria-controls="consent_workspace"
+                                aria-selected="true"
+                            >
+                                Consent
+                            </a>
+                        </li>
+                        <t t-if="portal_management_enabled">
+                            <li class="nav-item" role="presentation">
+                                <a
+                                    id="portal_roles_tab_link"
+                                    class="nav-link"
+                                    data-bs-toggle="tab"
+                                    href="#portal_roles_pane"
+                                    role="tab"
+                                    aria-controls="portal_roles_pane"
+                                    aria-selected="false"
+                                >
+                                    Roles
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a
+                                    id="portal_users_tab_link"
+                                    class="nav-link"
+                                    data-bs-toggle="tab"
+                                    href="#portal_users_pane"
+                                    role="tab"
+                                    aria-controls="portal_users_pane"
+                                    aria-selected="false"
+                                >
+                                    Users
+                                </a>
+                            </li>
+                        </t>
+                    </ul>
+                </div>
+                <div class="tab-content">
+                    <div
+                        id="consent_workspace"
+                        class="tab-pane fade show active consent_tab_panel"
+                        role="tabpanel"
+                        aria-labelledby="consent_workspace_tab_link"
+                    >
+
                 <!-- Search: single bar with icon (like sample) -->
                 <div class="consent_card consent_search_panel">
                     <div class="consent_search_panel_head">
                         <span class="consent_search_panel_icon" aria-hidden="true">
-                            <i class="fa fa-search"></i>
+                            <img src="/g2p_ati_consent_mgt/static/description/farmer.png" alt="" class="consent_search_panel_icon_img" />
                         </span>
                         <div>
                             <div class="consent_search_panel_title">Farmer</div>
-                            <div class="consent_search_panel_subtitle">/ Farmer ID, National ID</div>
                         </div>
                     </div>
                     <div class="consent_search_bar">
@@ -1292,13 +1815,16 @@
                             </span>
                             <input type="text" id="search_national_id" class="form-control"
                                 placeholder="Search by Farmer ID or National ID..." />
+                            <span id="search_inline_status" class="consent_search_inline_status" aria-live="polite">
+                                <i id="search_inline_status_icon" class="fa fa-check-circle" aria-hidden="true"></i>
+                                <span id="search_inline_status_text">Found</span>
+                            </span>
                         </div>
                         <button type="button" class="btn consent_btn_primary consent_search_submit"
                             id="btn_search_farmer">Search</button>
                     </div>
                     <input type="text" id="search_farmer_id" class="d-none" placeholder="Farmer ID" />
                     <div id="farmer_search_results" class="mt-3 d-none">
-                        <p class="small fw-bold mb-2">Select a farmer for consent request:</p>
                         <div id="farmer_results_list"></div>
                     </div>
                 </div>
@@ -1306,88 +1832,13 @@
                 <!-- Create request (shown after farmer selected) -->
                 <div class="consent_card consent_create_request_card d-none"
                     id="create_request_card">
-                    <h5 class="consent_card_title">Create Request</h5>
-                    <p class="text-muted small mb-3">Create a new consent request for the selected
-                        farmer.</p>
+                    <h5 class="consent_card_title">Verification</h5>
+                    <p class="text-muted small mb-3">Choose a verification method first. Consent fields will only appear after successful verification.</p>
                     <form action="/consent/request/submit" method="post"
                         enctype="multipart/form-data" id="consent_request_form">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
                         <input type="hidden" name="farmer_id" id="form_farmer_id" value="" />
                         <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label">Selected Farmer</label>
-                                <div class="consent_selected_farmer">
-                                    <img id="selected_farmer_image"
-                                        class="consent_selected_farmer_image d-none"
-                                        alt="Selected farmer profile image" />
-                                    <div id="selected_farmer_image_placeholder"
-                                        class="consent_farmer_avatar_placeholder consent_selected_farmer_placeholder"
-                                    >No photo</div>
-                                    <div class="min-w-0">
-                                        <p class="mb-1 fw-bold" id="selected_farmer_name">—</p>
-                                        <p id="selected_farmer_meta"
-                                            class="consent_selected_farmer_meta">Search and select an approved farmer.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="consent_type">Consent Type</label>
-                                <select name="consent_type" id="consent_type" class="form-select">
-                                    <option value="specific">Specific (Single Farmer)</option>
-                                    <option value="baseline">Baseline</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="validity_months">Duration</label>
-                                <select name="validity_months" id="validity_months"
-                                    class="form-select">
-                                    <option value="3">3 months</option>
-                                    <option value="6">6 months</option>
-                                    <option value="12" selected="1">12 months</option>
-                                    <option value="24">24 months</option>
-                                    <option value="36">36 months</option>
-                                </select>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label" for="purpose">Purpose</label>
-                                <textarea name="purpose" id="purpose" class="form-control" rows="3"
-                                    placeholder="Describe the purpose of this consent request..."
-                                    required="required"></textarea>
-                                <div id="purpose_error" class="text-danger small mt-1 d-none"></div>
-                            </div>
-                            <t t-if="data_fields">
-                                <div class="col-12">
-                                    <label class="form-label">Data fields to request</label>
-                                    <div class="consent_data_field_chips d-flex flex-wrap gap-2">
-                                        <t t-foreach="data_fields" t-as="df">
-                                            <div class="form-check">
-                                                <input type="checkbox"
-                                                    class="form-check-input d-none"
-                                                    t-att-name="'allowed_data_field_ids'"
-                                                    t-att-value="df.id" t-att-id="'df_%s' % df.id" />
-                                                <label class="form-check-label"
-                                                    t-att-for="'df_%s' % df.id" t-esc="df.name" />
-                                            </div>
-                                        </t>
-                                    </div>
-                                    <div id="data_fields_error"
-                                        class="text-danger small mt-1 d-none"></div>
-                                </div>
-                            </t>
-                            <t t-else="">
-                                <div class="col-12">
-                                    <div class="alert alert-warning py-2 mb-0">
-                                        No data fields are configured for your consent partner. Please contact admin.
-                                    </div>
-                                </div>
-                            </t>
-                            <div class="col-12">
-                                <label class="form-label">Upload consent form (attachment)</label>
-                                <input type="file" name="attachment" class="form-control"
-                                    accept=".pdf,.doc,.docx,image/*" required="required" />
-                                <div class="form-text">Maximum 10MB</div>
-                                <div id="attachment_error" class="text-danger small mt-1 d-none"></div>
-                            </div>
                             <div class="col-12">
                                 <input type="hidden" name="camera_capture_data"
                                     id="camera_capture_data" value="" />
@@ -1399,16 +1850,10 @@
                                     id="camera_capture_longitude" value="" />
                                 <input type="hidden" name="camera_capture_accuracy"
                                     id="camera_capture_accuracy" value="" />
-                                <input type="hidden" name="face_match_status"
-                                    id="face_match_status_input" value="not_attempted" />
-                                <input type="hidden" name="face_match_distance"
-                                    id="face_match_distance_input" value="" />
-                                <input type="hidden" name="face_match_threshold"
-                                    id="face_match_threshold_input" value="" />
-                                <input type="hidden" name="face_match_checked_at"
-                                    id="face_match_checked_at_input" value="" />
-                                <input type="hidden" name="face_match_message"
-                                    id="face_match_message_input" value="" />
+                                <input type="hidden" name="liveness_challenge_id"
+                                    id="liveness_challenge_id_input" value="" />
+                                <input type="hidden" name="liveness_verification_token"
+                                    id="liveness_verification_token_input" value="" />
                                 <input type="hidden" name="fayda_otp_transaction_id"
                                     id="fayda_otp_transaction_id_input" value="" />
                                 <div class="consent_verification_selector mt-2"
@@ -1429,7 +1874,7 @@
                                         <button type="button" class="consent_verification_choice"
                                             id="btn_select_verification_face">
                                             <span class="consent_verification_choice_copy">
-                                                <span class="consent_verification_choice_title">Face Match</span>
+                                                <span class="consent_verification_choice_title">Face + Liveness</span>
                                             </span>
                                             <span class="consent_verification_icon is-face" aria-hidden="true">
                                                 <i class="fa fa-camera" aria-hidden="true"></i>
@@ -1437,6 +1882,9 @@
                                             <span class="consent_verification_choice_text" id="face_verification_choice_hint">Not Attempted</span>
                                         </button>
                                     </div>
+                                </div>
+                                <div id="verification_required_notice" class="consent_verification_gate_notice">
+                                    Complete Fayda OTP or Face + Liveness verification to unlock the consent form.
                                 </div>
                                 <div class="modal fade o_consent_portal" id="modal_verification_otp" tabindex="-1" aria-labelledby="modal_verification_otp_label" aria-hidden="true" data-bs-backdrop="static">
                                   <div class="modal-dialog modal-dialog-centered" style="background: transparent !important; border: none !important; box-shadow: none !important;">
@@ -1460,7 +1908,7 @@
                                                   Request OTP to verify the selected farmer.
                                               </div>
                                               <div id="fayda_otp_meta_text" class="text-muted" style="font-size: 0.8rem;">
-                                                  A verified OTP or a successful face match will auto-approve this request on submit.
+                                                  A verified OTP or successful face + liveness verification will auto-approve this request on submit.
                                               </div>
                                           </div>
                                       
@@ -1506,8 +1954,8 @@
                                               <div class="consent_verification_logo mb-2">
                                                   <i class="fa fa-camera-retro fa-4x opacity-75" style="color: var(--consent-primary);"></i>
                                               </div>
-                                              <h4 class="fw-bold text-dark mb-2" id="modal_verification_face_label">Live Face Match</h4>
-                                              <div class="consent_verification_option_hint text-muted small px-4">Capture your live photo to securely match against the farmer's registered profile.</div>
+                                              <h4 class="fw-bold text-dark mb-2" id="modal_verification_face_label">Face + Liveness Verification</h4>
+                                              <div class="consent_verification_option_hint text-muted small px-4">Complete both checks in one step: face match against the selected farmer and random liveness challenge.</div>
                                           </div>
                                       
                                           <div class="row g-3 mb-2">
@@ -1544,26 +1992,19 @@
                                               </div>
                                       
                                               <div class="col-md-6 d-flex flex-column text-center">
-                                                  <div class="small text-muted text-uppercase fw-bold mb-2" style="letter-spacing: 1px;">Registered Profile</div>
-                                                  <div class="profile-reference bg-light border p-4 text-center d-flex flex-column justify-content-center align-items-center modern-card-shadow" style="border-radius: 1rem; min-height: 240px; margin-bottom: 0.75rem;">
-                                                      <div class="reference-icon-wrapper rounded-circle shadow-sm overflow-hidden mb-3 border border-4 border-white position-relative bg-white mt-auto" style="width: 100px; height: 100px;">
-                                                          <img id="face_match_reference_preview" class="consent_face_match_reference_image w-100 h-100 d-none position-absolute top-0 start-0" style="object-fit: cover;" alt="Farmer Profile" />
-                                                          <div id="face_match_reference_empty" class="consent_farmer_avatar_placeholder consent_face_match_reference_empty w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted small position-absolute top-0 start-0">
-                                                              <i class="fa fa-user fa-2x mb-1 opacity-25"></i>
-                                                              <span>No Image</span>
-                                                          </div>
-                                                      </div>
-                                                  </div>
-                                                  
+                                                  <div class="small text-muted text-uppercase fw-bold mb-2" style="letter-spacing: 1px;">Verification Status</div>
+                                                  <img id="face_match_reference_preview" class="d-none" alt="Farmer profile reference for face match" />
+                                                  <div id="face_match_reference_empty" class="d-none"></div>
+
                                                   <div class="match-results w-100 p-3 bg-white border shadow-sm mt-auto" style="border-radius: 0.75rem;">
                                                       <div id="face_match_status_text" class="consent_face_match_status is-not-attempted fw-bold flex-grow-1 mb-2 text-dark" style="font-size: 0.95rem;">
-                                                          Waiting for capture...
+                                                          Waiting for face + liveness verification...
                                                       </div>
                                                       <div class="progress shadow-none" style="height: 6px; background-color: #e9ecef;">
                                                           <div class="progress-bar progress-bar-striped progress-bar-animated w-100" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="background-color: var(--consent-primary); opacity: 0.2;"></div>
                                                       </div>
                                                       <div id="face_match_percent_text" class="text-muted small mt-2 fw-semibold">
-                                                          Minimum accepted: 55.0%
+                                                          Challenge prompt and face score will appear here.
                                                       </div>
                                                   </div>
                                               </div>
@@ -1573,19 +2014,113 @@
                                   </div>
                                 </div>
                             </div>
+                            <div id="consent_form_fields_wrapper" class="col-12 d-none">
+                                <div class="consent_request_fields_shell">
+                                    <div class="consent_request_fields_intro">
+                                        <div class="consent_request_fields_intro_copy">
+                                            <h5 class="consent_card_title">Consent Details</h5>
+                                            <p class="text-muted small mb-0">Verification has succeeded. You can now complete and submit the consent request.</p>
+                                        </div>
+                                        <div class="consent_selected_farmer consent_selected_farmer--summary">
+                                            <div class="consent_selected_farmer_details">
+                                                <div class="consent_selected_farmer_label">Selected Farmer</div>
+                                                <div id="selected_farmer_name" class="consent_selected_farmer_name">—</div>
+                                                <div class="consent_selected_farmer_meta_row">
+                                                    <p id="selected_farmer_meta" class="consent_selected_farmer_meta">Farmer ID: —</p>
+                                                </div>
+                                            </div>
+                                            <div class="consent_selected_farmer_media">
+                                                <img id="selected_farmer_image" class="consent_selected_farmer_image d-none"
+                                                    alt="Selected farmer photo" />
+                                                <div id="selected_farmer_image_placeholder"
+                                                    class="consent_farmer_avatar_placeholder consent_selected_farmer_placeholder">
+                                                    No photo
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="consent_type">Consent Type</label>
+                                            <select name="consent_type" id="consent_type" class="form-select">
+                                                <option value="specific">Specific (Single Farmer)</option>
+                                                <option value="baseline">Baseline</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="validity_months">Duration</label>
+                                            <select name="validity_months" id="validity_months"
+                                                class="form-select">
+                                                <option value="3">3 months</option>
+                                                <option value="6">6 months</option>
+                                                <option value="12" selected="1">12 months</option>
+                                                <option value="24">24 months</option>
+                                                <option value="36">36 months</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label" for="consent_reason_id">Consent Reason</label>
+                                            <select name="consent_reason_id" id="consent_reason_id" class="form-select" required="required">
+                                                <option value="">Select reason</option>
+                                                <t t-foreach="consent_reasons" t-as="reason">
+                                                    <option t-att-value="reason.id">
+                                                        <t t-esc="reason.name" />
+                                                    </option>
+                                                </t>
+                                            </select>
+                                            <div id="consent_reason_error" class="text-danger small mt-1 d-none"></div>
+                                        </div>
+                                        <t t-if="data_fields">
+                                            <div class="col-12">
+                                                <label class="form-label">Data fields to request</label>
+                                                <div class="consent_data_field_chips d-flex flex-wrap gap-2">
+                                                    <t t-foreach="data_fields" t-as="df">
+                                                        <div class="form-check">
+                                                            <input type="checkbox"
+                                                                class="form-check-input d-none"
+                                                                t-att-name="'allowed_data_field_ids'"
+                                                                t-att-value="df.id" t-att-id="'df_%s' % df.id" />
+                                                            <label class="form-check-label"
+                                                                t-att-for="'df_%s' % df.id" t-esc="df.name" />
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                                <div id="data_fields_error"
+                                                    class="text-danger small mt-1 d-none"></div>
+                                            </div>
+                                        </t>
+                                        <t t-else="">
+                                            <div class="col-12">
+                                                <div class="alert alert-warning py-2 mb-0">
+                                                    No data fields are configured for your consent partner. Please contact admin.
+                                                </div>
+                                            </div>
+                                        </t>
+                                        <div class="col-12">
+                                            <label class="form-label">Upload consent form (attachment)</label>
+                                            <input type="file" name="attachment" class="form-control"
+                                                accept=".pdf,.doc,.docx,image/*" required="required" />
+                                            <div class="form-text">Maximum 10MB</div>
+                                            <div id="attachment_error" class="text-danger small mt-1 d-none"></div>
+                                        </div>
+                                        <div class="col-12">
+                                            <t t-if="data_fields">
+                                                <button type="submit" class="btn consent_btn_primary">Submit Request</button>
+                                            </t>
+                                            <t t-else="">
+                                                <button
+                                                    type="button"
+                                                    class="btn consent_btn_primary"
+                                                    id="btn_submit_disabled_reason"
+                                                    title="No data fields configured for your consent partner."
+                                                >Submit Request</button>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="col-12">
-                                <t t-if="data_fields">
-                                    <button type="submit" class="btn consent_btn_primary">Submit Request</button>
-                                </t>
-                                <t t-else="">
-                                    <button
-                                        type="button"
-                                        class="btn consent_btn_primary"
-                                        id="btn_submit_disabled_reason"
-                                        title="No data fields configured for your consent partner."
-                                    >Submit Request</button>
-                                </t>
-                                <button type="button" class="btn btn-outline-secondary ms-2"
+                                <button type="button" class="btn btn-outline-secondary"
                                     id="btn_clear_farmer">Clear selection</button>
                             </div>
                         </div>
@@ -1598,8 +2133,8 @@
                         <t t-if="request.httprequest.args.get('auto_approved_method') == 'otp'">
                             Consent request submitted and automatically approved after Fayda OTP verification.
                         </t>
-                        <t t-elif="request.httprequest.args.get('auto_approved_method') == 'face_match'">
-                            Consent request submitted and automatically approved after face match.
+                        <t t-elif="request.httprequest.args.get('auto_approved_method') in ('liveness', 'face_match')">
+                            Consent request submitted and automatically approved after face + liveness verification.
                         </t>
                         <t t-else="">
                             Consent request submitted and automatically approved.
@@ -1618,8 +2153,8 @@
                         <t t-if="request.httprequest.args.get('auto_approval_failed_method') == 'otp'">
                             Fayda OTP verification passed, but automatic approval could not be completed. The request was created and remains pending.
                         </t>
-                        <t t-elif="request.httprequest.args.get('auto_approval_failed_method') == 'face_match'">
-                            Face match passed, but automatic approval could not be completed. The request was created and remains pending.
+                        <t t-elif="request.httprequest.args.get('auto_approval_failed_method') in ('liveness', 'face_match')">
+                            Face + liveness verification passed, but automatic approval could not be completed. The request was created and remains pending.
                         </t>
                         <t t-else="">
                             Verification passed, but automatic approval could not be completed. The request was created and remains pending.
@@ -1637,8 +2172,11 @@
                             not found.</t>
                         <t t-if="request.httprequest.args.get('error') == 'access_denied'">Access
                             denied. Please contact your administrator.</t>
-                        <t t-if="request.httprequest.args.get('error') == 'missing_purpose'">Purpose
-                            is required.</t>
+                        <t
+                            t-if="request.httprequest.args.get('error') in ('missing_consent_reason', 'missing_purpose')"
+                        >Consent reason is required.</t>
+                        <t t-if="request.httprequest.args.get('error') == 'invalid_consent_reason'">Invalid
+                            consent reason selected.</t>
                         <t t-if="request.httprequest.args.get('error') == 'missing_data_fields'">Select
                             at least one data field.</t>
                         <t t-if="request.httprequest.args.get('error') == 'missing_attachment'">Attachment
@@ -1662,212 +2200,247 @@
                     </div>
                 </t>
                 <t t-if="review_request">
-                    <div class="consent_card mb-3" id="review_request">
-                        <div
-                            class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                            <h5 class="mb-0">Request Review: <t
-                                    t-esc="review_request.consent_creation_request_id" /></h5>
-                            <a
-                                t-att-href="'/consent/management/page/%s?view=%s' % (current_page, view_mode) if current_page > 1 else '/consent/management?view=%s' % view_mode"
-                                class="btn btn-sm btn-outline-secondary px-2" title="Close"
-                                aria-label="Close"
-                            >&#10005;</a>
-                        </div>
-                        <hr class="my-3" />
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="text-muted small">Farmer</div>
-                                <div class="fw-semibold">
-                                    <t t-esc="review_request.farmer_id.display_name" />
+                    <t t-set="face_match_percent"
+                        t-value="max(0.0, min(100.0, (1.0 - (review_request.face_match_distance or 0.0)) * 100.0))" />
+                    <t t-set="face_match_threshold_percent"
+                        t-value="max(0.0, min(100.0, (1.0 - (review_request.face_match_threshold or 0.0)) * 100.0))" />
+                    <div
+                        class="modal fade o_consent_portal consent_review_modal"
+                        id="consent_review_modal"
+                        tabindex="-1"
+                        aria-labelledby="consent_review_modal_title"
+                        aria-hidden="true"
+                        t-att-data-close-url="review_close_url"
+                    >
+                        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="consent_review_modal_header">
+                                    <div>
+                                        <h5 class="consent_review_modal_title" id="consent_review_modal_title">
+                                            <t t-esc="review_request.farmer_id.display_name or 'Consent request'" />
+                                        </h5>
+                                        <p class="consent_review_modal_subtitle">
+                                            Review farmer, verification, and requested access.
+                                        </p>
+                                    </div>
+                                    <a
+                                        t-att-href="review_close_url"
+                                        class="btn consent_review_modal_close"
+                                        aria-label="Close"
+                                    >&#10005;</a>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="text-muted small">Status</div>
-                                <div>
-                                    <span
-                                        t-attf-class="consent_status_badge consent_status_#{review_request.status}">
-                                        <t t-esc="review_request.status" />
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="text-muted small">Consent Type</div>
-                                <div class="fw-semibold">
-                                    <t t-esc="review_request.consent_type" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="text-muted small">Created</div>
-                                <div class="fw-semibold">
-                                    <t t-esc="review_request.created_at" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="text-muted small">Valid From</div>
-                                <div class="fw-semibold">
-                                    <t t-esc="review_request.validity_from or '-'" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="text-muted small">Valid Until</div>
-                                <div class="fw-semibold">
-                                    <t t-esc="review_request.validity_to or '-'" />
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="text-muted small">Purpose</div>
-                                <div>
-                                    <t t-esc="review_request.purpose or '-'" />
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="text-muted small mb-1">Captured Photo</div>
-                                <t t-if="review_request.portal_capture_image">
-                                    <div class="d-flex flex-column gap-2">
-                                        <a
-                                            t-att-href="'/consent/request/%s/capture_image' % review_request.id"
-                                            target="_blank"
-                                            rel="noopener"
-                                        >
-                                            <img
-                                                t-att-src="'/consent/request/%s/capture_image' % review_request.id"
-                                                alt="Captured photo"
-                                                style="max-width: 260px; border: 1px solid #e9ecef; border-radius: 8px;"
-                                            />
-                                        </a>
-                                        <div
-                                            class="text-muted small d-flex align-items-center gap-1">
-                                            <span>Captured At:</span>
-                                            <span class="text-body" style="opacity: 1;">
-                                                <t
-                                                    t-esc="review_request.portal_capture_taken_at or '-'" />
-                                            </span>
-                                        </div>
-                                        <t
-                                            t-if="review_request.portal_capture_latitude is not False and review_request.portal_capture_longitude is not False">
-                                            <div
-                                                class="text-muted small d-flex align-items-center gap-1 flex-wrap">
-                                                <span>Capture Location:</span>
-                                                <span class="text-body" style="opacity: 1;">
-                                                    <t
-                                                        t-esc="('%.6f' % review_request.portal_capture_latitude) + ', ' + ('%.6f' % review_request.portal_capture_longitude)" />
-                                                </span>
-                                                <t t-if="review_request.portal_capture_accuracy_m">
-                                                    <span class="text-body" style="opacity: 1;">
-                                                        <t
-                                                            t-esc="'(± %.1f m)' % review_request.portal_capture_accuracy_m" />
+                                <div class="modal-body consent_review_modal_body">
+                                    <div class="consent_review_layout">
+                                        <section class="consent_review_panel">
+                                            <h6 class="consent_review_panel_title">Request information</h6>
+                                            <div class="consent_review_info_grid">
+                                                <div class="consent_review_info_item">
+                                                    <span class="consent_review_label">Farmer</span>
+                                                    <span class="consent_review_value">
+                                                        <t t-esc="review_request.farmer_id.display_name" />
                                                     </span>
+                                                </div>
+                                                <div class="consent_review_info_item">
+                                                    <span class="consent_review_label">Status</span>
+                                                    <span
+                                                        t-attf-class="consent_status_badge consent_status_#{review_request.status}">
+                                                        <t t-esc="review_request.status" />
+                                                    </span>
+                                                </div>
+                                                <div class="consent_review_info_item">
+                                                    <span class="consent_review_label">Consent type</span>
+                                                    <span class="consent_review_value">
+                                                        <t t-esc="review_request.consent_type or '-'" />
+                                                    </span>
+                                                </div>
+                                                <div class="consent_review_info_item">
+                                                    <span class="consent_review_label">Created</span>
+                                                    <span class="consent_review_value">
+                                                        <t t-esc="review_request.created_at or '-'" />
+                                                    </span>
+                                                </div>
+                                                <div class="consent_review_info_item">
+                                                    <span class="consent_review_label">Valid from</span>
+                                                    <span class="consent_review_value">
+                                                        <t t-esc="review_request.validity_from or '-'" />
+                                                    </span>
+                                                </div>
+                                                <div class="consent_review_info_item">
+                                                    <span class="consent_review_label">Valid until</span>
+                                                    <span class="consent_review_value">
+                                                        <t t-esc="review_request.validity_to or '-'" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </section>
+                                        <section class="consent_review_panel">
+                                            <h6 class="consent_review_panel_title">Verification summary</h6>
+                                            <div class="consent_review_meta_list">
+                                                <div class="consent_review_meta_row">
+                                                    <span class="consent_review_label">Face match</span>
+                                                    <span class="consent_review_value text-capitalize">
+                                                        <t t-esc="review_request.face_match_status or '-'" />
+                                                    </span>
+                                                </div>
+                                                <t t-if="review_request.face_match_distance or review_request.face_match_threshold">
+                                                    <div class="consent_review_meta_row">
+                                                        <span class="consent_review_label">Match score</span>
+                                                        <span class="consent_review_value">
+                                                            <t t-esc="'%.1f%%' % face_match_percent" />
+                                                        </span>
+                                                    </div>
+                                                    <div class="consent_review_meta_row">
+                                                        <span class="consent_review_label">Minimum accepted</span>
+                                                        <span class="consent_review_value">
+                                                            <t t-esc="'%.1f%%' % face_match_threshold_percent" />
+                                                        </span>
+                                                    </div>
+                                                </t>
+                                                <div class="consent_review_meta_row">
+                                                    <span class="consent_review_label">Fayda OTP</span>
+                                                    <span class="consent_review_value text-capitalize">
+                                                        <t t-esc="review_request.fayda_otp_status or '-'" />
+                                                    </span>
+                                                </div>
+                                                <t t-if="review_request.fayda_otp_verified_at">
+                                                    <div class="consent_review_meta_row">
+                                                        <span class="consent_review_label">OTP verified at</span>
+                                                        <span class="consent_review_value">
+                                                            <t t-esc="review_request.fayda_otp_verified_at" />
+                                                        </span>
+                                                    </div>
                                                 </t>
                                             </div>
-                                        </t>
+                                            <t t-if="review_request.auto_approved_via_face_match or review_request.auto_approved_via_otp or review_request.face_match_message or review_request.fayda_otp_message">
+                                                <div class="consent_review_inline_notice">
+                                                    <t t-if="review_request.auto_approved_via_face_match">
+                                                        Automatically approved via face match.
+                                                    </t>
+                                                    <t t-elif="review_request.auto_approved_via_otp">
+                                                        Automatically approved via Fayda OTP.
+                                                    </t>
+                                                    <t t-elif="review_request.face_match_message">
+                                                        <t t-esc="review_request.face_match_message" />
+                                                    </t>
+                                                    <t t-else="">
+                                                        <t t-esc="review_request.fayda_otp_message" />
+                                                    </t>
+                                                </div>
+                                            </t>
+                                        </section>
+                                        <section class="consent_review_panel consent_review_panel--wide">
+                                            <h6 class="consent_review_panel_title">Purpose and requested access</h6>
+                                            <div class="consent_review_info_grid">
+                                                <div class="consent_review_info_item" style="grid-column: 1 / -1;">
+                                                    <span class="consent_review_label">Purpose</span>
+                                                    <span class="consent_review_value is-body">
+                                                        <t t-esc="review_request.purpose or '-'" />
+                                                    </span>
+                                                </div>
+                                                <div class="consent_review_info_item">
+                                                    <span class="consent_review_label">Requested data fields</span>
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <t t-if="review_request.allowed_data_field_ids">
+                                                            <t t-foreach="review_request.allowed_data_field_ids" t-as="fld">
+                                                                <span class="consent_data_tag" t-esc="fld.name" />
+                                                            </t>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span class="consent_review_value is-body">No data fields selected.</span>
+                                                        </t>
+                                                    </div>
+                                                </div>
+                                                <div class="consent_review_info_item">
+                                                    <span class="consent_review_label">Attachments</span>
+                                                    <t t-if="review_request.attachment_ids">
+                                                        <ul class="consent_review_attachment_list">
+                                                            <t t-foreach="review_request.attachment_ids" t-as="att">
+                                                                <li><span t-esc="att.name" /></li>
+                                                            </t>
+                                                        </ul>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span class="consent_review_value is-body">No attachments.</span>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                        </section>
+                                        <section class="consent_review_panel consent_review_panel--wide">
+                                            <h6 class="consent_review_panel_title">Captured information</h6>
+                                            <div class="consent_review_capture">
+                                                <t t-if="review_request.portal_capture_image">
+                                                    <a
+                                                        t-att-href="'/consent/request/%s/capture_image' % review_request.id"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                    >
+                                                        <img
+                                                            class="consent_review_capture_image"
+                                                            t-att-src="'/consent/request/%s/capture_image' % review_request.id"
+                                                            alt="Captured photo"
+                                                        />
+                                                    </a>
+                                                </t>
+                                                <t t-else="">
+                                                    <div class="consent_review_capture_empty">No captured photo available.</div>
+                                                </t>
+                                                <div class="consent_review_capture_notes">
+                                                    <div class="consent_review_meta_list">
+                                                        <div class="consent_review_meta_row">
+                                                            <span class="consent_review_label">Captured at</span>
+                                                            <span class="consent_review_value">
+                                                                <t t-esc="review_request.portal_capture_taken_at or '-'" />
+                                                            </span>
+                                                        </div>
+                                                        <div class="consent_review_meta_row">
+                                                            <span class="consent_review_label">Transaction</span>
+                                                            <span class="consent_review_value">
+                                                                <t t-esc="review_request.fayda_otp_transaction_id or '-'" />
+                                                            </span>
+                                                        </div>
+                                                        <div class="consent_review_meta_row">
+                                                            <span class="consent_review_label">Identifier</span>
+                                                            <span class="consent_review_value">
+                                                                <t t-if="review_request.fayda_otp_identifier">
+                                                                    <t t-esc="review_request.fayda_otp_identifier_type or '-'" /> |
+                                                                    <t t-esc="review_request.fayda_otp_identifier" />
+                                                                </t>
+                                                                <t t-else="">-</t>
+                                                            </span>
+                                                        </div>
+                                                        <t t-if="review_request.portal_capture_latitude is not False and review_request.portal_capture_longitude is not False">
+                                                            <div class="consent_review_meta_row">
+                                                                <span class="consent_review_label">Capture location</span>
+                                                                <span class="consent_review_value">
+                                                                    <t t-esc="('%.6f' % review_request.portal_capture_latitude) + ', ' + ('%.6f' % review_request.portal_capture_longitude)" />
+                                                                    <t t-if="review_request.portal_capture_accuracy_m">
+                                                                        <span>
+                                                                            <t t-esc="' (± %.1f m)' % review_request.portal_capture_accuracy_m" />
+                                                                        </span>
+                                                                    </t>
+                                                                </span>
+                                                            </div>
+                                                        </t>
+                                                        <t t-if="review_request.fayda_otp_masked_mobile">
+                                                            <div class="consent_review_meta_row">
+                                                                <span class="consent_review_label">Masked mobile</span>
+                                                                <span class="consent_review_value">
+                                                                    <t t-esc="review_request.fayda_otp_masked_mobile" />
+                                                                </span>
+                                                            </div>
+                                                        </t>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
                                     </div>
-                                </t>
-                                <t t-else="">
-                                    <span class="text-muted">No captured photo.</span>
-                                </t>
-                            </div>
-                            <div class="col-12">
-                                <div class="text-muted small mb-1">Face Match</div>
-                                <t t-set="face_match_percent"
-                                    t-value="max(0.0, min(100.0, (1.0 - (review_request.face_match_distance or 0.0)) * 100.0))" />
-                                <t t-set="face_match_threshold_percent"
-                                    t-value="max(0.0, min(100.0, (1.0 - (review_request.face_match_threshold or 0.0)) * 100.0))" />
-                                <div class="fw-semibold text-capitalize">
-                                    <t t-esc="review_request.face_match_status or '-'" />
                                 </div>
-                                <t t-if="review_request.face_match_distance or review_request.face_match_threshold">
-                                    <div class="text-muted small mt-1">
-                                        Match:
-                                        <t t-esc="'%.1f%%' % face_match_percent" />
-                                        |
-                                        Minimum accepted:
-                                        <t t-esc="'%.1f%%' % face_match_threshold_percent" />
-                                    </div>
-                                    <div class="text-muted small mt-1">
-                                        Distance:
-                                        <t t-esc="'%.4f' % (review_request.face_match_distance or 0.0)" />
-                                        |
-                                        Threshold:
-                                        <t t-esc="'%.4f' % (review_request.face_match_threshold or 0.0)" />
-                                    </div>
-                                </t>
-                                <t t-if="review_request.auto_approved_via_face_match">
-                                    <div class="text-success small mt-1">Automatically approved via face match.</div>
-                                </t>
-                                <t t-if="review_request.face_match_message">
-                                    <div class="text-muted small mt-1">
-                                        <t t-esc="review_request.face_match_message" />
-                                    </div>
-                                </t>
-                            </div>
-                            <div class="col-12">
-                                <div class="text-muted small mb-1">Fayda OTP</div>
-                                <div class="fw-semibold text-capitalize">
-                                    <t t-esc="review_request.fayda_otp_status or '-'" />
+                                <div class="consent_review_modal_footer">
+                                    <a
+                                        t-att-href="review_close_url"
+                                        class="btn consent_review_back_btn"
+                                    >Back to requests</a>
                                 </div>
-                                <t t-if="review_request.fayda_otp_transaction_id">
-                                    <div class="text-muted small mt-1">
-                                        Transaction:
-                                        <t t-esc="review_request.fayda_otp_transaction_id" />
-                                    </div>
-                                </t>
-                                <t t-if="review_request.fayda_otp_identifier">
-                                    <div class="text-muted small mt-1">
-                                        Identifier:
-                                        <t t-esc="review_request.fayda_otp_identifier_type or '-'" />
-                                        |
-                                        <t t-esc="review_request.fayda_otp_identifier" />
-                                    </div>
-                                </t>
-                                <t t-if="review_request.fayda_otp_masked_mobile">
-                                    <div class="text-muted small mt-1">
-                                        Masked Mobile:
-                                        <t t-esc="review_request.fayda_otp_masked_mobile" />
-                                    </div>
-                                </t>
-                                <t t-if="review_request.fayda_otp_verified_at">
-                                    <div class="text-muted small mt-1">
-                                        Verified At:
-                                        <t t-esc="review_request.fayda_otp_verified_at" />
-                                    </div>
-                                </t>
-                                <t t-if="review_request.auto_approved_via_otp">
-                                    <div class="text-success small mt-1">Automatically approved via Fayda OTP.</div>
-                                </t>
-                                <t t-if="review_request.fayda_otp_message">
-                                    <div class="text-muted small mt-1">
-                                        <t t-esc="review_request.fayda_otp_message" />
-                                    </div>
-                                </t>
-                            </div>
-                            <div class="col-12">
-                                <div class="text-muted small mb-1">Requested Data Fields</div>
-                                <div class="d-flex flex-wrap gap-2">
-                                    <t t-if="review_request.allowed_data_field_ids">
-                                        <t t-foreach="review_request.allowed_data_field_ids"
-                                            t-as="fld">
-                                            <span class="consent_data_tag" t-esc="fld.name" />
-                                        </t>
-                                    </t>
-                                    <t t-else="">
-                                        <span class="text-muted">No data fields selected.</span>
-                                    </t>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="text-muted small mb-1">Attachments</div>
-                                <ul class="mb-0 ps-3">
-                                    <t t-if="review_request.attachment_ids">
-                                        <t t-foreach="review_request.attachment_ids" t-as="att">
-                                            <li>
-                                                <span t-esc="att.name" />
-                                            </li>
-                                        </t>
-                                    </t>
-                                    <t t-else="">
-                                        <li class="text-muted">No attachments.</li>
-                                    </t>
-                                </ul>
                             </div>
                         </div>
                     </div>
@@ -1898,13 +2471,7 @@
                 </div>
                 <t t-if="consent_requests">
                     <t t-if="view_mode == 'table'">
-                        <div
-                            class="consent_table_wrap"
-                            id="consent_table_wrap"
-                            t-att-data-total="total_requests"
-                            t-att-data-limit="table_fetch_size"
-                            t-att-data-offset="len(consent_requests)"
-                        >
+                        <div class="consent_table_wrap" id="consent_table_wrap">
                             <table class="consent_request_table table table-sm mb-0">
                                 <thead>
                                     <tr>
@@ -1920,7 +2487,7 @@
                                     <t t-foreach="consent_requests" t-as="req">
                                         <tr t-attf-class="consent_request_row consent_request_row--#{req.status}">
                                             <td class="consent_table_id">
-                                                <t t-esc="req.consent_creation_request_id" />
+                                                <t t-esc="req.consent_creation_request_id or '-'" />
                                             </td>
                                             <td>
                                                 <span class="fw-semibold consent_farmer_name consent_table_farmer_name"><t
@@ -1946,7 +2513,7 @@
                                             </td>
                                             <td class="consent_table_action">
                                                 <a
-                                                    t-att-href="'/consent/management/review/%s?view=%s&amp;page=%s#review_request' % (req.id, view_mode, current_page)"
+                                                    t-att-href="'/consent/management/review/%s?view=%s&amp;page=%s' % (req.id, view_mode, current_page)"
                                                     class="btn btn-sm consent_request_card_btn"
                                                 ><i class="fa fa-eye" aria-hidden="true"></i>View Details</a>
                                             </td>
@@ -1954,8 +2521,6 @@
                                     </t>
                                 </tbody>
                             </table>
-                            <div class="consent_table_state d-none" id="consent_table_loader">Loading more...</div>
-                            <div class="consent_table_state d-none" id="consent_table_end">End of requests</div>
                         </div>
                     </t>
                     <t t-else="">
@@ -1965,7 +2530,7 @@
                                     t-attf-class="consent_request_card consent_request_card--#{req.status}"
                                     t-att-data-consent-id="req.id"
                                     t-att-data-status="req.status"
-                                    t-att-data-review-url="'/consent/management/review/%s?view=%s&amp;page=%s#review_request' % (req.id, view_mode, current_page)"
+                                    t-att-data-review-url="'/consent/management/review/%s?view=%s&amp;page=%s' % (req.id, view_mode, current_page)"
                                 >
                                     <div class="consent_request_card_header">
                                         <div class="consent_request_card_body">
@@ -1973,10 +2538,10 @@
                                                 <t t-esc="req.farmer_id.display_name" />
                                             </div>
                                             <div class="consent_request_card_meta">
-                                                <span class="consent_request_id">
-                                                    <t t-esc="req.consent_creation_request_id" />
+                                                <span>
+                                                    <t t-esc="req.consent_creation_request_id or '-'" />
                                                 </span>
-                                                <span class="consent_request_meta_sep">|</span>
+                                                <span class="consent_request_meta_sep">&#8226;</span>
                                                 <span>
                                                     <t t-esc="req.created_at" />
                                                 </span>
@@ -1996,7 +2561,7 @@
                                     </div>
                                     <div class="consent_request_card_actions is-single">
                                         <a
-                                            t-att-href="'/consent/management/review/%s?view=%s&amp;page=%s#review_request' % (req.id, view_mode, current_page)"
+                                            t-att-href="'/consent/management/review/%s?view=%s&amp;page=%s' % (req.id, view_mode, current_page)"
                                             class="btn btn-sm consent_request_card_btn"
                                         ><i class="fa fa-eye" aria-hidden="true"></i>View Details</a>
                                     </div>
@@ -2004,7 +2569,7 @@
                             </t>
                         </div>
                     </t>
-                    <div class="consent_pager_wrap" t-if="view_mode != 'table' and pager and pager.get('page_count', 0) > 1">
+                    <div class="consent_pager_wrap" t-if="pager and pager.get('page_count', 0) > 1">
                         <t t-call="portal.pager" />
                     </div>
                 </t>
@@ -2014,6 +2579,28 @@
                             submit a request above.</p>
                     </div>
                 </t>
+                    </div>
+                    <t t-if="portal_management_enabled">
+                        <div id="portal_management_alerts_anchor"></div>
+                        <div id="portal_management_section_anchor" class="d-none"></div>
+                        <div
+                            id="portal_roles_pane"
+                            class="tab-pane fade consent_tab_panel"
+                            role="tabpanel"
+                            aria-labelledby="portal_roles_tab_link"
+                        >
+                            <div id="portal_roles_section_anchor"></div>
+                        </div>
+                        <div
+                            id="portal_users_pane"
+                            class="tab-pane fade consent_tab_panel"
+                            role="tabpanel"
+                            aria-labelledby="portal_users_tab_link"
+                        >
+                            <div id="portal_users_section_anchor"></div>
+                        </div>
+                    </t>
+                </div>
             </div>
 
             <script><![CDATA[
@@ -2021,10 +2608,15 @@
                     var btnSearch = document.getElementById('btn_search_farmer');
                     var searchFarmerId = document.getElementById('search_farmer_id');
                     var searchNationalId = document.getElementById('search_national_id');
+                    var searchInlineStatus = document.getElementById('search_inline_status');
+                    var searchInlineStatusIcon = document.getElementById('search_inline_status_icon');
+                    var searchInlineStatusText = document.getElementById('search_inline_status_text');
                     var resultsDiv = document.getElementById('farmer_search_results');
                     var resultsList = document.getElementById('farmer_results_list');
                     var createCard = document.getElementById('create_request_card');
                     var formFarmerId = document.getElementById('form_farmer_id');
+                    var verificationRequiredNotice = document.getElementById('verification_required_notice');
+                    var consentFormFieldsWrapper = document.getElementById('consent_form_fields_wrapper');
                     var selectedFarmerName = document.getElementById('selected_farmer_name');
                     var selectedFarmerMeta = document.getElementById('selected_farmer_meta');
                     var selectedFarmerImage = document.getElementById('selected_farmer_image');
@@ -2032,8 +2624,8 @@
                     var btnClear = document.getElementById('btn_clear_farmer');
                     var btnSubmitDisabledReason = document.getElementById('btn_submit_disabled_reason');
                     var consentForm = document.getElementById('consent_request_form');
-                    var purposeInput = document.getElementById('purpose');
-                    var purposeError = document.getElementById('purpose_error');
+                    var consentReasonInput = document.getElementById('consent_reason_id');
+                    var consentReasonError = document.getElementById('consent_reason_error');
                     var dataFieldInputs = consentForm ? consentForm.querySelectorAll('input[name="allowed_data_field_ids"]') : [];
                     var dataFieldsError = document.getElementById('data_fields_error');
                     var attachmentInput = consentForm ? consentForm.querySelector('input[name="attachment"]') : null;
@@ -2043,11 +2635,8 @@
                     var cameraLatitudeInput = document.getElementById('camera_capture_latitude');
                     var cameraLongitudeInput = document.getElementById('camera_capture_longitude');
                     var cameraAccuracyInput = document.getElementById('camera_capture_accuracy');
-                    var faceMatchStatusInput = document.getElementById('face_match_status_input');
-                    var faceMatchDistanceInput = document.getElementById('face_match_distance_input');
-                    var faceMatchThresholdInput = document.getElementById('face_match_threshold_input');
-                    var faceMatchCheckedAtInput = document.getElementById('face_match_checked_at_input');
-                    var faceMatchMessageInput = document.getElementById('face_match_message_input');
+                    var livenessChallengeIdInput = document.getElementById('liveness_challenge_id_input');
+                    var livenessVerificationTokenInput = document.getElementById('liveness_verification_token_input');
                     var faydaOtpTransactionIdInput = document.getElementById('fayda_otp_transaction_id_input');
                     var cameraInfo = document.getElementById('camera_capture_info');
                     var cameraError = document.getElementById('camera_error');
@@ -2081,6 +2670,7 @@
                     var tableBody = document.getElementById('consent_request_table_body');
                     var tableLoader = document.getElementById('consent_table_loader');
                     var tableEnd = document.getElementById('consent_table_end');
+                    var reviewModalEl = document.getElementById('consent_review_modal');
                     var notificationToggle = document.getElementById('consent_header_notification_toggle');
                     var notificationMenu = document.getElementById('consent_header_notification_menu');
                     var notificationCount = document.getElementById('consent_header_notification_count');
@@ -2088,24 +2678,38 @@
                     var notificationEmpty = document.getElementById('consent_header_notification_empty');
                     var notificationMarkAll = document.getElementById('consent_header_notification_mark_all');
                     var maxAttachmentSize = 10 * 1024 * 1024;
-                    var faceMatchThresholdDefault = 0.45;
+                    var livenessChallengeTtlSeconds = 90;
+                    var faceApiScriptUrl = '/g2p_ati_consent_mgt/static/src/lib/face-api/face-api.js';
+                    var faceApiModelUrl = '/g2p_ati_consent_mgt/static/src/lib/face-api/model';
+                    var faceApiLoadPromise = null;
+                    var faceMatchDefaultThreshold = 0.45;
                     var cameraStream = null;
                     var selectedFarmer = null;
                     var selectedVerificationMethod = '';
-                    var faceApiScriptPromise = null;
-                    var faceApiModelsPromise = null;
                     var faceMatchSubmitPending = false;
                     var faceMatchActionToken = 0;
                     var faydaOtpActionToken = 0;
                     var faceMatchState = {
                         status: 'not_attempted',
-                        running: false
+                        running: false,
+                        challengeId: '',
+                        nonce: '',
+                        promptSequence: [],
+                        expiresAt: '',
+                        verificationToken: '',
+                        distance: null,
+                        threshold: faceMatchDefaultThreshold
                     };
                     var faydaOtpState = {
                         status: 'not_requested',
                         running: false,
                         transactionId: '',
                         maskedMobile: ''
+                    };
+                    var searchState = {
+                        status: 'idle',
+                        query: '',
+                        farmer: null
                     };
 
                     function closeModalById(modalId) {
@@ -2123,13 +2727,42 @@
                             window.jQuery(modalEl).modal('hide');
                         }
                     }
+
+                    function initReviewModal() {
+                        if (!reviewModalEl) return;
+                        var closeUrl = reviewModalEl.getAttribute('data-close-url') || '/consent/management';
+                        var reviewModalRedirecting = false;
+
+                        function redirectToReviewList() {
+                            if (reviewModalRedirecting) return;
+                            reviewModalRedirecting = true;
+                            window.location.href = closeUrl;
+                        }
+
+                        if (reviewModalEl.parentElement !== document.body) {
+                            document.body.appendChild(reviewModalEl);
+                        }
+
+                        reviewModalEl.addEventListener('hidden.bs.modal', redirectToReviewList);
+
+                        if (window.bootstrap && window.bootstrap.Modal) {
+                            window.bootstrap.Modal.getOrCreateInstance(reviewModalEl).show();
+                        } else if (window.jQuery && window.jQuery.fn && window.jQuery.fn.modal) {
+                            window.jQuery(reviewModalEl).modal('show');
+                        } else {
+                            reviewModalEl.classList.add('show');
+                            reviewModalEl.style.display = 'block';
+                        }
+                    }
                     var tableScrollTicking = false;
                     var errorMessagesByCode = {
                         access_denied: 'Access denied. Please contact your administrator.',
                         missing_farmer: 'Please search and select a farmer first.',
                         invalid_farmer: 'Invalid farmer selected.',
                         farmer_not_found: 'Farmer not found.',
-                        missing_purpose: 'Purpose is required.',
+                        missing_purpose: 'Consent reason is required.',
+                        missing_consent_reason: 'Consent reason is required.',
+                        invalid_consent_reason: 'Invalid consent reason selected.',
                         missing_data_fields: 'No valid data fields selected. Configure partner data fields first.',
                         missing_attachment: 'Attachment is required.',
                         attachment_too_large: 'Attachment must be 10MB or smaller.',
@@ -2167,30 +2800,41 @@
                         return String(status || 'not_attempted').toLowerCase().replace(/[^a-z_]/g, '');
                     }
 
-                    function distanceToMatchPercent(distance) {
-                        if (!Number.isFinite(distance)) {
-                            return null;
-                        }
-                        return Math.max(0, Math.min(100, (1 - distance) * 100));
+                    function formatLivenessPrompt(prompt) {
+                        return String(prompt || '')
+                            .split('_')
+                            .filter(function(part) { return !!part; })
+                            .map(function(part) {
+                                return part.charAt(0).toUpperCase() + part.slice(1);
+                            })
+                            .join(' ');
                     }
 
-                    function formatMatchPercent(percentValue) {
-                        return Number.isFinite(percentValue) ? percentValue.toFixed(1) + '%' : '—';
-                    }
-
-                    function updateFaceMatchPercentText(distance, threshold) {
+                    function updateFaceMatchPercentText() {
                         if (!faceMatchPercentText) return;
-                        var safeThreshold = Number.isFinite(threshold) ? threshold : faceMatchThresholdDefault;
-                        var thresholdPercent = distanceToMatchPercent(safeThreshold);
-                        if (Number.isFinite(distance)) {
-                            var matchPercent = distanceToMatchPercent(distance);
-                            faceMatchPercentText.textContent =
-                                'Match score: ' + formatMatchPercent(matchPercent) +
-                                ' | Minimum accepted: ' + formatMatchPercent(thresholdPercent);
-                        } else {
-                            faceMatchPercentText.textContent =
-                                'Minimum accepted: ' + formatMatchPercent(thresholdPercent);
+                        var prompts = Array.isArray(faceMatchState.promptSequence) ? faceMatchState.promptSequence : [];
+                        if (!prompts.length) {
+                            faceMatchPercentText.textContent = 'Challenge prompt and face score will appear here.';
+                            return;
                         }
+                        var promptText = prompts.map(formatLivenessPrompt).join(' -> ');
+                        var expiresText = '';
+                        var faceScoreText = '';
+                        if (typeof faceMatchState.distance === 'number' && Number.isFinite(faceMatchState.distance)) {
+                            var similarityPct = Math.max(0, Math.min(100, (1 - faceMatchState.distance) * 100));
+                            var thresholdPct = Math.max(
+                                0,
+                                Math.min(100, (1 - (faceMatchState.threshold || faceMatchDefaultThreshold)) * 100)
+                            );
+                            faceScoreText = ' | Face: ' + similarityPct.toFixed(1) + '% (min ' + thresholdPct.toFixed(1) + '%)';
+                        }
+                        if (faceMatchState.expiresAt) {
+                            var expiresDate = new Date(faceMatchState.expiresAt.replace(' ', 'T') + 'Z');
+                            if (!Number.isNaN(expiresDate.getTime())) {
+                                expiresText = ' | Expires: ' + expiresDate.toLocaleTimeString();
+                            }
+                        }
+                        faceMatchPercentText.textContent = 'Challenge: ' + promptText + faceScoreText + expiresText;
                     }
 
                     function setPreviewImage(imgEl, emptyEl, imageUrl) {
@@ -2208,15 +2852,53 @@
                         }
                     }
 
+                    function isConsentVerificationComplete() {
+                        return faydaOtpState.status === 'verified' || faceMatchState.status === 'matched';
+                    }
+
+                    function updateConsentFormVisibility() {
+                        var isUnlocked = isConsentVerificationComplete();
+                        if (consentFormFieldsWrapper) {
+                            consentFormFieldsWrapper.classList.toggle('d-none', !isUnlocked);
+                            var fieldNodes = consentFormFieldsWrapper.querySelectorAll('input, select, textarea, button');
+                            for (var i = 0; i < fieldNodes.length; i++) {
+                                fieldNodes[i].disabled = !isUnlocked;
+                            }
+                        }
+                        if (verificationRequiredNotice) {
+                            verificationRequiredNotice.classList.toggle('is-success', isUnlocked);
+                            verificationRequiredNotice.textContent = isUnlocked
+                                ? 'Verification successful. You can now complete the consent request.'
+                                : 'Complete Fayda OTP or Face + Liveness verification to unlock the consent form.';
+                        }
+                    }
+
+                    function resetConsentFormInputs() {
+                        if (consentForm) {
+                            consentForm.reset();
+                        }
+                        if (formFarmerId) {
+                            formFarmerId.value = '';
+                        }
+                        setConsentReasonError('');
+                        setDataFieldsError('');
+                        setAttachmentError('');
+                        setCameraError('');
+                    }
+
                     function resetFaceMatchFields() {
-                        if (faceMatchStatusInput) faceMatchStatusInput.value = 'not_attempted';
-                        if (faceMatchDistanceInput) faceMatchDistanceInput.value = '';
-                        if (faceMatchThresholdInput) faceMatchThresholdInput.value = '';
-                        if (faceMatchCheckedAtInput) faceMatchCheckedAtInput.value = '';
-                        if (faceMatchMessageInput) faceMatchMessageInput.value = '';
+                        if (livenessChallengeIdInput) livenessChallengeIdInput.value = '';
+                        if (livenessVerificationTokenInput) livenessVerificationTokenInput.value = '';
                         faceMatchState.status = 'not_attempted';
                         faceMatchState.running = false;
-                        updateFaceMatchPercentText(null, faceMatchThresholdDefault);
+                        faceMatchState.challengeId = '';
+                        faceMatchState.nonce = '';
+                        faceMatchState.promptSequence = [];
+                        faceMatchState.expiresAt = '';
+                        faceMatchState.verificationToken = '';
+                        faceMatchState.distance = null;
+                        faceMatchState.threshold = faceMatchDefaultThreshold;
+                        updateFaceMatchPercentText();
                     }
 
                     function setFaceMatchProcessing(message) {
@@ -2224,10 +2906,10 @@
                         faceMatchState.running = true;
                         if (faceMatchStatusText) {
                             faceMatchStatusText.className = 'consent_face_match_status is-processing';
-                            faceMatchStatusText.textContent = message || 'Comparing faces...';
+                            faceMatchStatusText.textContent = message || 'Checking face + liveness...';
                         }
-                        setFaceVerificationChoiceHint('processing', message || 'Comparing faces now...');
-                        updateFaceMatchPercentText(null, faceMatchThresholdDefault);
+                        setFaceVerificationChoiceHint('processing', message || 'Checking face + liveness...');
+                        updateFaceMatchPercentText();
                     }
 
                     function setFaceVerificationChoiceHint(status, message) {
@@ -2242,15 +2924,6 @@
                         } else if (normalizedStatus === 'matched') {
                             hintMessage = 'Verified';
                             extraClass = 'is-success';
-                        } else if (normalizedStatus === 'not_matched') {
-                            hintMessage = 'Not Matched';
-                            extraClass = 'is-error';
-                        } else if (normalizedStatus === 'no_reference') {
-                            hintMessage = 'No Image';
-                            extraClass = 'is-error';
-                        } else if (normalizedStatus === 'no_face_detected') {
-                            hintMessage = 'No Face';
-                            extraClass = 'is-error';
                         } else if (normalizedStatus === 'error') {
                             hintMessage = 'Try Again';
                             extraClass = 'is-error';
@@ -2264,35 +2937,50 @@
 
                     function setFaceMatchResult(status, message, options) {
                         var normalizedStatus = normalizeFaceMatchStatus(status);
-                        var distance = options && Number.isFinite(options.distance) ? options.distance : null;
-                        var threshold = options && Number.isFinite(options.threshold) ? options.threshold : faceMatchThresholdDefault;
-                        var technicalMessage = options && options.technicalMessage ? String(options.technicalMessage) : '';
+                        var opts = options || {};
                         faceMatchState.status = normalizedStatus;
                         faceMatchState.running = false;
-                        if (faceMatchStatusInput) faceMatchStatusInput.value = normalizedStatus;
-                        if (faceMatchDistanceInput) faceMatchDistanceInput.value = distance == null ? '' : String(distance);
-                        if (faceMatchThresholdInput) faceMatchThresholdInput.value = threshold == null ? '' : String(threshold);
-                        if (faceMatchCheckedAtInput) {
-                            faceMatchCheckedAtInput.value = normalizedStatus === 'not_attempted' ? '' : formatDateForOdoo(new Date());
+                        faceMatchState.challengeId = opts.challengeId || faceMatchState.challengeId || '';
+                        faceMatchState.nonce = opts.nonce || faceMatchState.nonce || '';
+                        faceMatchState.promptSequence = Array.isArray(opts.promptSequence)
+                            ? opts.promptSequence
+                            : (faceMatchState.promptSequence || []);
+                        faceMatchState.expiresAt = opts.expiresAt || faceMatchState.expiresAt || '';
+                        faceMatchState.verificationToken = opts.verificationToken || '';
+                        faceMatchState.distance = typeof opts.distance === 'number' && Number.isFinite(opts.distance)
+                            ? opts.distance
+                            : (typeof faceMatchState.distance === 'number' && Number.isFinite(faceMatchState.distance) ? faceMatchState.distance : null);
+                        faceMatchState.threshold = typeof opts.threshold === 'number' && Number.isFinite(opts.threshold)
+                            ? opts.threshold
+                            : (typeof faceMatchState.threshold === 'number' && Number.isFinite(faceMatchState.threshold) ? faceMatchState.threshold : faceMatchDefaultThreshold);
+
+                        if (livenessChallengeIdInput) {
+                            livenessChallengeIdInput.value = faceMatchState.challengeId || '';
                         }
-                        if (faceMatchMessageInput) {
-                            faceMatchMessageInput.value = technicalMessage || String(message || '');
+                        if (livenessVerificationTokenInput) {
+                            livenessVerificationTokenInput.value =
+                                normalizedStatus === 'matched'
+                                    ? (faceMatchState.verificationToken || '')
+                                    : '';
                         }
                         if (faceMatchStatusText) {
                             faceMatchStatusText.className = 'consent_face_match_status is-' + normalizedStatus.replace(/_/g, '-');
                             faceMatchStatusText.textContent = message || '';
                         }
                         setFaceVerificationChoiceHint(normalizedStatus, message || 'Not Attempted');
-                        updateFaceMatchPercentText(distance, threshold);
+                        updateFaceMatchPercentText();
+                        updateConsentFormVisibility();
                     }
 
                     function resetFaceMatch(message) {
                         resetFaceMatchFields();
                         if (faceMatchStatusText) {
                             faceMatchStatusText.className = 'consent_face_match_status is-not-attempted';
-                            faceMatchStatusText.textContent = message || 'Capture a photo to compare it with the selected farmer profile image.';
+                            faceMatchStatusText.textContent = message || 'Capture a photo to run face + liveness verification.';
                         }
                         setFaceVerificationChoiceHint('not_attempted', 'Not Attempted');
+                        updateFaceMatchPercentText();
+                        updateConsentFormVisibility();
                     }
 
                     function getFaydaOtpUnavailableReason(farmer) {
@@ -2380,12 +3068,13 @@
                             if (identifierSource) metaParts.push('Source: ' + identifierSource);
                             if (verifiedAt) metaParts.push('Verified at: ' + verifiedAt);
                             if (!metaParts.length) {
-                                metaParts.push('A verified OTP or a successful face match will auto-approve this request on submit.');
+                                metaParts.push('A verified OTP or successful face + liveness verification will auto-approve this request on submit.');
                             }
                             faydaOtpMetaText.textContent = metaParts.join(' | ');
                         }
                         setOtpVerificationChoiceHint(normalizedStatus, { maskedMobile: maskedMobile });
                         setFaydaOtpButtonsState(normalizedStatus === 'processing', !!transactionId);
+                        updateConsentFormVisibility();
                     }
 
                     function resetFaydaOtp(message) {
@@ -2404,19 +3093,20 @@
                             faydaOtpStatusText.textContent = message || 'Request OTP to verify the selected farmer.';
                         }
                         if (faydaOtpMetaText) {
-                            faydaOtpMetaText.textContent = 'A verified OTP or a successful face match will auto-approve this request on submit.';
+                            faydaOtpMetaText.textContent = 'A verified OTP or successful face + liveness verification will auto-approve this request on submit.';
                         }
                         setOtpVerificationChoiceHint('not_requested');
                         setFaydaOtpButtonsState(false, false);
+                        updateConsentFormVisibility();
                     }
 
                     function getDefaultFaceMatchMessage(farmer, isRetake) {
-                        if (farmer && farmer.profile_image_url) {
+                        if (farmer) {
                             return isRetake
-                                ? 'Retake the photo to compare it with the selected farmer profile image.'
-                                : 'Capture a photo to compare it with the selected farmer profile image.';
+                                ? 'Retake the photo and complete face + liveness verification again.'
+                                : 'Capture a photo to run face + liveness verification.';
                         }
-                        return 'Selected farmer has no profile image. The request can still be submitted, but it will remain pending.';
+                        return 'Select a farmer, then capture a photo to run face + liveness verification.';
                     }
 
                     function getDefaultFaydaOtpMessage(farmer) {
@@ -2482,6 +3172,7 @@
                                     window.jQuery('#modal_verification_face').modal('show');
                                 }
                             }
+                            requestLivenessChallenge();
                         }
                     }
 
@@ -2520,25 +3211,89 @@
 
                     function buildFarmerMeta(farmer) {
                         if (!farmer) {
-                            return 'Search and select an approved farmer.';
+                            return 'Farmer ID: —';
                         }
-                        var regIds = Array.isArray(farmer.reg_ids) ? farmer.reg_ids.filter(Boolean) : [];
-                        var parts = ['Farmer ID: ' + (farmer.farmer_id || '—')];
-                        if (regIds.length) {
-                            parts.push('IDs: ' + regIds.join(', '));
+                        return 'Farmer ID: ' + (farmer.farmer_id || '—');
+                    }
+
+                    function setSearchButtonMode(mode) {
+                        if (!btnSearch) return;
+                        btnSearch.textContent = mode === 'select' ? 'Select' : 'Search';
+                    }
+
+                    function setSearchInlineState(status, text) {
+                        if (searchNationalId) {
+                            searchNationalId.classList.remove('is-found', 'is-missing', 'is-error');
                         }
-                        if (farmer.otp_available) {
-                            parts.push('OTP: ' + (farmer.otp_identifier_type || 'ID') + ' ready');
-                        } else {
-                            parts.push('OTP unavailable');
+                        if (searchInlineStatus) {
+                            searchInlineStatus.className = 'consent_search_inline_status';
                         }
-                        if (!farmer.profile_image_url) {
-                            parts.push('No profile image available');
+                        if (searchInlineStatusIcon) {
+                            searchInlineStatusIcon.className = 'fa';
                         }
-                        return parts.join(' | ');
+                        if (searchInlineStatusText) {
+                            searchInlineStatusText.textContent = '';
+                        }
+
+                        if (!status || status === 'idle') {
+                            return;
+                        }
+
+                        var iconClass = 'fa-info-circle';
+                        if (status === 'found') {
+                            iconClass = 'fa-check-circle';
+                        } else if (status === 'missing' || status === 'error') {
+                            iconClass = 'fa-times-circle';
+                        }
+
+                        if (searchNationalId) {
+                            searchNationalId.classList.add('is-' + status);
+                        }
+                        if (searchInlineStatus) {
+                            searchInlineStatus.classList.add('is-visible', 'is-' + status);
+                        }
+                        if (searchInlineStatusIcon) {
+                            searchInlineStatusIcon.classList.add(iconClass);
+                        }
+                        if (searchInlineStatusText) {
+                            searchInlineStatusText.textContent = text || '';
+                        }
+                    }
+
+                    function clearFarmerSearchResultState(options) {
+                        var opts = options || {};
+                        searchState.status = 'idle';
+                        searchState.query = '';
+                        searchState.farmer = null;
+                        setSearchInlineState('idle', '');
+                        setSearchButtonMode('search');
+                        if (resultsList) {
+                            resultsList.innerHTML = '';
+                        }
+                        if (resultsDiv) {
+                            resultsDiv.classList.add('d-none');
+                        }
+                        if (!opts.keepSelection) {
+                            applySelectedFarmer(null);
+                        }
+                    }
+
+                    function buildSearchFarmerPayload(farmer) {
+                        return {
+                            id: farmer.id,
+                            name: farmer.name || '',
+                            farmer_id: farmer.farmer_id || '',
+                            phone: farmer.phone || '',
+                            reg_ids: Array.isArray(farmer.reg_ids) ? farmer.reg_ids : [],
+                            profile_image_url: farmer.profile_image_url || '',
+                            otp_available: !!farmer.otp_available,
+                            otp_identifier_type: farmer.otp_identifier_type || '',
+                            otp_identifier_source: farmer.otp_identifier_source || ''
+                        };
                     }
 
                     function applySelectedFarmer(farmer) {
+                        resetConsentFormInputs();
                         selectedFarmer = farmer || null;
                         if (formFarmerId) {
                             formFarmerId.value = farmer && farmer.id ? String(farmer.id) : '';
@@ -2554,171 +3309,376 @@
                             selectedFarmerImagePlaceholder,
                             farmer && farmer.profile_image_url ? farmer.profile_image_url : ''
                         );
+                        if (selectedFarmerImage) {
+                            selectedFarmerImage.alt = farmer && farmer.name
+                                ? farmer.name + ' photo'
+                                : 'Selected farmer photo';
+                        }
                         setPreviewImage(
                             faceMatchReferencePreview,
                             faceMatchReferenceEmpty,
                             farmer && farmer.profile_image_url ? farmer.profile_image_url : ''
                         );
                         createCard.classList.toggle('d-none', !farmer);
+                        if (resultsDiv) {
+                            if (farmer) {
+                                resultsDiv.classList.add('d-none');
+                            } else {
+                                resultsDiv.classList.toggle('d-none', !(resultsList && resultsList.innerHTML && resultsList.innerHTML.trim()));
+                            }
+                        }
                         clearCameraCapture();
                         setVerificationMethod('');
                         resetFaceMatch(getDefaultFaceMatchMessage(farmer, false));
                         resetFaydaOtp(getDefaultFaydaOtpMessage(farmer));
+                        updateConsentFormVisibility();
                     }
 
-                    function ensureFaceApiLibrary() {
-                        if (window.faceapi) {
-                            return Promise.resolve(window.faceapi);
-                        }
-                        if (faceApiScriptPromise) {
-                            return faceApiScriptPromise;
-                        }
-                        faceApiScriptPromise = new Promise(function(resolve, reject) {
-                            var script = document.createElement('script');
-                            script.src = '/g2p_ati_consent_mgt/static/src/lib/face-api/face-api.js';
-                            script.async = true;
-                            script.onload = function() {
-                                if (window.faceapi) {
-                                    resolve(window.faceapi);
-                                } else {
-                                    reject(new Error('face-api library loaded without exposing faceapi.'));
-                                }
-                            };
-                            script.onerror = function() {
-                                reject(new Error('Unable to load face-api library.'));
-                            };
-                            document.head.appendChild(script);
-                        }).catch(function(error) {
-                            faceApiScriptPromise = null;
-                            throw error;
-                        });
-                        return faceApiScriptPromise;
+                    function parseOdooDate(value) {
+                        if (!value) return null;
+                        var normalized = String(value).replace(' ', 'T');
+                        var parsed = new Date(normalized + (normalized.endsWith('Z') ? '' : 'Z'));
+                        return Number.isNaN(parsed.getTime()) ? null : parsed;
                     }
 
-                    function ensureFaceApiModels() {
-                        if (faceApiModelsPromise) {
-                            return faceApiModelsPromise;
-                        }
-                        faceApiModelsPromise = ensureFaceApiLibrary().then(function(faceapi) {
-                            var modelBaseUrl = '/g2p_ati_consent_mgt/static/src/lib/face-api/model';
-                            return Promise.all([
-                                faceapi.nets.tinyFaceDetector.loadFromUri(modelBaseUrl),
-                                faceapi.nets.faceLandmark68Net.loadFromUri(modelBaseUrl),
-                                faceapi.nets.faceRecognitionNet.loadFromUri(modelBaseUrl)
-                            ]).then(function() {
-                                return faceapi;
-                            });
-                        }).catch(function(error) {
-                            faceApiModelsPromise = null;
-                            throw error;
-                        });
-                        return faceApiModelsPromise;
+                    function toFiniteNumber(value, fallback) {
+                        var parsed = Number(value);
+                        return Number.isFinite(parsed) ? parsed : fallback;
                     }
 
-                    function loadImageForFaceMatch(imageUrl) {
+                    function loadImageForFaceMatch(src) {
                         return new Promise(function(resolve, reject) {
-                            if (!imageUrl) {
-                                reject(new Error('Missing image source.'));
+                            if (!src) {
+                                reject(new Error('Missing image source for face matching.'));
                                 return;
                             }
                             var img = new Image();
-                            if (!/^data:/i.test(imageUrl)) {
-                                img.crossOrigin = 'anonymous';
-                            }
-                            img.onload = function() { resolve(img); };
-                            img.onerror = function() { reject(new Error('Unable to load image for face matching.')); };
-                            img.src = imageUrl;
+                            img.onload = function() {
+                                resolve(img);
+                            };
+                            img.onerror = function() {
+                                reject(new Error('Unable to load image for face matching.'));
+                            };
+                            img.src = src;
                         });
                     }
 
-                    function detectFaceDescriptor(imageUrl) {
-                        return ensureFaceApiModels().then(function(faceapi) {
-                            return loadImageForFaceMatch(imageUrl).then(function(img) {
-                                return faceapi
-                                    .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 }))
-                                    .withFaceLandmarks()
-                                    .withFaceDescriptor();
+                    function ensureFaceApiReady() {
+                        if (window.faceapi && window.faceapi.nets && window.faceapi.nets.tinyFaceDetector && window.faceapi.nets.tinyFaceDetector.params) {
+                            return Promise.resolve(window.faceapi);
+                        }
+                        if (faceApiLoadPromise) {
+                            return faceApiLoadPromise;
+                        }
+                        faceApiLoadPromise = new Promise(function(resolve, reject) {
+                            function loadModels() {
+                                if (!window.faceapi || !window.faceapi.nets) {
+                                    reject(new Error('Face API library failed to initialize.'));
+                                    return;
+                                }
+                                Promise.all([
+                                    window.faceapi.nets.tinyFaceDetector.loadFromUri(faceApiModelUrl),
+                                    window.faceapi.nets.faceLandmark68Net.loadFromUri(faceApiModelUrl),
+                                    window.faceapi.nets.faceRecognitionNet.loadFromUri(faceApiModelUrl),
+                                ])
+                                    .then(function() {
+                                        resolve(window.faceapi);
+                                    })
+                                    .catch(function(err) {
+                                        reject(new Error(err && err.message ? err.message : 'Unable to load face recognition models.'));
+                                    });
+                            }
+
+                            if (window.faceapi) {
+                                loadModels();
+                                return;
+                            }
+
+                            var existingScript = document.querySelector('script[data-face-api-lib="1"]');
+                            if (existingScript) {
+                                existingScript.addEventListener('load', loadModels, { once: true });
+                                existingScript.addEventListener(
+                                    'error',
+                                    function() {
+                                        reject(new Error('Unable to load face recognition library.'));
+                                    },
+                                    { once: true }
+                                );
+                                return;
+                            }
+
+                            var script = document.createElement('script');
+                            script.src = faceApiScriptUrl;
+                            script.async = true;
+                            script.defer = true;
+                            script.setAttribute('data-face-api-lib', '1');
+                            script.onload = loadModels;
+                            script.onerror = function() {
+                                reject(new Error('Unable to load face recognition library.'));
+                            };
+                            document.head.appendChild(script);
+                        }).catch(function(err) {
+                            faceApiLoadPromise = null;
+                            throw err;
+                        });
+                        return faceApiLoadPromise;
+                    }
+
+                    function computeFaceDescriptorFromImage(imageEl) {
+                        if (!window.faceapi) {
+                            return Promise.resolve(null);
+                        }
+                        return window.faceapi
+                            .detectSingleFace(
+                                imageEl,
+                                new window.faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 })
+                            )
+                            .withFaceLandmarks()
+                            .withFaceDescriptor()
+                            .then(function(result) {
+                                if (!result || !result.descriptor) {
+                                    return null;
+                                }
+                                return result.descriptor;
                             });
+                    }
+
+                    function runClientFaceMatch() {
+                        var referenceUrl = selectedFarmer && selectedFarmer.profile_image_url ? selectedFarmer.profile_image_url : '';
+                        if (!referenceUrl) {
+                            return Promise.resolve({
+                                passed: false,
+                                distance: null,
+                                threshold: faceMatchDefaultThreshold,
+                                message: 'Selected farmer has no profile image for face matching.',
+                            });
+                        }
+                        if (!cameraDataInput || !cameraDataInput.value) {
+                            return Promise.resolve({
+                                passed: false,
+                                distance: null,
+                                threshold: faceMatchDefaultThreshold,
+                                message: 'Capture a photo before running face match.',
+                            });
+                        }
+
+                        return ensureFaceApiReady()
+                            .then(function() {
+                                return Promise.all([
+                                    loadImageForFaceMatch(referenceUrl),
+                                    loadImageForFaceMatch(cameraDataInput.value),
+                                ]);
+                            })
+                            .then(function(images) {
+                                return Promise.all([
+                                    computeFaceDescriptorFromImage(images[0]),
+                                    computeFaceDescriptorFromImage(images[1]),
+                                ]);
+                            })
+                            .then(function(descriptors) {
+                                var referenceDescriptor = descriptors[0];
+                                var capturedDescriptor = descriptors[1];
+                                if (!referenceDescriptor) {
+                                    return {
+                                        passed: false,
+                                        distance: null,
+                                        threshold: faceMatchDefaultThreshold,
+                                        message: 'No face detected in the farmer profile image.',
+                                    };
+                                }
+                                if (!capturedDescriptor) {
+                                    return {
+                                        passed: false,
+                                        distance: null,
+                                        threshold: faceMatchDefaultThreshold,
+                                        message: 'No face detected in the captured image.',
+                                    };
+                                }
+                                var distance = window.faceapi.euclideanDistance(referenceDescriptor, capturedDescriptor);
+                                var threshold = faceMatchDefaultThreshold;
+                                var passed = Number.isFinite(distance) && distance <= threshold;
+                                if (!passed) {
+                                    return {
+                                        passed: false,
+                                        distance: Number.isFinite(distance) ? distance : null,
+                                        threshold: threshold,
+                                        message: 'Face match failed. Retake and align to the selected farmer.',
+                                    };
+                                }
+                                var similarityPct = Math.max(0, Math.min(100, (1 - distance) * 100));
+                                return {
+                                    passed: true,
+                                    distance: distance,
+                                    threshold: threshold,
+                                    message: 'Face match passed (' + similarityPct.toFixed(1) + '%).',
+                                };
+                            })
+                            .catch(function(error) {
+                                return {
+                                    passed: false,
+                                    distance: null,
+                                    threshold: faceMatchDefaultThreshold,
+                                    message: error && error.message ? error.message : 'Face matching failed.',
+                                };
+                            });
+                    }
+
+                    function requestLivenessChallenge() {
+                        var actionToken = ++faceMatchActionToken;
+                        if (!selectedFarmer || !selectedFarmer.id) {
+                            resetFaceMatch('Select a farmer before requesting liveness challenge.');
+                            return Promise.resolve(false);
+                        }
+                        setFaceMatchProcessing('Requesting liveness challenge...');
+                        return callJsonRoute('/consent/liveness/request_challenge', {
+                            farmer_id: selectedFarmer.id
+                        }).then(function(res) {
+                            if (actionToken !== faceMatchActionToken || selectedVerificationMethod !== 'face') {
+                                return false;
+                            }
+                            var data = res.data || {};
+                            var ttlCandidate = Number(data.ttl_seconds || 0);
+                            if (Number.isFinite(ttlCandidate) && ttlCandidate > 0) {
+                                livenessChallengeTtlSeconds = ttlCandidate;
+                            }
+                            setFaceMatchResult(
+                                'not_attempted',
+                                'Challenge ready. Follow prompt and capture your photo.',
+                                {
+                                    challengeId: data.challenge_id || '',
+                                    nonce: data.nonce || '',
+                                    promptSequence: data.prompt_sequence || [],
+                                    expiresAt: data.expires_at || ''
+                                }
+                            );
+                            return data;
+                        }).catch(function(error) {
+                            if (actionToken !== faceMatchActionToken || selectedVerificationMethod !== 'face') {
+                                return false;
+                            }
+                            setFaceMatchResult(
+                                'error',
+                                error && error.message ? error.message : 'Unable to request liveness challenge.',
+                                {}
+                            );
+                            return false;
+                        });
+                    }
+
+                    function ensureLivenessChallenge() {
+                        var now = new Date();
+                        var expiresAt = parseOdooDate(faceMatchState.expiresAt);
+                        var hasValidChallenge = !!(
+                            faceMatchState.challengeId &&
+                            faceMatchState.nonce &&
+                            Array.isArray(faceMatchState.promptSequence) &&
+                            faceMatchState.promptSequence.length
+                        );
+                        if (!hasValidChallenge) {
+                            return requestLivenessChallenge();
+                        }
+                        if (expiresAt && now.getTime() >= expiresAt.getTime()) {
+                            return requestLivenessChallenge();
+                        }
+                        return Promise.resolve({
+                            challenge_id: faceMatchState.challengeId,
+                            nonce: faceMatchState.nonce,
+                            prompt_sequence: faceMatchState.promptSequence,
+                            expires_at: faceMatchState.expiresAt,
+                            ttl_seconds: livenessChallengeTtlSeconds
                         });
                     }
 
                     function runFaceMatch() {
                         var actionToken = ++faceMatchActionToken;
-                        if (!selectedFarmer) {
+                        if (!selectedFarmer || !selectedFarmer.id) {
                             resetFaceMatch('Select a farmer before capturing a photo.');
                             return Promise.resolve(false);
                         }
                         if (!cameraDataInput || !cameraDataInput.value) {
-                            resetFaceMatch(
-                                selectedFarmer.profile_image_url
-                                    ? 'Capture a photo to compare it with the selected farmer profile image.'
-                                    : 'Selected farmer has no profile image. The request can still be submitted, but it will remain pending.'
-                            );
-                            return Promise.resolve(false);
-                        }
-                        if (!selectedFarmer.profile_image_url) {
-                            setFaceMatchResult(
-                                'no_reference',
-                                'Selected farmer has no profile image. The request can still be submitted, but it will remain pending.',
-                                { threshold: faceMatchThresholdDefault }
-                            );
+                            resetFaceMatch('Capture a photo before verifying liveness.');
                             return Promise.resolve(false);
                         }
 
-                        setFaceMatchProcessing('Comparing captured photo with farmer profile image...');
-                        return Promise.all([
-                            detectFaceDescriptor(selectedFarmer.profile_image_url),
-                            detectFaceDescriptor(cameraDataInput.value)
-                        ]).then(function(results) {
+                        setFaceMatchProcessing('Preparing face + liveness checks...');
+                        return ensureLivenessChallenge().then(function(challengeData) {
+                            if (!challengeData) return false;
                             if (actionToken !== faceMatchActionToken || selectedVerificationMethod !== 'face') {
                                 return false;
                             }
-                            var referenceFace = results[0];
-                            var capturedFace = results[1];
-                            if (!referenceFace || !capturedFace) {
-                                setFaceMatchResult(
-                                    'no_face_detected',
-                                    !referenceFace
-                                        ? 'No face was detected in the farmer profile image. The request will remain pending.'
-                                        : 'No face was detected in the captured photo. Retake the photo for auto-approval.',
-                                    { threshold: faceMatchThresholdDefault }
-                                );
-                                return false;
-                            }
-                            var distance = window.faceapi.euclideanDistance(referenceFace.descriptor, capturedFace.descriptor);
-                            var matchPercent = distanceToMatchPercent(distance);
-                            var acceptedPercent = distanceToMatchPercent(faceMatchThresholdDefault);
-                            var matched = distance <= faceMatchThresholdDefault;
-                            setFaceMatchResult(
-                                matched ? 'matched' : 'not_matched',
-                                matched
-                                    ? 'Face matched at ' + formatMatchPercent(matchPercent) + '. The request will be automatically approved on submit.'
-                                    : 'Face match score is ' + formatMatchPercent(matchPercent) + '. Minimum accepted is ' + formatMatchPercent(acceptedPercent) + ', so the request will remain pending.',
-                                {
-                                    distance: distance,
-                                    threshold: faceMatchThresholdDefault,
-                                    technicalMessage:
-                                        'Distance=' + distance.toFixed(4) +
-                                        ', Threshold=' + faceMatchThresholdDefault.toFixed(4) +
-                                        ', MatchPercent=' + formatMatchPercent(matchPercent) +
-                                        ', AcceptedPercent=' + formatMatchPercent(acceptedPercent)
+                            setFaceMatchProcessing('Running face match...');
+                            return runClientFaceMatch().then(function(faceMatchResult) {
+                                if (actionToken !== faceMatchActionToken || selectedVerificationMethod !== 'face') {
+                                    return false;
                                 }
-                            );
-                            return matched;
-                        }).catch(function(error) {
-                            if (actionToken !== faceMatchActionToken || selectedVerificationMethod !== 'face') {
-                                return false;
-                            }
-                            console.error('Consent portal face match failed.', error);
-                            setFaceMatchResult(
-                                'error',
-                                'Face match could not be completed. The request can still be submitted and will remain pending.',
-                                {
-                                    threshold: faceMatchThresholdDefault,
-                                    technicalMessage: error && error.message ? error.message : 'Unknown face match error'
+                                if (!faceMatchResult || !faceMatchResult.passed) {
+                                    setFaceMatchResult(
+                                        'error',
+                                        faceMatchResult && faceMatchResult.message
+                                            ? faceMatchResult.message
+                                            : 'Face match failed.',
+                                        {
+                                            challengeId: faceMatchState.challengeId || '',
+                                            nonce: faceMatchState.nonce || '',
+                                            promptSequence: faceMatchState.promptSequence || [],
+                                            expiresAt: faceMatchState.expiresAt || '',
+                                            distance: faceMatchResult ? faceMatchResult.distance : null,
+                                            threshold: faceMatchResult ? faceMatchResult.threshold : faceMatchDefaultThreshold,
+                                        }
+                                    );
+                                    return false;
                                 }
-                            );
-                            return false;
+                                setFaceMatchProcessing('Verifying liveness challenge...');
+                                return callJsonRoute('/consent/liveness/verify_challenge', {
+                                    farmer_id: selectedFarmer.id,
+                                    challenge_id: challengeData.challenge_id || faceMatchState.challengeId || '',
+                                    capture_image: cameraDataInput.value,
+                                    captured_at: cameraTakenAtInput ? (cameraTakenAtInput.value || '') : '',
+                                    face_match_passed: true,
+                                    face_match_distance: faceMatchResult.distance,
+                                    face_match_threshold: faceMatchResult.threshold
+                                }).then(function(res) {
+                                    if (actionToken !== faceMatchActionToken || selectedVerificationMethod !== 'face') {
+                                        return false;
+                                    }
+                                    var data = res.data || {};
+                                    setFaceMatchResult(
+                                        'matched',
+                                        res.message || 'Face + liveness verified successfully. The request will be automatically approved on submit.',
+                                        {
+                                            challengeId: data.challenge_id || faceMatchState.challengeId || '',
+                                            nonce: faceMatchState.nonce || '',
+                                            promptSequence: data.prompt_sequence || faceMatchState.promptSequence || [],
+                                            expiresAt: faceMatchState.expiresAt || '',
+                                            verificationToken: data.verification_token || '',
+                                            distance: toFiniteNumber(data.face_match_distance, faceMatchResult.distance),
+                                            threshold: toFiniteNumber(data.face_match_threshold, faceMatchResult.threshold)
+                                        }
+                                    );
+                                    closeModalById('modal_verification_face');
+                                    window.setTimeout(function() {
+                                        showServiceProviderModal('Face + liveness verified successfully. You can now complete the consent request.', false);
+                                    }, 250);
+                                    return true;
+                                }).catch(function(error) {
+                                    if (actionToken !== faceMatchActionToken || selectedVerificationMethod !== 'face') {
+                                        return false;
+                                    }
+                                    setFaceMatchResult(
+                                        'error',
+                                        error && error.message ? error.message : 'Face + liveness verification failed.',
+                                        {
+                                            challengeId: faceMatchState.challengeId || '',
+                                            nonce: faceMatchState.nonce || '',
+                                            promptSequence: faceMatchState.promptSequence || [],
+                                            expiresAt: faceMatchState.expiresAt || '',
+                                            distance: faceMatchResult.distance,
+                                            threshold: faceMatchResult.threshold
+                                        }
+                                    );
+                                    return false;
+                                });
+                            });
                         });
                     }
 
@@ -2845,14 +3805,14 @@
                         });
                     }
 
-                    function setPurposeError(message) {
-                        if (!purposeError) return;
+                    function setConsentReasonError(message) {
+                        if (!consentReasonError) return;
                         if (message) {
-                            purposeError.textContent = message;
-                            purposeError.classList.remove('d-none');
+                            consentReasonError.textContent = message;
+                            consentReasonError.classList.remove('d-none');
                         } else {
-                            purposeError.textContent = '';
-                            purposeError.classList.add('d-none');
+                            consentReasonError.textContent = '';
+                            consentReasonError.classList.add('d-none');
                         }
                     }
 
@@ -3085,7 +4045,7 @@
                     }
 
                     function buildTableRowHtml(row) {
-                        var reqId = htmlEscape(row.request_id || '');
+                        var requestId = htmlEscape(row.consent_creation_request_id || row.request_id || '');
                         var farmerName = htmlEscape(row.farmer_name || '');
                         var consentType = htmlEscape(row.consent_type || '');
                         var createdAt = htmlEscape(row.created_at || '');
@@ -3093,10 +4053,10 @@
                         var normalizedStatus = normalizeStatus(statusValue);
                         var statusText = htmlEscape(statusValue || '');
                         var statusHtml = '<span class="consent_status_badge consent_status_' + normalizedStatus + '">' + statusIcon(statusValue) + statusText + '</span>';
-                        var reviewUrl = row.review_url || ('/consent/management/review/' + String(row.id || '') + '?view=table#review_request');
+                        var reviewUrl = row.review_url || ('/consent/management/review/' + String(row.id || '') + '?view=table');
                         var reviewHref = htmlEscape(reviewUrl);
                         return '<tr class="consent_request_row consent_request_row--' + normalizedStatus + '">' +
-                            '<td class="consent_table_id">' + reqId + '</td>' +
+                            '<td class="consent_table_id">' + (requestId || '-') + '</td>' +
                             '<td><span class="fw-semibold consent_farmer_name consent_table_farmer_name">' + farmerName + '</span></td>' +
                             '<td><span class="consent_table_type_chip">' + consentType + '</span></td>' +
                             '<td>' + statusHtml + '</td>' +
@@ -3219,88 +4179,55 @@
 
                     function searchFarmers() {
                         var singleQuery = (searchNationalId && searchNationalId.value) ? searchNationalId.value.trim() : '';
-                        if (!singleQuery) {
+
+                        if (searchState.status === 'found' && searchState.farmer && searchState.query === singleQuery) {
+                            applySelectedFarmer(searchState.farmer);
+                            return;
+                        }
+
+                        applySelectedFarmer(null);
+                        if (resultsList) {
+                            resultsList.innerHTML = '';
+                        }
+                        if (resultsDiv) {
                             resultsDiv.classList.add('d-none');
+                        }
+                        if (!singleQuery) {
+                            clearFarmerSearchResultState({ keepSelection: true });
                             return;
                         }
                         callJsonRoute('/consent/search_farmer', { query: singleQuery })
                             .then(function(res) {
                             if (res.success && res.data && res.data.farmers && res.data.farmers.length) {
-                                resultsList.innerHTML = '';
-                                res.data.farmers.forEach(function(f) {
-                                    var regIds = (f.reg_ids && f.reg_ids.length) ? f.reg_ids.join(', ') : '';
-                                    var div = document.createElement('div');
-                                    div.className = 'consent_farmer_result_item';
-                                    var left = document.createElement('div');
-                                    left.className = 'consent_farmer_identity';
-                                    if (f.profile_image_url) {
-                                        var avatarImg = document.createElement('img');
-                                        avatarImg.className = 'consent_farmer_avatar';
-                                        avatarImg.alt = (f.name || 'Farmer') + ' profile image';
-                                        avatarImg.src = f.profile_image_url;
-                                        avatarImg.addEventListener('error', function() {
-                                            this.classList.add('d-none');
-                                        });
-                                        left.appendChild(avatarImg);
-                                    } else {
-                                        var avatarEmpty = document.createElement('div');
-                                        avatarEmpty.className = 'consent_farmer_avatar consent_farmer_avatar_placeholder';
-                                        avatarEmpty.textContent = 'No photo';
-                                        left.appendChild(avatarEmpty);
-                                    }
-                                    var textWrap = document.createElement('div');
-                                    textWrap.className = 'consent_farmer_identity_text';
-                                    var nameEl = document.createElement('div');
-                                    nameEl.className = 'consent_farmer_identity_name';
-                                    nameEl.textContent = f.name || 'Unnamed Farmer';
-                                    textWrap.appendChild(nameEl);
-                                    var metaEl = document.createElement('div');
-                                    metaEl.className = 'text-muted small';
-                                    metaEl.textContent = 'Farmer ID: ' + (f.farmer_id || '—') + (regIds ? ' · ' + regIds : '') + (f.profile_image_url ? '' : ' · No profile image');
-                                    textWrap.appendChild(metaEl);
-                                    left.appendChild(textWrap);
-                                    div.appendChild(left);
-                                    var btn = document.createElement('button');
-                                    btn.type = 'button';
-                                    btn.className = 'btn btn-sm consent_btn_primary select-farmer';
-                                    btn.setAttribute('data-id', f.id);
-                                    btn.setAttribute('data-name', f.name || '');
-                                    btn.setAttribute('data-farmer-id', f.farmer_id || '');
-                                    btn.setAttribute('data-reg-ids', JSON.stringify(f.reg_ids || []));
-                                    btn.setAttribute('data-profile-image-url', f.profile_image_url || '');
-                                    btn.setAttribute('data-otp-available', f.otp_available ? '1' : '0');
-                                    btn.setAttribute('data-otp-identifier-type', f.otp_identifier_type || '');
-                                    btn.setAttribute('data-otp-identifier-source', f.otp_identifier_source || '');
-                                    btn.textContent = 'Select';
-                                    btn.addEventListener('click', function() {
-                                        applySelectedFarmer({
-                                            id: this.getAttribute('data-id'),
-                                            name: this.getAttribute('data-name') || '',
-                                            farmer_id: this.getAttribute('data-farmer-id') || '',
-                                            reg_ids: JSON.parse(this.getAttribute('data-reg-ids') || '[]'),
-                                            profile_image_url: this.getAttribute('data-profile-image-url') || '',
-                                            otp_available: this.getAttribute('data-otp-available') === '1',
-                                            otp_identifier_type: this.getAttribute('data-otp-identifier-type') || '',
-                                            otp_identifier_source: this.getAttribute('data-otp-identifier-source') || ''
-                                        });
-                                    });
-                                    div.appendChild(btn);
-                                    resultsList.appendChild(div);
-                                });
-                                resultsDiv.classList.remove('d-none');
+                                searchState.status = 'found';
+                                searchState.query = singleQuery;
+                                searchState.farmer = buildSearchFarmerPayload(res.data.farmers[0]);
+                                setSearchInlineState('found', 'Found');
+                                setSearchButtonMode('select');
                             } else {
-                                resultsList.innerHTML = '<p class="text-muted mb-0">No farmers found.</p>';
-                                resultsDiv.classList.remove('d-none');
+                                searchState.status = 'missing';
+                                searchState.query = singleQuery;
+                                searchState.farmer = null;
+                                setSearchInlineState('missing', 'Not Found');
+                                setSearchButtonMode('search');
                             }
                             })
                             .catch(function(error) {
-                                resultsList.innerHTML = '<p class="text-danger mb-0">' + htmlEscape(error && error.message ? error.message : 'Search failed.') + '</p>';
-                                resultsDiv.classList.remove('d-none');
+                                searchState.status = 'error';
+                                searchState.query = singleQuery;
+                                searchState.farmer = null;
+                                setSearchInlineState('error', 'Search Failed');
+                                setSearchButtonMode('search');
                             });
                     }
 
                     if (btnSearch) btnSearch.addEventListener('click', searchFarmers);
                     if (searchNationalId) searchNationalId.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); searchFarmers(); } });
+                    if (searchNationalId) {
+                        searchNationalId.addEventListener('input', function() {
+                            clearFarmerSearchResultState();
+                        });
+                    }
                     if (notificationToggle) {
                         notificationToggle.addEventListener('click', function(e) {
                             e.preventDefault();
@@ -3420,10 +4347,10 @@
                             }
                         });
                     }
-                    if (purposeInput) {
-                        purposeInput.addEventListener('input', function() {
+                    if (consentReasonInput) {
+                        consentReasonInput.addEventListener('change', function() {
                             if ((this.value || '').trim()) {
-                                setPurposeError('');
+                                setConsentReasonError('');
                             }
                         });
                     }
@@ -3530,6 +4457,9 @@
                         btnRetakeCameraPhoto.addEventListener('click', function() {
                             clearCameraCapture();
                             resetFaceMatch(getDefaultFaceMatchMessage(selectedFarmer, true));
+                            if (selectedFarmer && selectedFarmer.id && selectedVerificationMethod === 'face') {
+                                requestLivenessChallenge();
+                            }
                         });
                     }
                     if (consentForm) {
@@ -3539,20 +4469,27 @@
                             var shouldAttemptFaceMatch = !!(
                                 selectedVerificationMethod === 'face' &&
                                 selectedFarmer &&
-                                selectedFarmer.profile_image_url &&
                                 cameraDataInput &&
                                 cameraDataInput.value &&
                                 faydaOtpState.status !== 'verified'
                             );
-                            setPurposeError('');
+                            setConsentReasonError('');
                             setDataFieldsError('');
                             setAttachmentError('');
                             setCameraError('');
 
-                            if (!purposeInput || !(purposeInput.value || '').trim()) {
-                                setPurposeError('Purpose is required.');
+                            if (!selectedFarmer || !formFarmerId || !formFarmerId.value) {
                                 hasError = true;
-                                if (!firstErrorMessage) firstErrorMessage = 'Purpose is required.';
+                                if (!firstErrorMessage) firstErrorMessage = 'Please search and select a farmer first.';
+                            }
+                            if (!isConsentVerificationComplete()) {
+                                hasError = true;
+                                if (!firstErrorMessage) firstErrorMessage = 'Complete Fayda OTP or Face + Liveness verification before continuing.';
+                            }
+                            if (!consentReasonInput || !(consentReasonInput.value || '').trim()) {
+                                setConsentReasonError('Consent reason is required.');
+                                hasError = true;
+                                if (!firstErrorMessage) firstErrorMessage = 'Consent reason is required.';
                             }
                             if (dataFieldInputs && dataFieldInputs.length && !hasSelectedDataField()) {
                                 setDataFieldsError('Select at least one data field.');
@@ -3586,9 +4523,9 @@
                             }
 
                             if (faceMatchState.running) {
-                                setCameraError('Face match is still running. Please wait a moment.');
+                                setCameraError('Face + liveness verification is still running. Please wait a moment.');
                                 hasError = true;
-                                if (!firstErrorMessage) firstErrorMessage = 'Face match is still running. Please wait a moment.';
+                                if (!firstErrorMessage) firstErrorMessage = 'Face + liveness verification is still running. Please wait a moment.';
                             }
                             if (faydaOtpState.running) {
                                 hasError = true;
@@ -3597,18 +4534,18 @@
 
                             if (hasError) {
                                 console.warn('Consent portal submit blocked on client validation.', {
-                                    hasPurpose: !!(purposeInput && (purposeInput.value || '').trim()),
+                                    hasReason: !!(consentReasonInput && (consentReasonInput.value || '').trim()),
                                     hasSelectedDataField: hasSelectedDataField(),
                                     hasAttachment: !!(attachmentInput && attachmentInput.files && attachmentInput.files.length),
                                     dataFieldInputsCount: dataFieldInputs ? dataFieldInputs.length : 0
                                 });
                                 showServiceProviderModal(firstErrorMessage || 'Please fix form validation errors.', true);
                                 e.preventDefault();
-                            } else if (shouldAttemptFaceMatch && !faceMatchSubmitPending && faceMatchStatusInput && faceMatchStatusInput.value === 'not_attempted') {
+                            } else if (shouldAttemptFaceMatch && !faceMatchSubmitPending && faceMatchState.status !== 'matched') {
                                 e.preventDefault();
                                 faceMatchSubmitPending = true;
                                 setCameraError('');
-                                setFaceMatchProcessing('Comparing faces before submit...');
+                                setFaceMatchProcessing('Verifying face + liveness before submit...');
                                 runFaceMatch().finally(function() {
                                     faceMatchSubmitPending = false;
                                     if (typeof consentForm.requestSubmit === 'function') {
@@ -3626,6 +4563,7 @@
                     setVerificationMethod('');
                     resetFaceMatch(getDefaultFaceMatchMessage(null, false));
                     resetFaydaOtp(getDefaultFaydaOtpMessage(null));
+                    updateConsentFormVisibility();
 
                     (function showServerErrorPopup() {
                         var errorCode = '';
@@ -3639,6 +4577,42 @@
                         if (!message) return;
                         showServiceProviderModal(message, true);
                     })();
+                    (function initPortalSectionTabs() {
+                        var managementTabLink = document.getElementById('portal_management_tab_link');
+                        var workspaceTabLink = document.getElementById('consent_workspace_tab_link');
+                        if (!managementTabLink || !workspaceTabLink || !window.bootstrap || !window.bootstrap.Tab) {
+                            return;
+                        }
+
+                        function showTabFromHash() {
+                            if (window.location.hash === '#portal_management') {
+                                window.bootstrap.Tab.getOrCreateInstance(managementTabLink).show();
+                                return;
+                            }
+                            if (window.location.hash === '#consent_workspace') {
+                                window.bootstrap.Tab.getOrCreateInstance(workspaceTabLink).show();
+                            }
+                        }
+
+                        managementTabLink.addEventListener('shown.bs.tab', function() {
+                            if (window.location.hash !== '#portal_management') {
+                                window.history.replaceState(null, '', '#portal_management');
+                            }
+                        });
+                        workspaceTabLink.addEventListener('shown.bs.tab', function() {
+                            if (window.location.hash === '#portal_management') {
+                                window.history.replaceState(
+                                    null,
+                                    '',
+                                    window.location.pathname + window.location.search + '#consent_workspace'
+                                );
+                            }
+                        });
+
+                        window.addEventListener('hashchange', showTabFromHash);
+                        showTabFromHash();
+                    })();
+                    initReviewModal();
                     window.addEventListener('beforeunload', function() {
                         stopCameraStream();
                     });
