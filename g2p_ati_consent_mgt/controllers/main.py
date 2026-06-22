@@ -185,12 +185,11 @@ class G2PATIConsentController(http.Controller):
 
         return (farmer.mobile or farmer.phone or "").strip()
 
-    
-    
     def _get_fayda_otp_config(self):
         mock_host = (os.getenv("MOCK_FAYDA_HOST") or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_host"]).strip()
         mock_port = (os.getenv("MOCK_FAYDA_PORT") or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_port"]).strip()
-        mock_base_url = "http://%s:%s" % (mock_host or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_host"], mock_port or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_port"])
+        mock_base_url = "http://%s:%s" % (mock_host or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_host"],
+                                          mock_port or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_port"])
 
         client_id = (
             os.getenv("G2P_FAYDA_OTP_CLIENT_ID")
@@ -213,10 +212,15 @@ class G2PATIConsentController(http.Controller):
             "client_id": client_id,
             "client_secret": client_secret,
             "version": (os.getenv("G2P_FAYDA_OTP_VERSION") or "1.0").strip() or "1.0",
-            "env": (os.getenv("G2P_FAYDA_OTP_ENV") or os.getenv("MOCK_FAYDA_ENV") or self._FAYDA_OTP_LOCAL_DEFAULTS["env"]).strip() or self._FAYDA_OTP_LOCAL_DEFAULTS["env"],
-            "domain_uri": (os.getenv("G2P_FAYDA_OTP_DOMAIN_URI") or os.getenv("MOCK_FAYDA_DOMAIN_URI") or self._FAYDA_OTP_LOCAL_DEFAULTS["domain_uri"]).strip() or self._FAYDA_OTP_LOCAL_DEFAULTS["domain_uri"],
-            "channel": (os.getenv("G2P_FAYDA_OTP_CHANNEL") or self._FAYDA_OTP_LOCAL_DEFAULTS["channel"]).strip() or self._FAYDA_OTP_LOCAL_DEFAULTS["channel"],
-            "identifier_type": (os.getenv("G2P_FAYDA_OTP_ID_TYPE") or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"]).strip().upper() or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"],
+            "env": (os.getenv("G2P_FAYDA_OTP_ENV") or os.getenv("MOCK_FAYDA_ENV") or self._FAYDA_OTP_LOCAL_DEFAULTS[
+                "env"]).strip() or self._FAYDA_OTP_LOCAL_DEFAULTS["env"],
+            "domain_uri": (os.getenv("G2P_FAYDA_OTP_DOMAIN_URI") or os.getenv("MOCK_FAYDA_DOMAIN_URI") or
+                           self._FAYDA_OTP_LOCAL_DEFAULTS["domain_uri"]).strip() or self._FAYDA_OTP_LOCAL_DEFAULTS[
+                              "domain_uri"],
+            "channel": (os.getenv("G2P_FAYDA_OTP_CHANNEL") or self._FAYDA_OTP_LOCAL_DEFAULTS["channel"]).strip() or
+                       self._FAYDA_OTP_LOCAL_DEFAULTS["channel"],
+            "identifier_type": (os.getenv("G2P_FAYDA_OTP_ID_TYPE") or self._FAYDA_OTP_LOCAL_DEFAULTS[
+                "identifier_type"]).strip().upper() or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"],
             "preferred_reg_id_type": self._get_fayda_otp_reg_id_type_name(),
             "thumbprint": (os.getenv("G2P_FAYDA_OTP_THUMBPRINT") or "").strip(),
             "request_session_key": (os.getenv("G2P_FAYDA_OTP_REQUEST_SESSION_KEY") or "").strip(),
@@ -234,9 +238,9 @@ class G2PATIConsentController(http.Controller):
             return explicit_reg_id_type
 
         identifier_type = (
-            os.getenv("G2P_FAYDA_OTP_ID_TYPE")
-            or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"]
-        ).strip().upper() or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"]
+                              os.getenv("G2P_FAYDA_OTP_ID_TYPE")
+                              or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"]
+                          ).strip().upper() or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"]
         identifier_map = {
             "FIN": "UID",
             "RID": "RID",
@@ -245,6 +249,7 @@ class G2PATIConsentController(http.Controller):
 
     def _get_fayda_otp_session_store(self):
         store = request.session.get(self._FAYDA_OTP_SESSION_KEY)
+        print('store', store, request.session)
         if not isinstance(store, dict):
             store = {}
             request.session[self._FAYDA_OTP_SESSION_KEY] = store
@@ -252,13 +257,15 @@ class G2PATIConsentController(http.Controller):
 
     def _get_liveness_config(self):
         try:
-            ttl_seconds = int((os.getenv("G2P_LIVENESS_TTL_SECONDS") or "").strip() or self._LIVENESS_LOCAL_DEFAULTS["ttl_seconds"])
+            ttl_seconds = int(
+                (os.getenv("G2P_LIVENESS_TTL_SECONDS") or "").strip() or self._LIVENESS_LOCAL_DEFAULTS["ttl_seconds"])
         except (TypeError, ValueError):
             ttl_seconds = self._LIVENESS_LOCAL_DEFAULTS["ttl_seconds"]
         ttl_seconds = max(20, min(ttl_seconds, 300))
 
         try:
-            prompt_count = int((os.getenv("G2P_LIVENESS_PROMPT_COUNT") or "").strip() or self._LIVENESS_LOCAL_DEFAULTS["prompt_count"])
+            prompt_count = int(
+                (os.getenv("G2P_LIVENESS_PROMPT_COUNT") or "").strip() or self._LIVENESS_LOCAL_DEFAULTS["prompt_count"])
         except (TypeError, ValueError):
             prompt_count = self._LIVENESS_LOCAL_DEFAULTS["prompt_count"]
         prompt_count = max(1, min(prompt_count, 3))
@@ -542,7 +549,6 @@ class G2PATIConsentController(http.Controller):
 
         return self._verify_provider_signed_payload(provider_response, signing_secret)
 
-
     def _make_fayda_transaction_id(self):
         return uuid4().hex.upper()
 
@@ -609,7 +615,8 @@ class G2PATIConsentController(http.Controller):
 
         return {
             "identifier": identifier,
-            "identifier_type": (os.getenv("G2P_FAYDA_OTP_ID_TYPE") or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"]).strip().upper() or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"],
+            "identifier_type": (os.getenv("G2P_FAYDA_OTP_ID_TYPE") or self._FAYDA_OTP_LOCAL_DEFAULTS[
+                "identifier_type"]).strip().upper() or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"],
             "identifier_source": source,
             "available": bool(identifier),
         }
@@ -660,8 +667,6 @@ class G2PATIConsentController(http.Controller):
             values["fayda_otp_verified_at"] = verified_at
 
         return values, status == "verified", transaction_id
-
-
 
     def _extract_liveness_values(self, post, farmer, partner, has_camera_capture):
         challenge_id = (post.get("liveness_challenge_id") or "").strip()
@@ -798,12 +803,12 @@ class G2PATIConsentController(http.Controller):
         if national_id:
             search_value = str(national_id).strip()
             partner_ids = set()
-            
+
             # Search by unique_id
             farmers = partner_obj.search(base_domain + [("unique_id", "=", search_value)], limit=1)
             if farmers:
                 return farmers[0]
-            
+
             # Search by reg_ids.value (any ID type)
             reg_ids = reg_id_obj.search([("value", "=", search_value)], limit=100)
             if reg_ids:
@@ -815,6 +820,7 @@ class G2PATIConsentController(http.Controller):
                     return farmers[0]
 
         return partner_obj.browse()
+
     # -------------------------------------------------------------------------
     # Portal: consent management page and farmer search
     # -------------------------------------------------------------------------
@@ -1271,6 +1277,7 @@ class G2PATIConsentController(http.Controller):
             return self._success(data={"farmers": []})
 
         farmers = partner_obj.search(base_domain + [("id", "in", list(partner_ids))], limit=10)
+
         def _serialize_farmer(partner):
             otp_identity = self._get_farmer_fayda_identifier(partner)
             return {
@@ -1285,6 +1292,7 @@ class G2PATIConsentController(http.Controller):
                 "otp_identifier_source": otp_identity.get("identifier_source") or "",
                 "otp_available": otp_identity.get("available") or False,
             }
+
         return self._success(
             data={
                 "farmers": [_serialize_farmer(p) for p in farmers]
@@ -1366,6 +1374,7 @@ class G2PATIConsentController(http.Controller):
             "message": "OTP requested successfully.",
             "requested_at": fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
+        # request.session[self._FAYDA_OTP_SESSION_KEY] = session_store
         self._mark_session_modified()
 
         message = "OTP sent successfully."
@@ -1412,12 +1421,16 @@ class G2PATIConsentController(http.Controller):
             return self._error("Enter the OTP code.")
 
         session_store = self._get_fayda_otp_session_store()
+        print('transaction_id', transaction_id, session_store)
         session_entry = session_store.get(transaction_id)
+        print('session_entry', session_entry)
         if not isinstance(session_entry, dict):
             return self._error("OTP session expired or was not found.")
         if session_entry.get("partner_id") != partner.id or session_entry.get("farmer_id") != farmer.id:
             return self._error("OTP session does not match the selected farmer.", code=403)
         if session_entry.get("status") == "verified":
+            if session_entry.get("verified_otp") and session_entry["verified_otp"] != otp_code:
+                return self._error("OTP verification failed. OTP does not match.", code=400)
             return self._success(
                 data={
                     "transaction_id": transaction_id,
@@ -1476,6 +1489,7 @@ class G2PATIConsentController(http.Controller):
 
         verified_at = fields.Datetime.to_string(fields.Datetime.now())
         session_entry["status"] = "verified"
+        session_entry["verified_otp"] = otp_code
         session_entry["message"] = "OTP verified successfully."
         session_entry["verified_at"] = verified_at
         self._mark_session_modified()
@@ -1765,13 +1779,265 @@ class G2PATIConsentController(http.Controller):
             message=provider_message,
         )
 
+
+    def _check_submit_access(self, post):
+        partner = self._get_consent_partner()
+        if not partner:
+            return {"error": "access_denied"}
+        return {"partner": partner, "user_id": request.env.user.id, "posted_farmer": post.get("farmer_id")}
+
+    def _process_farmer(self, post):
+        farmer_id = post.get("farmer_id")
+        if not farmer_id:
+            return {"error": "missing_farmer"}
+        try:
+            farmer_id = int(farmer_id)
+        except (TypeError, ValueError):
+            return {"error": "invalid_farmer"}
+
+        farmer = request.env["res.partner"].sudo().search(
+            self._approved_farmer_domain() + [("id", "=", farmer_id)], limit=1
+        )
+        if not farmer:
+            return {"error": "farmer_not_found"}
+        return {"farmer": farmer, "farmer_id": farmer_id}
+
+    def _process_consent_reason(self, post):
+        consent_type = post.get("consent_type", "specific") or "specific"
+        consent_reason = request.env["g2p.consent.reason"].sudo().browse()
+        consent_reason_id = post.get("consent_reason_id")
+        if consent_reason_id:
+            try:
+                consent_reason_id = int(consent_reason_id)
+            except (TypeError, ValueError):
+                return {"error": "invalid_consent_reason"}
+            consent_reason = request.env["g2p.consent.reason"].sudo().search(
+                [("id", "=", consent_reason_id), ("active", "=", True)], limit=1
+            )
+            if not consent_reason:
+                return {"error": "invalid_consent_reason"}
+        
+        consent_reason_str = (post.get("purpose") or "").strip()
+        if not consent_reason and not consent_reason_str:
+            return {"error": "missing_purpose"}
+
+        if not consent_reason and consent_reason_str:
+            consent_reason = request.env["g2p.consent.reason"].sudo().search(
+                [("name", "=ilike", consent_reason_str)], limit=1
+            )
+            if not consent_reason:
+                return {"error": "invalid_purpose"}
+
+        purpose = consent_reason.name if consent_reason else consent_reason_str
+        
+        validity_months = post.get("validity_months")
+        try:
+            validity_months = int(validity_months) if validity_months else 12
+        except (TypeError, ValueError):
+            validity_months = 12
+
+        return {
+            "consent_type": consent_type,
+            "consent_reason": consent_reason,
+            "purpose": purpose,
+            "validity_months": validity_months,
+        }
+
+    def _process_allowed_fields(self, post, partner, is_api=True):
+        form_data = request.httprequest.form or {}
+        allowed_data_field_ids = form_data.getlist("allowed_data_field_ids") if hasattr(form_data, "getlist") else []
+        if not allowed_data_field_ids and post.get("allowed_data_field_ids"):
+            val = post.get("allowed_data_field_ids")
+            allowed_data_field_ids = val if isinstance(val, list) else [val]
+        
+        allowed_ids = []
+        for fid in allowed_data_field_ids:
+            try:
+                allowed_ids.append(int(fid))
+            except (TypeError, ValueError):
+                pass
+
+        allowed_ids = [i for i in allowed_ids if i in partner.allowed_data_field_ids.ids]
+        if not allowed_ids:
+            route_name = "API" if is_api else "portal"
+            _logger.warning(
+                "Consent %s submit blocked by allowed_data_field_ids user_id=%s partner_id=%s partner_allowed_count=%s posted_field_count=%s",
+                route_name,
+                request.env.user.id,
+                partner.id,
+                len(partner.allowed_data_field_ids.ids),
+                len(allowed_data_field_ids),
+            )
+            return {"error": "missing_data_fields"}
+        return {"allowed_ids": allowed_ids}
+
+    def _process_camera_capture(self, post, vals):
+        camera_data_b64 = (post.get("camera_capture_data") or "").strip()
+        if camera_data_b64:
+            if "," in camera_data_b64:
+                camera_data_b64 = camera_data_b64.split(",", 1)[1]
+            try:
+                camera_data = base64.b64decode(camera_data_b64, validate=True)
+            except Exception:
+                return {"error": "invalid_camera_data"}
+            if len(camera_data) > self._MAX_ATTACHMENT_SIZE:
+                return {"error": "camera_too_large"}
+            vals["portal_capture_image"] = base64.b64encode(camera_data)
+            vals["portal_capture_image_filename"] = "camera_capture.jpg"
+            capture_ts_raw = (post.get("camera_capture_taken_at") or "").strip()
+            if capture_ts_raw:
+                capture_dt = fields.Datetime.to_datetime(capture_ts_raw)
+                if not capture_dt:
+                    return {"error": "invalid_camera_timestamp"}
+                vals["portal_capture_taken_at"] = fields.Datetime.to_string(capture_dt)
+
+        lat_raw = (post.get("camera_capture_latitude") or "").strip()
+        lon_raw = (post.get("camera_capture_longitude") or "").strip()
+        acc_raw = (post.get("camera_capture_accuracy") or "").strip()
+        if lat_raw or lon_raw:
+            if not lat_raw or not lon_raw:
+                return {"error": "invalid_camera_location"}
+            try:
+                latitude = float(lat_raw)
+                longitude = float(lon_raw)
+            except (TypeError, ValueError):
+                return {"error": "invalid_camera_location"}
+            if latitude < -90 or latitude > 90 or longitude < -180 or longitude > 180:
+                return {"error": "invalid_camera_location"}
+            vals["portal_capture_latitude"] = latitude
+            vals["portal_capture_longitude"] = longitude
+        if acc_raw:
+            try:
+                accuracy = float(acc_raw)
+            except (TypeError, ValueError):
+                return {"error": "invalid_camera_location"}
+            if accuracy < 0:
+                return {"error": "invalid_camera_location"}
+            vals["portal_capture_accuracy_m"] = accuracy
+
+        return {"camera_data_b64": camera_data_b64}
+
+    def _process_auto_approvals(self, post, vals, farmer, partner):
+        auto_approve_requested = False
+        auto_approve_method = ""
+        otp_transaction_id = None
+
+        face_match_vals, face_match_auto_approve, _liveness_challenge_id = self._extract_liveness_values(
+            post,
+            farmer,
+            partner,
+            has_camera_capture=bool(vals.get("portal_capture_image")),
+        )
+        vals.update(face_match_vals)
+
+        fayda_otp_vals, otp_auto_approve, otp_transaction_id = self._extract_fayda_otp_values(
+            post,
+            farmer,
+            partner,
+        )
+        vals.update(fayda_otp_vals)
+
+        if otp_auto_approve:
+            auto_approve_requested = True
+            auto_approve_method = "otp"
+        elif face_match_auto_approve:
+            auto_approve_requested = True
+            auto_approve_method = "face_match"
+
+        return {
+            "auto_approve_requested": auto_approve_requested,
+            "auto_approve_method": auto_approve_method,
+            "otp_transaction_id": otp_transaction_id,
+        }
+
+    def _create_and_approve_consent(self, vals, auto_approve_requested, auto_approve_method, otp_transaction_id, liveness_challenge_id, is_api=True):
+        ConsentRequest = request.env["g2p.consent.request"].sudo()
+        consent = ConsentRequest.create(vals)
+
+        auto_approved = False
+        auto_approval_failed = False
+        if auto_approve_requested:
+            try:
+                consent.action_approve()
+                approval_flag_field = (
+                    "auto_approved_via_otp"
+                    if auto_approve_method == "otp"
+                    else "auto_approved_via_face_match"
+                )
+                consent.sudo().write({approval_flag_field: True})
+                auto_approved = consent.status == "approved"
+            except Exception as approval_error:
+                auto_approval_failed = True
+                route_name = "API" if is_api else "portal"
+                _logger.exception(
+                    "Consent %s automatic approval failed for consent id=%s method=%s",
+                    route_name,
+                    consent.id,
+                    auto_approve_method,
+                )
+                if auto_approve_method == "otp":
+                    failure_note = "Fayda OTP passed, but automatic approval failed: %s" % approval_error
+                    message_field = "fayda_otp_message"
+                else:
+                    failure_note = "Face + liveness verification passed, but automatic approval failed: %s" % approval_error
+                    message_field = "face_match_message"
+                existing_message = (getattr(consent, message_field) or "").strip()
+                combined_message = failure_note if not existing_message else "%s\n%s" % (existing_message, failure_note)
+                consent.sudo().write({message_field: combined_message[:1024]})
+
+        if otp_transaction_id:
+            session_store = self._get_fayda_otp_session_store()
+            if session_store.pop(otp_transaction_id, None) is not None:
+                self._mark_session_modified()
+        if liveness_challenge_id:
+            liveness_store = self._get_liveness_session_store()
+            if liveness_store.pop(liveness_challenge_id, None) is not None:
+                self._mark_session_modified()
+
+        return {"consent": consent, "auto_approved": auto_approved, "auto_approval_failed": auto_approval_failed}
+
+    def _build_consent_vals(self, post, partner, is_api=True):
+        farm_res = self._process_farmer(post)
+        if "error" in farm_res:
+            return farm_res
+        
+        rsn_res = self._process_consent_reason(post)
+        if "error" in rsn_res:
+            return rsn_res
+        
+        fld_res = self._process_allowed_fields(post, partner, is_api)
+        if "error" in fld_res:
+            return fld_res
+        
+        now = fields.Datetime.now()
+        validity_from = now
+        validity_to = now + timedelta(days=rsn_res["validity_months"] * 30)
+
+        vals = {
+            "partner_record_id": partner.id,
+            "farmer_id": farm_res["farmer_id"],
+            "consent_type": rsn_res["consent_type"],
+            "purpose": rsn_res["purpose"],
+            "consent_reason_id": rsn_res["consent_reason"].id or False,
+            "validity_from": validity_from,
+            "validity_to": validity_to,
+            "originated_from": "partner",
+            "status": "pending",
+            "requester_user_id": request.env.user.id,
+        }
+        if fld_res["allowed_ids"]:
+            vals["allowed_data_field_ids"] = [(6, 0, fld_res["allowed_ids"])]
+            
+        return {"vals": vals, "farmer": farm_res["farmer"], "allowed_ids": fld_res["allowed_ids"]}
+
     @http.route("/consent/request/submit", type="http", auth="user", methods=["POST"], csrf=True)
     def consent_request_submit(self, **post):
         """Create a consent request from portal form (with optional attachment)."""
         try:
-            partner = self._get_consent_partner()
-            user_id = request.env.user.id
-            posted_farmer = post.get("farmer_id")
+            acc_res = self._check_submit_access(post)
+            partner = acc_res.get("partner")
+            user_id = acc_res.get("user_id")
+            posted_farmer = acc_res.get("posted_farmer")
 
             def _reject(error_code):
                 _logger.warning(
@@ -1789,236 +2055,62 @@ class G2PATIConsentController(http.Controller):
                 partner.id if partner else None,
                 posted_farmer,
             )
-            if not partner:
-                return _reject("access_denied")
 
-            farmer_id = post.get("farmer_id")
-            if not farmer_id:
-                return _reject("missing_farmer")
+            if "error" in acc_res:
+                return _reject(acc_res["error"])
 
-            try:
-                farmer_id = int(farmer_id)
-            except (TypeError, ValueError):
-                return _reject("invalid_farmer")
+            build_res = self._build_consent_vals(post, partner, is_api=False)
+            if "error" in build_res:
+                return _reject(build_res["error"])
 
-            farmer = (
-                request.env["res.partner"]
-                .sudo()
-                .search(self._approved_farmer_domain() + [("id", "=", farmer_id)], limit=1)
-            )
-            if not farmer:
-                return _reject("farmer_not_found")
+            vals = build_res["vals"]
+            farmer = build_res["farmer"]
+            allowed_ids = build_res["allowed_ids"]
 
-            consent_type = post.get("consent_type", "specific") or "specific"
-            consent_reason = request.env["g2p.consent.reason"].sudo().browse()
-            consent_reason_id = post.get("consent_reason_id")
-            if consent_reason_id:
-                try:
-                    consent_reason_id = int(consent_reason_id)
-                except (TypeError, ValueError):
-                    return _reject("invalid_consent_reason")
-                consent_reason = request.env["g2p.consent.reason"].sudo().search(
-                    [
-                        ("id", "=", consent_reason_id),
-                        ("active", "=", True),
-                    ],
-                    limit=1,
-                )
-                if not consent_reason:
-                    return _reject("invalid_consent_reason")
-            legacy_purpose = (post.get("purpose") or "").strip()
-            if not consent_reason and not legacy_purpose:
-                return _reject("missing_consent_reason")
-            purpose = consent_reason.name if consent_reason else legacy_purpose
-            validity_months = post.get("validity_months")
-            try:
-                validity_months = int(validity_months) if validity_months else 12
-            except (TypeError, ValueError):
-                validity_months = 12
-            
-            form_data = request.httprequest.form or {}
-            allowed_data_field_ids = form_data.getlist("allowed_data_field_ids") if hasattr(form_data, "getlist") else []
-            if not allowed_data_field_ids and post.get("allowed_data_field_ids"):
-                # Fallback for edge cases where only kwargs are populated.
-                allowed_data_field_ids = [post.get("allowed_data_field_ids")]
-            allowed_ids = []
-            for fid in allowed_data_field_ids:
-                try:
-                    allowed_ids.append(int(fid))
-                except (TypeError, ValueError):
-                    pass
-            
-            allowed_ids = [i for i in allowed_ids if i in partner.allowed_data_field_ids.ids]
-            if not allowed_ids:
-                _logger.warning(
-                    "Consent portal submit blocked by allowed_data_field_ids user_id=%s partner_id=%s partner_allowed_count=%s posted_field_count=%s",
-                    user_id,
-                    partner.id,
-                    len(partner.allowed_data_field_ids.ids),
-                    len(allowed_data_field_ids),
-                )
-                return _reject("missing_data_fields")
-            
-            now = fields.Datetime.now()
-            validity_from = now
-            validity_to = now + timedelta(days=validity_months * 30)
-            
-            vals = {
-                "partner_record_id": partner.id,
-                "farmer_id": farmer_id,
-                "consent_type": consent_type,
-                "purpose": purpose,
-                "consent_reason_id": consent_reason.id or False,
-                "validity_from": validity_from,
-                "validity_to": validity_to,
-                "originated_from": "partner",
-                "status": "pending",
-                "requester_user_id": request.env.user.id,
-            }
-            
-            if allowed_ids:
-                vals["allowed_data_field_ids"] = [(6, 0, allowed_ids)]
-            
-            attachment_ids = []
             auto_approve_requested = False
             auto_approve_method = ""
             otp_transaction_id = None
             liveness_challenge_id = None
+            attachment_ids = []
+            
             try:
                 files = request.httprequest.files or {}
                 upload = files.get("attachment")
                 if not upload or not getattr(upload, "filename", None):
                     return _reject("missing_attachment")
 
-                upload_data = upload.read()
-                if not upload_data:
-                    return _reject("missing_attachment")
-                if len(upload_data) > self._MAX_ATTACHMENT_SIZE:
-                    return _reject("attachment_too_large")
+                att_ids, att_error = self._handle_attachment(upload, upload.filename)
+                if att_error:
+                    return _reject(att_error.get("message", "server_error"))
+                if att_ids:
+                    attachment_ids = att_ids
+                    vals["attachment_ids"] = [(6, 0, attachment_ids)]
 
-                Attachment = request.env["ir.attachment"].sudo()
-                att = Attachment.create(
-                    {
-                        "name": upload.filename or "consent_form.pdf",
-                        "datas": base64.b64encode(upload_data),
-                        "res_model": "g2p.consent.request",
-                        "res_id": 0,
-                    }
-                )
-                attachment_ids.append(att.id)
-                vals["attachment_ids"] = [(6, 0, attachment_ids)]
+                camera_res = self._process_camera_capture(post, vals)
+                if "error" in camera_res:
+                    return _reject(camera_res["error"])
 
-                camera_data_b64 = (post.get("camera_capture_data") or "").strip()
-                if camera_data_b64:
-                    if "," in camera_data_b64:
-                        camera_data_b64 = camera_data_b64.split(",", 1)[1]
-                    try:
-                        camera_data = base64.b64decode(camera_data_b64, validate=True)
-                    except Exception:
-                        return _reject("invalid_camera_data")
-                    if len(camera_data) > self._MAX_ATTACHMENT_SIZE:
-                        return _reject("camera_too_large")
-                    vals["portal_capture_image"] = base64.b64encode(camera_data)
-                    vals["portal_capture_image_filename"] = "camera_capture.jpg"
-                    capture_ts_raw = (post.get("camera_capture_taken_at") or "").strip()
-                    if capture_ts_raw:
-                        capture_dt = fields.Datetime.to_datetime(capture_ts_raw)
-                        if not capture_dt:
-                            return _reject("invalid_camera_timestamp")
-                        vals["portal_capture_taken_at"] = fields.Datetime.to_string(capture_dt)
+                auto_res = self._process_auto_approvals(post, vals, farmer, partner)
+                auto_approve_requested = auto_res["auto_approve_requested"]
+                auto_approve_method = auto_res["auto_approve_method"]
+                otp_transaction_id = auto_res["otp_transaction_id"]
 
-                liveness_vals, liveness_auto_approve, liveness_challenge_id = self._extract_liveness_values(
-                    post,
-                    farmer,
-                    partner,
-                    has_camera_capture=bool(camera_data_b64),
-                )
-                vals.update(liveness_vals)
-
-                fayda_otp_vals, otp_auto_approve, otp_transaction_id = self._extract_fayda_otp_values(
-                    post,
-                    farmer,
-                    partner,
-                )
-                vals.update(fayda_otp_vals)
-                if otp_auto_approve:
-                    auto_approve_requested = True
-                    auto_approve_method = "otp"
-                elif liveness_auto_approve:
-                    auto_approve_requested = True
-                    auto_approve_method = "liveness"
-
-                lat_raw = (post.get("camera_capture_latitude") or "").strip()
-                lon_raw = (post.get("camera_capture_longitude") or "").strip()
-                acc_raw = (post.get("camera_capture_accuracy") or "").strip()
-                if lat_raw or lon_raw:
-                    if not lat_raw or not lon_raw:
-                        return _reject("invalid_camera_location")
-                    try:
-                        latitude = float(lat_raw)
-                        longitude = float(lon_raw)
-                    except (TypeError, ValueError):
-                        return _reject("invalid_camera_location")
-                    if latitude < -90 or latitude > 90 or longitude < -180 or longitude > 180:
-                        return _reject("invalid_camera_location")
-                    vals["portal_capture_latitude"] = latitude
-                    vals["portal_capture_longitude"] = longitude
-                if acc_raw:
-                    try:
-                        accuracy = float(acc_raw)
-                    except (TypeError, ValueError):
-                        return _reject("invalid_camera_location")
-                    if accuracy < 0:
-                        return _reject("invalid_camera_location")
-                    vals["portal_capture_accuracy_m"] = accuracy
             except Exception as e:
                 _logger.error("Error processing attachments/camera capture: %s", e, exc_info=True)
                 return _reject("server_error")
+
+            liveness_challenge_id = post.get("liveness_challenge_id")
             
-            ConsentRequest = request.env["g2p.consent.request"].sudo()
-            consent = ConsentRequest.create(vals)
+            app_res = self._create_and_approve_consent(
+                vals, auto_approve_requested, auto_approve_method, otp_transaction_id, liveness_challenge_id, is_api=False
+            )
+            consent = app_res["consent"]
+            auto_approved = app_res["auto_approved"]
+            auto_approval_failed = app_res["auto_approval_failed"]
 
             for att_id in attachment_ids:
                 request.env["ir.attachment"].sudo().browse(att_id).write({"res_id": consent.id})
 
-            auto_approved = False
-            auto_approval_failed = False
-            if auto_approve_requested:
-                try:
-                    consent.action_approve()
-                    approval_flag_field = (
-                        "auto_approved_via_otp"
-                        if auto_approve_method == "otp"
-                        else "auto_approved_via_face_match"
-                    )
-                    consent.sudo().write({approval_flag_field: True})
-                    auto_approved = consent.status == "approved"
-                except Exception as approval_error:
-                    auto_approval_failed = True
-                    _logger.exception(
-                        "Consent portal automatic approval failed for consent id=%s method=%s",
-                        consent.id,
-                        auto_approve_method,
-                    )
-                    if auto_approve_method == "otp":
-                        failure_note = "Fayda OTP passed, but automatic approval failed: %s" % approval_error
-                        message_field = "fayda_otp_message"
-                    else:
-                        failure_note = "Face + liveness verification passed, but automatic approval failed: %s" % approval_error
-                        message_field = "face_match_message"
-                    existing_message = (getattr(consent, message_field) or "").strip()
-                    combined_message = failure_note if not existing_message else "%s\n%s" % (existing_message, failure_note)
-                    consent.sudo().write({message_field: combined_message[:1024]})
-
-            if otp_transaction_id:
-                session_store = self._get_fayda_otp_session_store()
-                if session_store.pop(otp_transaction_id, None) is not None:
-                    self._mark_session_modified()
-            if liveness_challenge_id:
-                liveness_store = self._get_liveness_session_store()
-                if liveness_store.pop(liveness_challenge_id, None) is not None:
-                    self._mark_session_modified()
-            
             _logger.info(
                 "Consent request created via portal: id=%s farmer_id=%s partner_id=%s user_id=%s allowed_field_count=%s face_match_status=%s fayda_otp_status=%s auto_approved=%s auto_approve_method=%s",
                 consent.id,
@@ -2043,9 +2135,93 @@ class G2PATIConsentController(http.Controller):
             _logger.error("Error creating consent request: %s", e, exc_info=True)
             return request.redirect("/consent/management?error=server_error")
 
+    @http.route("/api/consent/submit_consent", type="json", auth="user", methods=["POST"], csrf=False)
+    def submit_consent(self, **kwargs):
+        """Create a consent request via API, without requiring attachments."""
+        try:
+            post = kwargs
+            acc_res = self._check_submit_access(post)
+            if "error" in acc_res:
+                return self._error(acc_res["error"], code=403 if acc_res["error"] == "access_denied" else 400)
+            
+            partner = acc_res["partner"]
+            user_id = acc_res.get("user_id", False)
+            posted_farmer = acc_res.get("posted_farmer", "")
+
+            _logger.info(
+                "Consent API submit attempt user_id=%s partner_id=%s farmer_input=%s",
+                user_id, partner.id if partner else None, posted_farmer
+            )
+
+            build_res = self._build_consent_vals(post, partner)
+            if "error" in build_res:
+                err = build_res["error"]
+                _logger.warning(
+                    "Consent API submit rejected: %s user_id=%s partner_id=%s farmer_input=%s",
+                    err, user_id, partner.id if partner else None, posted_farmer
+                )
+                code = 404 if err == "farmer_not_found" else 400
+                return self._error(err, code=code)
+            
+            vals = build_res["vals"]
+            farmer = build_res["farmer"]
+            allowed_ids = build_res["allowed_ids"]
+
+            auto_approve_requested = False
+            auto_approve_method = ""
+            otp_transaction_id = None
+
+            try:
+                if post.get("attachment_base64"):
+                    att_ids, att_error = self._handle_attachment(
+                        post.get("attachment_base64"),
+                        post.get("attachment_filename") or "consent_form.pdf"
+                    )
+                    if att_error:
+                        return att_error
+                    if att_ids:
+                        vals["attachment_ids"] = [(6, 0, att_ids)]
+
+                auto_res = self._process_auto_approvals(post, vals, farmer, partner)
+                auto_approve_requested = auto_res["auto_approve_requested"]
+                auto_approve_method = auto_res["auto_approve_method"]
+                otp_transaction_id = auto_res["otp_transaction_id"]
+
+            except Exception as e:
+                _logger.error("Error processing submit_consent API: %s", e, exc_info=True)
+                return self._error(f"server_error: {str(e)}", code=500)
+
+            app_res = self._create_and_approve_consent(
+                vals, auto_approve_requested, auto_approve_method, otp_transaction_id, liveness_challenge_id=None, is_api=True
+            )
+            consent = app_res["consent"]
+            auto_approved = app_res["auto_approved"]
+            auto_approval_failed = app_res["auto_approval_failed"]
+
+            _logger.info(
+                "Consent request created via API: id=%s farmer_id=%s partner_id=%s user_id=%s allowed_field_count=%s face_match_status=%s fayda_otp_status=%s auto_approved=%s auto_approve_method=%s",
+                consent.id, consent.farmer_id.id, consent.partner_record_id.id, user_id,
+                len(allowed_ids), consent.face_match_status, consent.fayda_otp_status,
+                auto_approved, auto_approve_method or "none"
+            )
+
+            return self._success({
+                "consent_id": consent.id,
+                "status": consent.status,
+                "auto_approved": auto_approved,
+                "auto_approval_failed": auto_approval_failed,
+                "auto_approve_method": auto_approve_method or None,
+                "error_details": consent.face_match_message if auto_approval_failed else None
+            })
+
+        except Exception as e:
+            _logger.error("Error in submit_consent API: %s", e, exc_info=True)
+            return self._error(f"server_error: {str(e)}", code=500)
+
     @http.route("/api/consent/request/create", type="json", auth="user", methods=["POST"], csrf=False)
     def create_consent_request(self, **kwargs):
-        payload = request.jsonrequest or {}
+        # payload = request.jsonrequest or {}
+        payload = dict(request.params)
         partner_record_id = payload.get("partner_record_id") or payload.get("partner_id")
         partner = self._get_consent_partner()
         if not partner:
@@ -2087,7 +2263,7 @@ class G2PATIConsentController(http.Controller):
         if consent_reason:
             purpose = consent_reason.name
         if not purpose:
-            return self._error("consent_reason_id is required")
+            return self._error("purpose is required")
 
         vals = {
             "partner_record_id": partner_record.id,
@@ -2124,6 +2300,16 @@ class G2PATIConsentController(http.Controller):
             )
         vals["allowed_data_field_ids"] = [(6, 0, filtered_allowed_ids)]
 
+        # ✅ KEEP THIS (simplified)
+        raw_attachment_ids = payload.get("attachment_ids")
+        if not raw_attachment_ids:
+            return self._error("attachment_ids is required")
+
+        if isinstance(raw_attachment_ids, int):
+            raw_attachment_ids = [raw_attachment_ids]
+
+        vals["attachment_ids"] = [(6, 0, [int(i) for i in raw_attachment_ids])]
+
         consent = request.env["g2p.consent.request"].sudo().create(vals)
 
         _logger.info(
@@ -2139,13 +2325,15 @@ class G2PATIConsentController(http.Controller):
                 "id": consent.id,
                 "consent_creation_request_id": consent.consent_creation_request_id,
                 "status": consent.status,
+
             },
             message="Consent request created",
         )
 
     @http.route("/api/consent/request/approve", type="json", auth="user", methods=["POST"], csrf=False)
     def approve_consent_request(self, **kwargs):
-        payload = request.jsonrequest or {}
+        # payload = request.jsonrequest or {}
+        payload = dict(request.params)
         consent_id = payload.get("consent_id")
         consent_request_id = payload.get("consent_creation_request_id")
 
@@ -2177,7 +2365,8 @@ class G2PATIConsentController(http.Controller):
 
     @http.route("/api/consent/request/reject", type="json", auth="user", methods=["POST"], csrf=False)
     def reject_consent_request(self, **kwargs):
-        payload = request.jsonrequest or {}
+        # payload = request.jsonrequest or {}
+        payload = dict(request.params)
         consent_id = payload.get("consent_id")
         consent_request_id = payload.get("consent_creation_request_id")
 
@@ -2213,7 +2402,8 @@ class G2PATIConsentController(http.Controller):
 
     @http.route("/api/consent/request/revoke", type="json", auth="user", methods=["POST"], csrf=False)
     def revoke_consent_request(self, **kwargs):
-        payload = request.jsonrequest or {}
+        # payload = request.jsonrequest or {}
+        payload = dict(request.params)
         consent_id = payload.get("consent_id")
         consent_request_id = payload.get("consent_creation_request_id")
 
@@ -2245,7 +2435,8 @@ class G2PATIConsentController(http.Controller):
 
     @http.route("/api/consent/request/pending", type="json", auth="user", methods=["POST"], csrf=False)
     def list_pending_consent_requests(self, **kwargs):
-        payload = request.jsonrequest or {}
+        # payload = request.jsonrequest or {}
+        payload = dict(request.params)
         limit = int(payload.get("limit", 80))
         partner = self._get_consent_partner()
         if not partner:
@@ -2272,3 +2463,82 @@ class G2PATIConsentController(http.Controller):
                 ],
             }
         )
+
+
+
+    def _handle_attachment(self, source, filename="consent_form.pdf"):
+        """
+        Single common function to handle all attachment scenarios.
+
+        source can be:
+        - file object  (portal form upload)
+        - base64 string (API upload)
+        - int or list  (existing attachment ID)
+
+        Returns (attachment_ids list, error or None)
+        """
+        # Case 1: file object from portal form
+        if hasattr(source, "read"):
+            if not getattr(source, "filename", None):
+                return [], self._error("missing_attachment")
+            upload_data = source.read()
+            if not upload_data:
+                return [], self._error("missing_attachment")
+            if len(upload_data) > self._MAX_ATTACHMENT_SIZE:
+                return [], self._error("attachment_too_large")
+            att = request.env["ir.attachment"].sudo().create({
+                "name": source.filename or filename,
+                "datas": base64.b64encode(upload_data),
+                "res_model": "g2p.consent.request",
+                "res_id": 0,
+            })
+            return [att.id], None
+
+        # Case 2: base64 string from API upload
+        if isinstance(source, str):
+            source = source.strip()
+            if not source:
+                return [], self._error("attachment_base64 is required")
+            if "," in source:
+                source = source.split(",", 1)[1]
+            try:
+                data = base64.b64decode(source, validate=True)
+            except Exception:
+                return [], self._error("Invalid attachment_base64 encoding")
+            if len(data) > self._MAX_ATTACHMENT_SIZE:
+                return [], self._error("Attachment exceeds maximum allowed size of 10MB")
+            att = request.env["ir.attachment"].sudo().create({
+                "name": filename,
+                "datas": base64.b64encode(data),
+                "res_model": "g2p.consent.request",
+                "res_id": 0,
+            })
+            return [att.id], None
+
+        return [], self._error("attachment or attachment_base64 is required")
+
+    @http.route("/api/consent/reasons", type="json", auth="user", methods=["GET", "POST"], csrf=False)
+    def api_consent_reasons(self, **kwargs):
+        """Fetch all active consent reasons."""
+        reasons = request.env["g2p.consent.reason"].sudo().search([("active", "=", True)])
+        data = [{"id": r.id, "name": r.name, "description": r.description} for r in reasons]
+        return self._success(data)
+
+    @http.route("/api/consent/allowed_data_fields", type="json", auth="user", methods=["GET", "POST"], csrf=False)
+    def api_consent_allowed_data_fields(self, **kwargs):
+        """Fetch allowed data fields for a consent partner."""
+        payload = kwargs
+        partner_id = payload.get("partner_id") or payload.get("partner_record_id")
+        
+        if not partner_id:
+            partner = self._get_consent_partner()
+            if not partner:
+                return self._error("partner_id is required or user must have a consent partner")
+        else:
+            partner = request.env["res.partner"].sudo().browse(int(partner_id))
+            if not partner.exists() or not partner.is_consent_parent:
+                return self._error("Consent partner not found", code=404)
+        
+        fields = partner.allowed_data_field_ids
+        data = [{"id": f.id, "name": f.name, "code": f.code} for f in fields]
+        return self._success(data)

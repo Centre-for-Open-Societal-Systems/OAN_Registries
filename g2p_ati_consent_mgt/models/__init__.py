@@ -5,3 +5,4 @@ from . import res_users
 from . import consent_request
 from . import portal_role
 from . import websub
+from . import ir_http

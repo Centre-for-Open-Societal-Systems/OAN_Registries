@@ -40,7 +40,7 @@ from threading import Lock, Thread
 from typing import Any
 
 
-HOST = os.getenv("MOCK_FAYDA_HOST", "127.0.0.1")
+HOST = os.getenv("MOCK_FAYDA_HOST", "0.0.0.0")
 PORT = int(os.getenv("MOCK_FAYDA_PORT", "8787"))
 CLIENT_ID = os.getenv("MOCK_FAYDA_CLIENT_ID", "demo-client")
 CLIENT_SECRET = os.getenv("MOCK_FAYDA_CLIENT_SECRET", "demo-secret")
