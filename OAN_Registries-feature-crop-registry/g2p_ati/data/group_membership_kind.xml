@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="wife_kind" model="g2p.group.membership.kind">
+        <field name="name">Wife - Head</field>
+    </record>
+    <record id="husband_kind" model="g2p.group.membership.kind">
+        <field name="name">Husband - Head</field>
+    </record>
+    <record id="son_kind" model="g2p.group.membership.kind">
+        <field name="name">Son</field>
+    </record>
+    <record id="daughter_kind" model="g2p.group.membership.kind">
+        <field name="name">Daughter</field>
+    </record>
+    <record id="other_kind" model="g2p.group.membership.kind">
+        <field name="name">Other</field>
+    </record>
+</odoo>

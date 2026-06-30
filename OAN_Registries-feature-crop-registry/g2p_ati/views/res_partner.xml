@@ -1,0 +1,588 @@
+<odoo>
+	<record id="g2p_registry_individual_form_view_inherit" model="ir.ui.view">
+		<field name="name">view_individuals_form.inherited</field>
+		<field name="model">res.partner</field>
+		<field name="inherit_id" ref="g2p_registry_individual.view_individuals_form" />
+		<field name="arch" type="xml">
+			<xpath expr="//form" position="attributes">
+				<attribute name="js_class">res_partner_other_group_string</attribute>
+			</xpath>
+
+			
+
+
+			<xpath expr="//form/sheet" position="before">
+				<header>
+					
+					<field name="state" widget="statusbar" readonly="1" statusbar_visible="draft,update_requested,approved" />
+
+
+					<button
+                        name="state_approve"
+                        string="Approve"
+                        type="object"
+                        class="btn-success"
+                        groups="g2p_ati.group_data_validator,g2p_registry_base.group_g2p_admin,g2p_registry_base.group_g2p_registrar"
+						invisible="state!='draft'"
+                    />
+
+					<button
+                        name="state_reject"
+                        invisible="state!='draft'"
+                        string="Reject"
+                        type="object"
+                        class="btn-danger"
+                        groups="g2p_ati.group_data_validator,g2p_registry_base.group_g2p_admin,g2p_registry_base.group_g2p_registrar"
+                    />
+
+					<button
+                        name="set_to_draft"
+                        invisible="state=='draft'"
+                        string="Set To Draft"
+                        type="object"
+                        class="btn-info"
+                        groups="g2p_ati.group_data_validator,g2p_registry_base.group_g2p_admin,g2p_registry_base.group_g2p_registrar"
+                    />
+				</header>
+			</xpath>
+
+
+			<xpath expr="//field[@name='given_name']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='image_1920']" position="attributes">
+				<attribute name="readonly">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='family_name']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='name']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='image_1920']" position="after">
+				<div class="mt24 d-flex flex-column flex-md-row justify-content-between w-full">
+					<h1>
+						<field name="name" readonly="True" placeholder="Full Name(ENG)" />
+					</h1>
+					<div class="mx-0 mx-md-5" invisible="is_farmer!='yes'">
+						<h1>
+							<field name="farmer_id" readonly="True" />
+						</h1>
+					</div>
+				</div>
+			</xpath>
+
+			<xpath expr="//field[@name='unique_id']" position="attributes">
+				<attribute name="invisible">0</attribute>
+			</xpath>
+
+
+			<xpath expr="//field[@name='registration_date']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='registration_date']" position="before">
+				<field name="has_national_id" invisible="is_farmer!='yes'" />
+				<!-- <field name="registration_date" readonly="1" /> -->
+				<field name="rejection_reason" invisible="state!='rejected'" />
+			</xpath>
+			<xpath expr="//field[@name='income']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//group[@colspan='3']/field[@name='civil_status']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//group[@colspan='3']/field[@name='occupation']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='phone_number_ids']/tree" position="attributes">
+				<attribute name="editable">bottom</attribute>
+			</xpath>
+			<xpath expr="//field[@name='phone_number_ids']/tree/field[@name='phone_no']" position="after">
+				<field name="phone_type" />
+			</xpath>
+			<xpath expr="//field[@name='phone_number_ids']" position="before">
+				<field name="email" />
+				<field name="has_personal_phone" />
+			</xpath>
+			<xpath expr="//div[@class='o_row']" position="before">
+				<group name="english" string="English">
+					<field name="given_name" placecholder="First Name(ENG)" />
+					<field name="family_name" placecholder="Last Name(ENG)" />
+					<field name="gf_name_eng" placecholder="G.Father Name(ENG)" />
+				</group>
+						<group name="amharic" string="Amharic">
+					<field name="first_name_amh" placecholder="ስም" />
+					<field name="family_name_amh" placecholder="የአባት ስም" />
+					<field name="gf_name_amh" placecholder="የአያት ስም" />
+				</group>
+				<group
+                    name="other_lang"
+                    string="Other"
+                    data-g2p-lang="other"
+					invisible="primary_Language == 1 or primary_Language == False"
+                >
+					<field name="first_name_other" />
+					<field name="family_name_other" />
+					<field name="gf_name_other" />
+				</group>
+			</xpath>
+
+			<xpath expr="//div[contains(@class, 'o_row')]" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='addl_name']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='birth_place']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='birthdate_not_exact']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='birthdate']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='age']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='gender']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//span[@class='o_form_label o_td_label' and @name='address_name']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='address']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//page[@name='relationships']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='district']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='email']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='birth_place']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='region']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='region']" position="before">
+				<group name="location" colspan="2">
+					<group name="region_zone">
+						<field name="region" />
+						<field name="zone" domain="[('region', '=', region)]" />
+					</group>
+					<group name="woreda_kebele">
+						<field name="woreda" domain="[('zone', '=', zone)]" />
+						<field name="kebele" domain="[('woreda', '=', woreda)]" />
+					</group>
+				</group>
+				<group colspan="1" name="location_on_map" string="Location">
+					<field name="partner_longitude" />
+					<field name="partner_latitude" />
+				</group>
+			</xpath>
+			<xpath expr="//sheet/notebook[@name='individual_detail']/page[@name='basic_info']" position="inside">
+				<group name="primary_personal_info" cols="2" colspan="2">
+					<group name="pp_info_group" string="Birth Information">
+						<field name="birthdate" string="Date Of Birth(GC)" />
+						<field name="birthdate_ec" />
+						<field name="age" />
+						<field name="gender" />
+					</group>
+					<group name="socio_economic_data" string="Social Economic Data">
+
+						<field name="hh_is_household_head" />
+						<field name="hh_income_type" create="False" widget="many2many_tags" invisible="is_farmer!='yes'" />
+						<field name="education" invisible="is_farmer!='yes'" />
+						<field name="martial_status" invisible="is_farmer!='yes'" />
+						<field name="is_psnp_user"/>
+
+						<separator string="Household Information" colspan="4" />
+
+					
+
+
+						<field name="number_of_males_in_family" invisible="is_farmer!='yes'" />
+						<field name="father_included" />
+						<field name="number_of_females_in_family" invisible="is_farmer!='yes'" />
+						<field name="mother_included" />
+						<field name="number_of_children_in_family" invisible="is_farmer!='yes'" />
+						<field name="size_of_family" readonly="1" invisible="is_farmer!='yes'" />
+
+
+
+		
+		
+
+						<!-- <field name="other_family_member_own_land" invisible="is_farmer!='yes'" />  -->
+
+
+					</group>
+				</group>
+				<group name="farmer_socio_economic_data" colspan="2">
+					<group string="Farmer Data">
+						<field name="is_farmer" />
+						<field name="primary_Language" />
+						<field name="farming_type" invisible="is_farmer!='yes'" />
+					</group>
+					<group name="disability" string="Disability" invisible="is_farmer!='yes'">
+						<field name="is_disabled" />
+					</group>
+				</group>
+			</xpath>
+			<xpath expr="//sheet/notebook[@name='individual_detail']/page[@name='basic_info']" position="after">
+				<page string="Farmer Details" sequence="2" invisible="is_farmer!='yes'">
+					<group>
+						<group name="farmer_membership" string="Membership">
+							<field name="is_member_of_primary_cooperative" />
+							<field name="primary_cooperatives" invisible="is_member_of_primary_cooperative!='yes'" />
+							<field name="is_member_of_cooperative_union" />
+							<field name="cooperative_unions" invisible="is_member_of_cooperative_union!='yes'" />
+							<field name="is_member_in_farmer_cluster" />
+							<field name="primary_commodity" invisible="is_member_in_farmer_cluster!='yes'" />
+							<field name="role_in_farmer_cluster" invisible="is_member_in_farmer_cluster!='yes'" />
+						</group>
+						<group name="acesss_to_resources" string="Access To Resources">
+							<field name="access_to_machinery" />
+							<field
+                                name="type_of_machinery"
+                                create="False"
+                                widget="many2many_tags"
+                                invisible="access_to_machinery!='yes'"
+                            />
+						</group>
+					</group>
+					<group>
+						<group name="input" string="Agricultural Input">
+							<field name="do_you_use_fertilizer" />
+							<field name="do_you_use_pesticide" />
+							<field name="do_you_use_insecticide" />
+							<field name="do_you_use_improved_seed" />
+						</group>
+						<group name="financial services" string="Financial Services">
+							<field name="has_finance_access" />
+							<field
+                                name="finance_accesses"
+                                colspan="2"
+                                create="False"
+                                widget="many2many_tags"
+                                readonly="has_finance_access!='yes'"
+                            />
+						</group>
+					</group>
+				</page>
+
+				<page string="Land Information" name="lands" invisible="is_farmer!='yes'">
+
+					<group name="computed_land_info" col="3">
+						<group name="total_land_owned_area">
+							<field name="total_land_owned_area" readonly="True" widget="g2p_trim_float" />
+						</group>
+
+						<group name="total_land_rent_area">
+							<field name="total_land_rent_area" readonly="True" widget="g2p_trim_float" />
+						</group>
+
+						<group name="total_land_crop_sharing_area" >
+							<field name="total_land_crop_sharing_area" readonly="True" widget="g2p_trim_float" />
+						</group>
+
+					</group>
+
+                    <group>
+
+					 <group name="total_land" cols="1" colspan="1">
+							<field name="total_land_area" readonly="True" widget="g2p_trim_float" class="d-flex fs-bold" />
+						</group>
+
+					  <group name="land_ownership">
+							<field name="land_ownership" readonly="True" />
+						</group> 
+
+					</group>
+
+
+					<field name="land_information_ids">
+						<tree editable="bottom">
+							<field name="ownership_type" />
+							<field name="remark" />
+							<field name="total_land_area" widget="g2p_trim_float" />
+							<field name="land_id" />
+							<field name="land_kebele"/>
+							<field name="certficate_provided"/>
+							<field name="land_certificate" />
+							<field name="document_slug" column_invisible="1" />
+							<field name="document_mimetype" column_invisible="1" />
+							<field name="document_name" column_invisible="1" />
+							<field name="document_id" column_invisible="1" />
+							<field name="document_url" column_invisible="1" />
+
+							<widget name="g2p_ati_document_preview" />
+						</tree>
+					</field>
+				</page>
+				<page string="Crop Information" name="crops" invisible="is_farmer!='yes'">
+
+					<group name="crop_water_source">
+						<field name="crop_water_sources" colspan="2" create="False" widget="many2many_tags" />
+					</group>
+
+					<field name="crop_information_ids">
+						<tree editable="bottom">
+							<field name="crop" />
+							<field name="collected_gc" />
+							<field name="collected_ec" placeholder="dd/mm/yyyy" />
+							<field name="season" />
+						</tree>
+					</field>
+				</page>
+				<page string="Livestock Information" name="livestocks" invisible="is_farmer!='yes'">
+					<group name="livestock_water">
+						<field name="livestock_water_sources" create="False" widget="many2many_tags" />
+					</group>
+					<field name="livestock_information_ids">
+						<tree editable="bottom">
+							<field name="livestock_type" />
+							<field name="number_of_livestock" />
+						</tree>
+					</field>
+				</page>
+			</xpath>
+		</field>
+	</record>
+	<record id="g2p_registry_individual_tree_view_inherit" model="ir.ui.view">
+		<field name="name">view_individuals_tree.inherited</field>
+		<field name="model">res.partner</field>
+		<field name="inherit_id" ref="g2p_registry_individual.view_individuals_list_tree" />
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='tags_ids']" position="attributes">
+				<attribute name="column_invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='phone']" position="attributes">
+				<attribute name="column_invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='address']" position="attributes">
+				<attribute name="column_invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='birthdate']" position="attributes">
+				<attribute name="column_invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='name']" position="after">
+				<field name="region" />
+				<field name="zone" />
+				<field name="woreda" />
+				<field name="kebele" />
+				<field
+                    name="is_farmer"
+                    string="Farmer"
+                    widget="badge"
+                    decoration-muted="is_farmer == 'no'"
+                    decoration-info="is_farmer == 'yes'"
+                />
+				<field name="enumerator_id" />
+				<field name="data_collection_date" />
+				<field
+                    name="state"
+                    widget="badge"
+                    decoration-danger="state == 'rejected'"
+                    decoration-muted="state == 'draft'"
+                    decoration-info="state  == 'update_requested'"
+                    decoration-success="state == 'approved'"
+                />
+			</xpath>
+			<xpath expr="//tree" position="attributes">
+				<attribute name="decoration-success">state == 'approved'</attribute>
+				<attribute name="decoration-danger">state == 'rejected'</attribute>
+				<attribute name="decoration-muted">state == 'draft'</attribute>
+				<attribute name="decoration-info">state == 'update_requested'</attribute>
+			</xpath>
+			<xpath expr="//field[@name='registration_date']" position="after">
+				<button
+                    title="Approve"
+                    icon="fa-check"
+                    name="state_approve"
+                    type="object"
+                    class="btn btn-success"
+                    invisible="state != 'draft'"
+                    groups="g2p_ati.group_data_validator,g2p_registry_base.group_g2p_admin,g2p_registry_base.group_g2p_registrar"
+                />
+				<button
+                    title="Reject"
+                    icon="fa-times"
+                    name="state_reject"
+                    type="object"
+                    class="btn btn-danger"
+                    invisible="state != 'draft'"
+                    groups="g2p_ati.group_data_validator,g2p_registry_base.group_g2p_admin,g2p_registry_base.group_g2p_registrar"
+                />
+			</xpath>
+		</field>
+	</record>
+	<record id="g2p_registry_group_form_view_inherit" model="ir.ui.view">
+		<field name="name">view_group_form.inherited</field>
+		<field name="model">res.partner</field>
+		<field name="inherit_id" ref="g2p_registry_group.view_groups_form" />
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='image_1920']" position="attributes">
+				<attribute name="readonly">1</attribute>
+			</xpath>
+			<xpath expr="//form/sheet" position="before">
+				<header>
+					<button
+                        name="state_approve"
+                        invisible="state!='draft'"
+                        string="Approve"
+                        type="object"
+                        class="btn-success"
+                        groups="g2p_ati.group_data_validator,g2p_registry_base.group_g2p_admin,g2p_registry_base.group_g2p_registrar"
+                    />
+					<button
+                        name="state_reject"
+                        invisible="state!='draft'"
+                        string="Reject"
+                        type="object"
+                        class="btn-danger"
+                        groups="g2p_ati.group_data_validator,g2p_registry_base.group_g2p_admin,g2p_registry_base.group_g2p_registrar"
+                    />
+
+					<button
+                        name="set_to_draft"
+                        invisible="state!='rejected'"
+                        string="Set To Draft"
+                        type="object"
+                        class="btn-info"
+                        groups="g2p_ati.group_data_validator,g2p_registry_base.group_g2p_admin,g2p_registry_base.group_g2p_registrar"
+                    />
+					<field name="state" widget="statusbar" readonly="1" statusbar_visible="draft,update_requested,approved" />
+				</header>
+			</xpath>
+			<xpath expr="//field[@name='name']" position="attributes">
+				<attribute name="placeholder">Enter name of household...</attribute>
+			</xpath>
+			<xpath expr="//page[@name='ids']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='email']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='phone_number_ids']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='registration_date']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='kind']" position="after">
+				<field
+                    name="rejection_reason"
+                    invisible="state!='rejected'"
+                    groups="g2p_ati.group_data_validator,g2p_registry_base.group_g2p_admin,g2p_registry_base.group_g2p_registrar"
+                />
+			</xpath>
+			<xpath expr="//page[@name='relationships']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//div[contains(@class,'o_row')]" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='region']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='address']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='region']" position="after">
+				<field name="region" />
+				<field name="zone" domain="[('region', '=', region)]" />
+				<field name="woreda" domain="[('zone', '=', zone)]" />
+				<field name="kebele" domain="[('woreda', '=', woreda)]" />
+			</xpath>
+			<xpath expr="//div[contains(@class, 'o_row')]" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+
+			<xpath expr="//field[@name='phone_number_ids']/tree" position="attributes">
+				<attribute name="editable">bottom</attribute>
+			</xpath>
+			<xpath expr="//field[@name='phone_number_ids']/tree/field[@name='phone_no']" position="after">
+				<field name="phone_type" />
+			</xpath>
+		</field>
+	</record>
+	<record id="g2p_registry_group_tree_view_inherit" model="ir.ui.view">
+		<field name="name">view_group_tree.inherited</field>
+		<field name="model">res.partner</field>
+		<field name="inherit_id" ref="g2p_registry_group.view_groups_list_tree" />
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='tags_ids']" position="attributes">
+				<attribute name="column_invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='phone']" position="attributes">
+				<attribute name="column_invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='address']" position="attributes">
+				<attribute name="column_invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='name']" position="after">
+				<field name="region" />
+				<field name="zone" />
+				<field name="woreda" />
+				<field name="kebele" />
+				<field name="enumerator_id" />
+				<field name="data_collection_date" />
+				<field
+                    name="state"
+                    widget="badge"
+                    decoration-danger="state == 'rejected'"
+                    decoration-muted="state == 'draft'"
+                    decoration-info="state  == 'update_requested'"
+                    decoration-success="state == 'approved'"
+                />
+				<button
+                    title="Approve"
+                    icon="fa-check"
+                    name="state_approve"
+                    type="object"
+                    class="btn btn-success"
+                    invisible="state != 'draft'"
+                    groups="g2p_ati.group_data_validator,g2p_registry_base.group_g2p_admin,g2p_registry_base.group_g2p_registrar"
+                />
+				<button
+                    title="Reject"
+                    icon="fa-times"
+                    name="state_reject"
+                    type="object"
+                    class="btn btn-danger"
+                    invisible="state != 'draft'"
+                    groups="g2p_ati.group_data_validator,g2p_registry_base.group_g2p_admin,g2p_registry_base.group_g2p_registrar"
+                />
+			</xpath>
+			<xpath expr="//tree" position="attributes">
+				<attribute name="decoration-success">state == 'approved'</attribute>
+				<attribute name="decoration-danger">state == 'rejected'</attribute>
+				<attribute name="decoration-muted">state == 'draft'</attribute>
+				<attribute name="decoration-info">state == 'update_requested'</attribute>
+			</xpath>
+		</field>
+	</record>
+	<record id="view_individuals_action_inherit" model="ir.actions.act_window.view">
+		<field name="sequence" eval="10" />
+		<field name="view_mode">graph</field>
+		<field name="act_window_id" ref="g2p_registry_individual.action_individuals_list" />
+	</record>
+	<record model="ir.ui.menu" id="g2p_registry_base.menu_registrant_tags">
+		<field name="action" eval="False" />
+	</record>
+	<record model="ir.ui.menu" id="g2p_registry_base.menu_district_config">
+		<field name="action" eval="False" />
+	</record>
+	<record model="ir.ui.menu" id="g2p_registry_base.menu_relationship">
+		<field name="action" eval="False" />
+	</record>
+	<record id="g2p_registry_group.action_groups_list" model="ir.actions.act_window">
+		<field name="name">Households</field>
+	</record>
+</odoo>

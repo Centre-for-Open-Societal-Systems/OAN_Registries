@@ -1,0 +1,8 @@
+th[data-name="edit_amount"] span {
+    text-align: left !important;
+}
+
+td[name="edit_amount"] {
+    text-align: left !important;
+    padding-left: 26px !important;
+}

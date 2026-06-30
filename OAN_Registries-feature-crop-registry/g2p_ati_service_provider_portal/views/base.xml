@@ -1,0 +1,991 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+  <template
+        id="base_inh"
+        name="G2P Service Provider ATI Portal Base"
+        inherit_id="g2p_agent_portal_base.base"
+        priority="990"
+    >
+    <xpath expr="//header" position="inside">
+      <link rel="stylesheet" href="/g2p_ati_service_provider_portal/static/src/css/style.css" />
+      <style>
+        .header-container {
+          position: relative;
+          z-index: 1100;
+          overflow: visible;
+          padding: 0;
+          background: #fff;
+          border-bottom: 1px solid rgba(0, 145, 71, 0.12);
+          box-shadow: 0 6px 18px rgba(0, 145, 71, 0.04);
+        }
+        .header-container .nav {
+          position: relative;
+          z-index: 1101;
+          overflow: visible;
+          width: min(1400px, calc(100% - 32px)) !important;
+          min-height: 74px;
+          margin: 0 auto;
+          padding: 0 1rem;
+          display: flex;
+          align-items: center;
+          gap: 1.25rem;
+          background: transparent !important;
+          border: 0 !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
+        }
+        .header-container .nav .main-logo {
+          max-height: 46px;
+          width: auto;
+        }
+        .ati-sp-primary-nav {
+          display: none !important;
+        }
+        #hamburger-icon {
+          display: none !important;
+          color: #355241;
+        }
+        .header-container .nav .search-box {
+          display: none !important;
+        }
+        .ati-topbar-actions {
+          margin-left: auto;
+          display: inline-flex !important;
+          align-items: center;
+          gap: 1.15rem;
+          flex: 0 0 auto;
+          min-height: 42px;
+        }
+        .ati-topbar-language,
+        .ati-topbar-notifications,
+        .ati-topbar-user {
+          display: inline-flex !important;
+          align-items: center !important;
+          align-self: center;
+          height: 42px;
+          min-height: 42px;
+          line-height: 1;
+          visibility: visible !important;
+          opacity: 1 !important;
+        }
+        .ati-topbar-language {
+          display: none !important;
+          position: relative;
+          top: 0;
+          z-index: 1102;
+        }
+        .ati-topbar-language .button {
+          width: auto !important;
+          min-width: 118px !important;
+          height: 42px !important;
+          min-height: 42px !important;
+          padding: 0 1rem !important;
+          border: 1px solid rgba(0, 145, 71, 0.18) !important;
+          border-radius: 999px !important;
+          box-shadow: 0 10px 24px rgba(0, 145, 71, 0.08) !important;
+          background: rgba(0, 145, 71, 0.05) !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          text-align: center !important;
+          line-height: 1;
+          vertical-align: middle;
+          transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+        }
+        .ati-topbar-language .button:hover,
+        .ati-topbar-language .button:focus {
+          background: rgba(0, 145, 71, 0.08) !important;
+          border-color: rgba(0, 145, 71, 0.26) !important;
+          box-shadow: 0 14px 28px rgba(0, 145, 71, 0.12) !important;
+        }
+        .ati-topbar-language .button span {
+          display: inline-flex !important;
+          visibility: visible !important;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          color: #2f7a49;
+          font-size: 0.94rem;
+          font-weight: 700;
+          line-height: 1;
+          white-space: nowrap;
+          text-align: center;
+        }
+        .ati-language-flag {
+          display: none;
+        }
+        .ati-topbar-language .button::after,
+        .ati-topbar-user > a::after {
+          display: none !important;
+        }
+        .ati-topbar-language .button::before {
+          content: none !important;
+          display: none !important;
+        }
+        .ati-topbar-notifications {
+          display: inline-flex !important;
+          align-items: center;
+          order: 2;
+        }
+        .ati-topbar-notifications .notifications_button_div {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          align-self: center;
+          height: 42px;
+        }
+        .ati-topbar-notifications #show_notification {
+          width: auto !important;
+          height: 42px !important;
+          max-height: 42px !important;
+          height: 42px !important;
+          min-width: 0 !important;
+          min-height: 42px !important;
+          padding: 0 !important;
+          border: 0 !important;
+          border-radius: 0 !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+        .ati-topbar-notifications .notification-icon {
+          width: 19px;
+          height: 19px;
+          object-fit: contain;
+          display: block;
+          opacity: 0.9;
+        }
+        .ati-topbar-notifications #show_notification .request_log,
+        .ati-topbar-settings-link {
+          color: #3b4d44;
+          font-size: 1.08rem;
+        }
+        .ati-topbar-settings-link {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+        }
+        .ati-topbar-user {
+          width: auto !important;
+          height: auto !important;
+          margin: 0 !important;
+          position: relative;
+          z-index: 1103;
+          display: inline-flex !important;
+          align-items: center;
+          justify-content: center;
+          order: 4;
+          flex: 0 0 auto;
+        }
+        .ati-topbar-user > a {
+          height: 42px !important;
+          max-height: 42px !important;
+          min-height: 42px !important;
+          padding: 0 !important;
+          border: 0 !important;
+          border-radius: 0 !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          display: inline-flex !important;
+          align-items: center;
+          justify-content: center;
+        }
+        .ati-header-avatar,
+        .ati-topbar-user .user-image {
+          width: 38px;
+          height: 38px;
+          border-radius: 999px;
+          border: 1px solid rgba(0, 145, 71, 0.14);
+          box-shadow: 0 6px 14px rgba(0, 145, 71, 0.12);
+          object-fit: cover;
+          display: block;
+        }
+        .ati-profile-menu {
+          z-index: 1200 !important;
+          min-width: 190px;
+          margin-top: 0.85rem !important;
+          padding: 0.4rem;
+          border: 1px solid rgba(0, 145, 71, 0.12);
+          border-radius: 16px;
+          background: #fff;
+          box-shadow: 0 18px 30px rgba(0, 145, 71, 0.12);
+        }
+        .ati-profile-menu-item {
+          display: flex;
+          align-items: center;
+          min-height: 42px;
+          padding: 0.72rem 0.9rem;
+          border-radius: 12px;
+          color: #355241;
+          font-size: 0.94rem;
+          font-weight: 600;
+          text-decoration: none;
+        }
+        .ati-profile-menu-item:hover,
+        .ati-profile-menu-item:focus {
+          background: rgba(0, 145, 71, 0.08);
+          color: #17633f;
+        }
+        .notification_dd {
+          z-index: 1205 !important;
+          position: absolute !important;
+          top: calc(100% + 0.85rem) !important;
+          right: 0 !important;
+          left: auto !important;
+          transform: none !important;
+          min-width: 240px !important;
+          max-width: 280px !important;
+          margin: 0 !important;
+          padding: 0.4rem !important;
+          background: #ffffff !important;
+          border: 1px solid rgba(0, 145, 71, 0.12) !important;
+          border-radius: 16px !important;
+          box-shadow: 0 18px 30px rgba(0, 145, 71, 0.12) !important;
+          overflow: hidden;
+        }
+        .notification_dd .ati-topbar-dropdown-header,
+        .notification_dd .notification_ul,
+        .notification_dd li,
+        .notification_dd li.show_all,
+        .notification_dd li a,
+        .notification_dd li span,
+        .notification_dd li p {
+          background: #ffffff !important;
+        }
+        .notification_dd:before {
+          display: none !important;
+        }
+        .notification_dd .ati-topbar-dropdown-header {
+          padding: 0.35rem 0.4rem 0.2rem !important;
+          border: 0 !important;
+        }
+        .notification_dd .notification_header_new {
+          margin: 0 !important;
+          color: #355241 !important;
+          font-size: 0.94rem !important;
+          font-weight: 600 !important;
+          line-height: 1.3 !important;
+          font-family: inherit !important;
+        }
+        .notification_dd .notification_ul {
+          display: flex;
+          flex-direction: column;
+          gap: 0.15rem;
+          margin: 0 !important;
+          padding: 0 !important;
+          list-style: none !important;
+        }
+        .notification_dd .notification_ul li {
+          display: block !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+        }
+        .notification_dd .notification_ul li .link,
+        .notification_dd .notification_ul li.show_all .link {
+          display: flex !important;
+          align-items: center !important;
+          width: 100%;
+          min-height: 42px;
+          padding: 0.72rem 0.9rem !important;
+          border-radius: 12px !important;
+          color: #355241 !important;
+          font-size: 0.94rem !important;
+          font-weight: 600 !important;
+          line-height: 1.35 !important;
+          text-decoration: none !important;
+          box-sizing: border-box;
+        }
+        .notification_dd .notification_ul li .link:hover,
+        .notification_dd .notification_ul li .link:focus,
+        .notification_dd .notification_ul li.show_all .link:hover,
+        .notification_dd .notification_ul li.show_all .link:focus {
+          background: rgba(0, 145, 71, 0.08) !important;
+          color: #17633f !important;
+          text-decoration: none !important;
+        }
+        .ati-mobile-menu {
+          display: none;
+        }
+        .ati-mobile-menu-panel {
+          width: min(390px, calc(100vw - 28px));
+          max-width: 100%;
+          pointer-events: auto;
+        }
+        .ati-mobile-menu-shell {
+          display: block;
+          width: 100%;
+          min-height: 420px;
+          max-height: calc(100vh - 36px);
+          transform: translateX(112%);
+          transition: transform 0.32s ease;
+          pointer-events: auto;
+        }
+        .ati-mobile-menu.is-open .ati-mobile-menu-shell {
+          transform: translateX(0);
+        }
+        .ati-mobile-menu-content {
+          position: relative;
+          min-width: 0;
+          padding: 1.15rem 1rem 1rem;
+          border-radius: 28px;
+          background: #ffffff;
+          box-shadow: -18px 22px 42px rgba(0, 145, 71, 0.12);
+          overflow-y: auto;
+        }
+        .ati-mobile-menu-close {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 44px;
+          height: 44px;
+          border-radius: 18px;
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          z-index: 3;
+          border: 1px solid rgba(0, 145, 71, 0.16);
+          background: rgba(0, 145, 71, 0.08);
+          color: #17633f;
+          font-size: 1.35rem;
+          line-height: 1;
+          cursor: pointer;
+          box-shadow: 0 12px 24px rgba(0, 145, 71, 0.1);
+          transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+        }
+        .ati-mobile-menu-close:hover,
+        .ati-mobile-menu-close:focus {
+          transform: translateY(-1px);
+          background: rgba(0, 145, 71, 0.14);
+          color: #0f5b34;
+        }
+        .ati-mobile-menu-profile {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 0.95rem;
+          margin-bottom: 0.9rem;
+          padding: 0.9rem 0 1rem;
+        }
+        .ati-mobile-menu-profile::before {
+          content: "";
+          position: absolute;
+          top: -0.25rem;
+          left: -1rem;
+          width: 82px;
+          height: 82px;
+          border-radius: 26px;
+          background: rgba(0, 145, 71, 0.06);
+        }
+        .ati-mobile-menu-profile-avatar {
+          position: relative;
+          z-index: 1;
+          width: 62px;
+          height: 62px;
+          border-radius: 999px;
+          border: 1px solid rgba(0, 145, 71, 0.16);
+          object-fit: cover;
+          box-shadow: 0 10px 20px rgba(0, 145, 71, 0.1);
+          flex: 0 0 auto;
+        }
+        .ati-mobile-menu-profile-content {
+          position: relative;
+          z-index: 1;
+          min-width: 0;
+        }
+        .ati-mobile-menu-profile-name {
+          color: #1c2c25;
+          font-size: 1.08rem;
+          font-weight: 700;
+          line-height: 1.25;
+        }
+        .ati-mobile-menu-profile-subtitle {
+          margin-top: 0.18rem;
+          color: #809287;
+          font-size: 0.84rem;
+          font-weight: 500;
+          word-break: break-word;
+        }
+        .ati-mobile-menu .ati-mobile-menu-list {
+          display: flex;
+          flex-direction: column;
+          margin-top: 0.35rem;
+          border-top: 1px solid rgba(0, 145, 71, 0.1);
+        }
+        .ati-mobile-menu .ati-mobile-menu-link {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          min-height: 58px;
+          padding: 0 0.2rem;
+          border-bottom: 1px solid rgba(0, 145, 71, 0.1);
+          background: transparent;
+          color: #355241;
+          font-size: 0.96rem;
+          font-weight: 600;
+          text-decoration: none;
+        }
+        .ati-mobile-menu .ati-mobile-menu-link:hover,
+        .ati-mobile-menu .ati-mobile-menu-link:focus {
+          color: #17633f;
+          background: rgba(0, 145, 71, 0.04);
+        }
+        .ati-mobile-menu .ati-mobile-menu-label {
+          display: inline-flex;
+          align-items: center;
+        }
+        .ati-mobile-menu .ati-mobile-menu-label img {
+          width: 18px;
+          height: 18px;
+          margin-right: 0.75rem;
+          object-fit: contain;
+        }
+        .ati-mobile-menu .ati-mobile-menu-count {
+          min-width: 22px;
+          height: 22px;
+          padding: 0 6px;
+          border-radius: 999px;
+          background: #009147;
+          color: #ffffff;
+          font-size: 0.8rem;
+          font-weight: 700;
+          line-height: 22px;
+          text-align: center;
+        }
+        @media (max-width: 991.98px) {
+          .header-container {
+            overflow: visible;
+          }
+          .header-container .nav {
+            position: relative;
+            justify-content: flex-start;
+            flex-wrap: nowrap;
+            gap: 0.85rem;
+          }
+          .ati-portal-logo-link {
+            display: inline-flex !important;
+            align-items: center;
+            flex: 1 1 auto;
+            min-width: 0;
+            max-width: calc(100% - 56px);
+            margin-right: auto;
+            position: relative;
+            z-index: 1202;
+            overflow: visible;
+          }
+          .header-container .nav .main-logo {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            width: auto !important;
+            max-width: min(205px, calc(100vw - 92px)) !important;
+            max-height: 46px !important;
+            height: auto !important;
+            object-fit: contain;
+          }
+          body.ati-sp-portal .header-container .nav > #hamburger-icon,
+          #hamburger-icon {
+            display: inline-flex !important;
+            margin-left: auto !important;
+            margin-right: 0 !important;
+            width: 42px;
+            height: 42px;
+            position: relative;
+            z-index: 1203;
+            visibility: visible !important;
+            opacity: 1 !important;
+            order: 99;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 145, 71, 0.15);
+            background: rgba(0, 145, 71, 0.06);
+            box-shadow: 0 10px 24px rgba(0, 145, 71, 0.08);
+            cursor: pointer;
+            pointer-events: auto !important;
+            touch-action: manipulation;
+            -webkit-appearance: none;
+            appearance: none;
+            outline: none;
+            transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+          }
+          body.ati-sp-portal .header-container .nav > #hamburger-icon:hover,
+          body.ati-sp-portal .header-container .nav > #hamburger-icon:focus,
+          #hamburger-icon:hover,
+          #hamburger-icon:focus {
+            background: rgba(0, 145, 71, 0.1);
+            color: #17633f;
+          }
+          body.ati-sp-portal .header-container .nav > #hamburger-icon.active,
+          #hamburger-icon.active {
+            background: #009147;
+            color: #ffffff;
+            box-shadow: 0 14px 28px rgba(0, 145, 71, 0.18);
+          }
+          body.ati-sp-portal .ati-topbar-actions,
+          .ati-topbar-actions {
+            display: none !important;
+          }
+          .ati-topbar-language .button span {
+            font-size: 0.9rem;
+          }
+          .ati-header-avatar,
+          .ati-topbar-user .user-image {
+            width: 34px;
+            height: 34px;
+          }
+          .ati-mobile-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 2000;
+            display: none;
+            align-items: flex-start;
+            justify-content: flex-end;
+            padding: 18px 14px;
+            background: rgba(28, 44, 37, 0.12);
+            backdrop-filter: blur(4px);
+          }
+          .ati-mobile-menu.is-open {
+            display: flex;
+          }
+        }
+      </style>
+    </xpath>
+
+    <xpath expr="//div[hasclass('dropdown')]" position="attributes">
+      <attribute name="style">width: auto !important;</attribute>
+    </xpath>
+
+    <xpath expr="//div[hasclass('nav')]" position="attributes">
+      <attribute name="style">max-width: 1400px !important;</attribute>
+    </xpath>
+
+    <xpath expr="//div[hasclass('nav')]/a" position="attributes">
+      <attribute name="class">px-2 mx-md-0 ati-portal-logo-link</attribute>
+    </xpath>
+
+    <xpath expr="//div[hasclass('search-box')]/input" position="attributes">
+      <attribute name="placeholder">Search</attribute>
+    </xpath>
+
+    <xpath expr="//div[hasclass('nav-user')]" position="before">
+      <button id="hamburger-icon" class="fa fa-bars" type="button" aria-label="Open menu"></button>
+    </xpath>
+
+    <xpath expr="//div[hasclass('nav-user')]" position="attributes">
+      <attribute name="class">nav-user fade-in-nav-user ati-topbar-actions</attribute>
+      <attribute name="id">nav-user-resp</attribute>
+    </xpath>
+
+    <xpath expr="//div[hasclass('language-dropdown')]" position="replace">
+      <div class="language-dropdown language-box ati-topbar-language">
+        <button
+          class="dropdown-toggle button ati-language-trigger"
+          type="button"
+          id="language-dropdown-button"
+          data-bs-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+          style="display: inline-flex !important; align-items: center !important; justify-content: center !important; min-width: 118px !important; height: 42px !important; min-height: 42px !important; padding: 0 1rem !important; border: 1px solid rgba(0, 145, 71, 0.18) !important; border-radius: 999px !important; background: rgba(0, 145, 71, 0.05) !important; box-shadow: 0 10px 24px rgba(0, 145, 71, 0.08) !important;"
+        >
+          <img
+            src="/g2p_ati_service_provider_portal/static/src/img/logo@2x.png"
+            alt="Language"
+            class="ati-language-flag"
+            style="display: none !important;"
+          />
+          <span style="display: inline-block !important; visibility: visible !important; color: #2f7a49 !important; font-size: 0.94rem !important; font-weight: 700 !important; line-height: 1 !important; white-space: nowrap !important;">Language</span>
+        </button>
+        <div class="dropdown-menu" aria-labelledby="language-dropdown-button">
+          <a class="dropdown-item" href="/website/lang/en?r=/portal" data-url_code="en">
+            <img
+              src="/g2p_ati_service_provider_portal/static/src/img/logo@2x.png"
+              alt="English"
+              class="ati-language-flag"
+              style="display: none !important;"
+            />
+            <span>English</span>
+          </a>
+          <a class="dropdown-item" href="/website/lang/fr?r=/portal" data-url_code="fr">
+            <img
+              src="/g2p_ati_service_provider_portal/static/src/img/logo@2x.png"
+              alt="Francais"
+              class="ati-language-flag"
+              style="display: none !important;"
+            />
+            <span>Français</span>
+          </a>
+          <a class="dropdown-item" href="/website/lang/tl?r=/portal" data-url_code="tl">
+            <img
+              src="/g2p_ati_service_provider_portal/static/src/img/logo@2x.png"
+              alt="Filipino"
+              class="ati-language-flag"
+              style="display: none !important;"
+            />
+            <span>Filipino</span>
+          </a>
+        </div>
+      </div>
+    </xpath>
+
+    <xpath expr="//div[hasclass('nav-user')]/div[hasclass('user')]" position="attributes">
+      <attribute name="class">dropdown user ati-topbar-user</attribute>
+    </xpath>
+
+    <!-- Keep only avatar trigger in header -->
+    <xpath expr="//div[hasclass('nav-user')]/div[hasclass('user')]/a/img" position="replace">
+      <img
+        t-attf-src="/web/image?model=res.users&amp;field=avatar_128&amp;id={{request.env.uid}}"
+        alt="User"
+        class="rounded-circle o_user_avatar ati-header-avatar"
+      />
+    </xpath>
+
+    <!-- Compact profile dropdown -->
+    <xpath expr="//div[hasclass('nav-user')]/div[hasclass('user')]/div[hasclass('dropdown-menu')]" position="replace">
+      <div class="dropdown-menu dropdown-menu-end ati-profile-menu">
+        <a href="/portal/myprofile" class="ati-profile-menu-item">
+          <span>My Profile</span>
+        </a>
+        <a href="/web/session/logout?redirect=/serviceprovider/login" class="ati-profile-menu-item">
+          <span>Logout</span>
+        </a>
+      </div>
+    </xpath>
+
+    <xpath expr="//div[hasclass('footer-container')]/div[hasclass('nav')]" position="attributes">
+      <attribute name="style">max-width: 1400px !important;</attribute>
+    </xpath>
+
+    <xpath expr="//div[hasclass('footer-container')]/div[hasclass('nav')]/a" position="attributes">
+      <attribute name="class">d-flex px-3 flex-column flex-md-row</attribute>
+    </xpath>
+
+    <xpath expr="//ul[hasclass('list-container')]" position="attributes">
+      <attribute name="class">list-container mt-0</attribute>
+      <attribute name="style">padding-left: 5px;</attribute>
+    </xpath>
+
+    <xpath expr="//body" position="attributes">
+      <attribute name="class">fade-in-ati ati-sp-portal</attribute>
+      <attribute name="id">content</attribute>
+      <attribute name="style">opacity:0;</attribute>
+    </xpath>
+
+    <xpath expr="//body" position="inside">
+      <div class="ati-mobile-menu" id="ati-mobile-menu" aria-hidden="true">
+        <div class="ati-mobile-menu-panel" role="dialog" aria-modal="true" aria-label="Mobile Menu">
+          <div class="ati-mobile-menu-shell">
+            <div class="ati-mobile-menu-content">
+              <button type="button" class="ati-mobile-menu-close" aria-label="Close menu">&#215;</button>
+              <div class="ati-mobile-menu-profile">
+                <img
+                  t-attf-src="/web/image?model=res.users&amp;field=avatar_128&amp;id={{request.env.uid}}"
+                  alt="User"
+                  class="ati-mobile-menu-profile-avatar"
+                />
+                <div class="ati-mobile-menu-profile-content">
+                  <div class="ati-mobile-menu-profile-name"><t t-esc="env.user.name or 'Portal User'" /></div>
+                  <div class="ati-mobile-menu-profile-subtitle"><t t-esc="env.user.login or env.user.email or ''" /></div>
+                </div>
+              </div>
+              <div class="ati-mobile-menu-list">
+               
+                <a href="/serviceprovider/update/suggests" class="ati-mobile-menu-link">
+                  <span class="ati-mobile-menu-label">
+                    <img src="/g2p_ati_service_provider_portal/static/src/img/notification.png" alt="Notifications" />
+                    Notifications
+                  </span>
+                  <span class="ati-mobile-menu-count" id="ati-mobile-menu-count" style="display: none;">0</span>
+                </a>
+                <a href="/portal/myprofile" class="ati-mobile-menu-link">
+                  <span class="ati-mobile-menu-label">
+                    <i class="fa fa-user" aria-hidden="true" style="margin-right: 0.85rem; width: 18px; text-align: center;"></i>
+                    My Profile
+                  </span>
+                </a>
+                <a href="/web/session/logout?redirect=/serviceprovider/login" class="ati-mobile-menu-link">
+                  <span class="ati-mobile-menu-label">
+                    <i class="fa fa-sign-out" aria-hidden="true" style="margin-right: 0.85rem; width: 18px; text-align: center;"></i>
+                    Logout
+                  </span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="successModal" tabindex="-1" role="dialog">
+        <div
+          style="margin: 0 auto !important; max-width:500px !important; transform: translate(0%, 0%) !important;"
+          class="modal-dialog px-3 modal-sm-down modal-md md-up"
+          role="document"
+        >
+          <div
+            style="background-color: white; border-radius: 1rem; text-align: center;"
+            class="py-5 modal_container"
+          >
+            <div class="py-4" style="margin: 0 auto !important;">
+              <img src="" class="popup_img" style="width: 15%; height: 15%;" />
+              <h4 style="color: black !important;" class="mt-1 fw-bolder" />
+              <p style="max-width-75%;" class="text-muted fs- popup_msg" />
+              <div class="border-0 justify-content-center">
+                <button
+                  style="background-color: black !important; border: none !important; color:white !important;"
+                  type="button"
+                  class="btn btn-secondary mt-2 fw-bold px-4 rounded-md"
+                  data-dismiss="modal"
+                >Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.body.style.opacity = 1;
+          document.body.style.transition = "opacity 0.2s ease-in";
+        });
+      </script>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          function forceAtiHeaderControls() {
+            const isMobile = window.matchMedia('(max-width: 991.98px)').matches;
+            const languageButton = document.getElementById('language-dropdown-button');
+            const languageSpan = languageButton ? languageButton.querySelector('span') : null;
+            const languageImage = languageButton ? languageButton.querySelector('img') : null;
+            const hamburger = document.getElementById('hamburger-icon');
+
+            if (languageButton) {
+              languageButton.style.display = 'inline-flex';
+              languageButton.style.visibility = 'visible';
+              languageButton.style.opacity = '1';
+            }
+            if (languageSpan) {
+              languageSpan.textContent = 'Language';
+              languageSpan.style.display = 'inline-block';
+              languageSpan.style.visibility = 'visible';
+              languageSpan.style.opacity = '1';
+            }
+            if (languageImage) {
+              languageImage.style.display = 'none';
+            }
+            if (hamburger) {
+              hamburger.style.display = isMobile ? 'inline-flex' : 'none';
+              hamburger.style.visibility = isMobile ? 'visible' : 'hidden';
+              hamburger.style.opacity = isMobile ? '1' : '0';
+              hamburger.style.pointerEvents = isMobile ? 'auto' : 'none';
+            }
+          }
+
+          forceAtiHeaderControls();
+          window.addEventListener('resize', forceAtiHeaderControls);
+
+          const mobileBreakpoint = window.matchMedia('(max-width: 991.98px)');
+          const hamburger = document.getElementById('hamburger-icon');
+          const mobileMenu = document.getElementById('ati-mobile-menu');
+          const mobileMenuPanel = mobileMenu ? mobileMenu.querySelector('.ati-mobile-menu-panel') : null;
+          const mobileMenuClose = mobileMenu ? mobileMenu.querySelector('.ati-mobile-menu-close') : null;
+
+          function syncMobileMenuCount() {
+            if (!mobileMenu) {
+              return;
+            }
+            const notificationCountElement = document.querySelector('.notification_number');
+            const mobileCountElement = document.getElementById('ati-mobile-menu-count');
+            const notificationCount = notificationCountElement
+              ? notificationCountElement.textContent.trim()
+              : '';
+            if (!mobileCountElement) {
+              return;
+            }
+            if (notificationCount) {
+              mobileCountElement.textContent = notificationCount;
+              mobileCountElement.style.display = 'inline-block';
+            } else {
+              mobileCountElement.textContent = '0';
+              mobileCountElement.style.display = 'none';
+            }
+          }
+
+          function closeMobileMenu() {
+            if (!mobileMenu || !hamburger) {
+              return;
+            }
+            mobileMenu.classList.remove('is-open');
+            mobileMenu.setAttribute('aria-hidden', 'true');
+            hamburger.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+            document.body.style.overflow = '';
+          }
+
+          function syncHeaderLayout() {
+            if (!mobileMenu) {
+              return;
+            }
+            if (mobileBreakpoint.matches) {
+              syncMobileMenuCount();
+            } else {
+              closeMobileMenu();
+            }
+          }
+
+          if (hamburger &amp;&amp; mobileMenu) {
+            hamburger.setAttribute('aria-controls', 'ati-mobile-menu');
+            hamburger.setAttribute('aria-expanded', 'false');
+            let lastMobileToggleAt = 0;
+
+            function toggleMobileMenu(event) {
+              if (!mobileBreakpoint.matches) {
+                return;
+              }
+              if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+              }
+              const now = Date.now();
+              if (now - lastMobileToggleAt &lt; 250) {
+                return;
+              }
+              lastMobileToggleAt = now;
+              syncMobileMenuCount();
+              const isOpen = mobileMenu.classList.toggle('is-open');
+              hamburger.classList.toggle('active', isOpen);
+              hamburger.setAttribute('aria-expanded', String(isOpen));
+              mobileMenu.setAttribute('aria-hidden', String(!isOpen));
+              document.body.style.overflow = isOpen ? 'hidden' : '';
+            }
+
+            hamburger.addEventListener('click', function(event) {
+              toggleMobileMenu(event);
+            });
+
+            hamburger.addEventListener('keydown', function(event) {
+              if (event.key === 'Enter' || event.key === ' ') {
+                toggleMobileMenu(event);
+              }
+            });
+
+            if (mobileMenuClose) {
+              mobileMenuClose.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                closeMobileMenu();
+              });
+            }
+
+            if (mobileMenu) {
+              mobileMenu.addEventListener('click', function(event) {
+                if (!mobileBreakpoint.matches || !mobileMenu.classList.contains('is-open')) {
+                  return;
+                }
+                const closeTrigger = event.target.closest('.ati-mobile-menu-close');
+                if (closeTrigger) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  closeMobileMenu();
+                  return;
+                }
+                if (
+                  mobileMenuPanel &amp;&amp;
+                  !mobileMenuPanel.contains(event.target)
+                ) {
+                  closeMobileMenu();
+                }
+              });
+            }
+
+            document.addEventListener('keydown', function(event) {
+              if (!mobileBreakpoint.matches || !mobileMenu.classList.contains('is-open')) {
+                return;
+              }
+              if (event.key === 'Escape') {
+                closeMobileMenu();
+              }
+            });
+
+            window.addEventListener('resize', syncHeaderLayout);
+            syncHeaderLayout();
+          }
+
+          const cookieValue = getCookie('popup_status');
+          if (cookieValue === 'successful' || cookieValue === 'error') {
+
+            const imgElement = document.getElementById('successModal').querySelector('.popup_img');
+            const h4Element = document.getElementById('successModal').querySelector('h4');
+            const msgElement = document.getElementById('successModal').querySelector('.popup_msg');
+            const msg = getCookie('popup_msg');
+
+            if (cookieValue === 'successful') {
+              imgElement.src = "/g2p_ati_service_provider_portal/static/src/img/ok.png";
+              h4Element.textContent = "Success!";
+            } else {
+              imgElement.src = "/g2p_ati_service_provider_portal/static/src/img/no.png";
+              h4Element.textContent = "Error";
+            }
+            msgElement.textContent = msg.replace(/^"|"$/g, '');
+
+            $('#successModal').modal('show');
+          }
+
+          $('#successModal').on('hidden.bs.modal', function () {
+            deleteCookie('popup_status');
+          });
+
+          function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+          }
+
+          function deleteCookie(name) {
+            document.cookie = name + '=; Max-Age=0; path=/';
+          }
+        });
+      </script>
+    </xpath>
+
+    <xpath expr="//header//img[@class='main-logo']" position="attributes">
+      <attribute name="src">/g2p_ati_service_provider_portal/static/src/img/logo@2x.png</attribute>
+      <attribute name="class">main-logo custom-logo</attribute>
+    </xpath>
+
+    <xpath expr="//footer//img[@class='main-logo']" position="attributes">
+      <attribute name="src">/g2p_ati_service_provider_portal/static/src/img/ati_footer.png</attribute>
+      <attribute name="class">main-logo custom-logo</attribute>
+    </xpath>
+
+    <xpath expr="//footer//div/div/a/img" position="inside">
+      <span style="font-size: 12px; padding-left: 4px; padding-top: 5px; color: black;">
+        Ethiopian Agricultural Transformation Institute
+        <p style="font-size: 10px; margin-bottom: 0px;">
+          Copyright &#169; <script>document.write(new Date().getFullYear());</script> All rights Reserved
+        </p>
+      </span>
+    </xpath>
+
+    <xpath expr="//div[hasclass('footer-container')]" position="attributes">
+      <attribute name="style">height: 70px !important; padding-top:25px;</attribute>
+    </xpath>
+
+    <xpath expr="//div[hasclass('search-box')]" position="attributes">
+      <attribute name="style">display: none;</attribute>
+    </xpath>
+
+    <xpath expr="//div[hasclass('copyright')]" position="attributes">
+      <attribute name="style">display: none;</attribute>
+    </xpath>
+
+  </template>
+</odoo>

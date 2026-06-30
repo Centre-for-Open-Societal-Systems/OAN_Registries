@@ -1,0 +1,10 @@
+git+https://github.com/OpenG2P/openg2p-registry@17.0-1.5#subdirectory=g2p_registry_base
+git+https://github.com/OpenG2P/openg2p-registry@17.0-1.5#subdirectory=g2p_registry_individual
+git+https://github.com/OpenG2P/openg2p-registry@17.0-1.5#subdirectory=g2p_registry_group
+git+https://github.com/OpenG2P/openg2p-registry@17.0-1.5#subdirectory=g2p_registry_membership
+git+https://github.com/OpenG2P/openg2p-registry@17.0-1.5#subdirectory=g2p_registry_addl_info
+git+https://github.com/OpenG2P/openg2p-registry@17.0-1.5#subdirectory=g2p_registry_rest_api
+git+https://github.com/OpenG2P/openg2p-registry@17.0-1.5#subdirectory=g2p_odk_importer
+git+https://github.com/OpenG2P/openg2p-registry@17.0-1.5#subdirectory=g2p_service_provider_portal_base
+git+https://github.com/OpenG2P/openg2p-registry@17.0-1.5#subdirectory=g2p_service_provider_beneficiary_management
+git+https://github.com/OpenG2P/openg2p-social-registry@17.0-1.5#subdirectory=g2p_social_registry

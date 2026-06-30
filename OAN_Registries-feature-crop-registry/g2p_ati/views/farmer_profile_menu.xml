@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record model="ir.ui.menu" id="g2p_registry_group.menu_groups_list">
+        <field name="name">Households</field>
+        <field
+            name="groups_id"
+            eval="[(4, ref('group_data_enumerator')),(4, ref('group_data_admin')),(4, ref('g2p_registry_base.group_g2p_admin')), (4, ref('g2p_registry_base.group_g2p_registrar')) ]"
+        />
+        <field name="sequence">2</field>
+    </record>
+
+    <record model="ir.ui.menu" id="g2p_registry_individual.menu_individuals_list">
+        <field
+            name="groups_id"
+            eval="[(4, ref('group_data_enumerator')),(4, ref('group_data_admin')),(4, ref('g2p_registry_base.group_g2p_admin')), (4, ref('g2p_registry_base.group_g2p_registrar')) ]"
+        />
+        <field name="sequence">1</field>
+
+    </record>
+
+    <record model="ir.ui.menu" id="g2p_registry_base.g2p_configuration_menu_root">
+        <field name="groups_id" eval="[(4, ref('g2p_registry_base.group_g2p_admin'))]" />
+    </record>
+
+    <menuitem
+        id="g2p_registry_base.g2p_main_menu_root"
+        name="Farmer Profile"
+        sequence="1"
+        groups="group_data_enumerator,g2p_registry_base.group_g2p_admin,group_data_admin,g2p_registry_base.group_g2p_registrar"
+        web_icon="g2p_ati,static/description/profile.png"
+    />
+
+</odoo>

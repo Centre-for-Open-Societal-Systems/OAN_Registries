@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_crop_tree" model="ir.ui.view">
+        <field name="name">view_crop_tree</field>
+        <field name="model">g2p.crop</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <tree create="true" delete="true" edit="true" editable="bottom">
+                <field name="crop_id" readonly="1" />
+                <field name="category" />
+                <field name="name" />
+                <field name="code" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="g2p_crop_view_tree_action" model="ir.actions.act_window">
+        <field name="name">Crops</field>
+        <field name="res_model">g2p.crop</field>
+        <field name="view_mode">tree,form,graph</field>
+    </record>
+
+    <menuitem
+        id="g2p_crop_menu"
+        action="g2p_crop_view_tree_action"
+        name="Crops"
+        sequence="610"
+        parent="g2p_registry_base.g2p_configuration_menu_root"
+    />
+</odoo>

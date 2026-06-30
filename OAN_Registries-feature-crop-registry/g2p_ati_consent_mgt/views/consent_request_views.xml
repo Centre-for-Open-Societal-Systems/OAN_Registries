@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_g2p_consent_request_search" model="ir.ui.view">
+        <field name="name">g2p.consent.request.search</field>
+        <field name="model">g2p.consent.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="consent_creation_request_id" />
+                <field name="farmer_id" />
+                <field name="partner_record_id" />
+                <field name="status" />
+                <field name="consent_reason_id" />
+                <filter name="pending" string="Pending" domain="[('status', '=', 'pending')]" />
+                <filter name="approved" string="Approved" domain="[('status', '=', 'approved')]" />
+                <filter name="active_status" string="Active" domain="[('status', 'in', ['pending', 'approved'])]" />
+                <group expand="0" string="Group By">
+                    <filter name="group_by_status" string="Status" context="{'group_by': 'status'}" />
+                    <filter name="group_by_partner" string="Partner" context="{'group_by': 'partner_record_id'}" />
+                    <filter name="group_by_farmer" string="Farmer" context="{'group_by': 'farmer_id'}" />
+                    <filter name="group_by_reason" string="Consent Reason" context="{'group_by': 'consent_reason_id'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_g2p_consent_request_tree" model="ir.ui.view">
+        <field name="name">g2p.consent.request.tree</field>
+        <field name="model">g2p.consent.request</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="consent_creation_request_id" />
+                <field name="consent_type" />
+                <field name="partner_record_id" />
+                <field name="farmer_id" />
+                <field name="consent_reason_id" />
+                <field name="status" />
+                <field name="validity_from" />
+                <field name="validity_to" />
+                <field name="created_at" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_consent_request_form" model="ir.ui.view">
+        <field name="name">g2p.consent.request.form</field>
+        <field name="model">g2p.consent.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="action_approve"
+                        type="object"
+                        string="Approve"
+                        class="btn-primary"
+                        invisible="status not in ('pending', 'rejected', 'denied')"
+                    />
+                    <button
+                        name="action_reject"
+                        type="object"
+                        string="Reject"
+                        class="btn-secondary"
+                        invisible="status not in ('pending', 'approved')"
+                    />
+                    <button
+                        name="action_revoke"
+                        type="object"
+                        string="Revoke"
+                        class="btn-secondary"
+                        invisible="status != 'approved'"
+                    />
+                    <button
+                        name="action_expire"
+                        type="object"
+                        string="Expire"
+                        class="btn-secondary"
+                        invisible="status in ('expired', 'revoked')"
+                    />
+                    <button
+                        name="action_set_pending"
+                        type="object"
+                        string="Set to Pending"
+                        class="btn-secondary"
+                        invisible="status == 'pending'"
+                    />
+                    <field name="status" widget="statusbar" statusbar_visible="pending,approved,rejected,revoked,denied,expired" />
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button
+                            class="oe_stat_button"
+                            type="object"
+                            name="action_view_receipts"
+                            icon="fa-file-text-o"
+                        >
+                            <field name="receipt_count" widget="statinfo" string="Receipts" />
+                        </button>
+                    </div>
+                    <group col="2">
+                        <group string="Request Details">
+                            <field name="consent_creation_request_id" />
+                            <field name="consent_type" />
+                            <field name="originated_from" />
+                            <field
+                                name="consent_reason_id"
+                                options="{'no_create': True, 'no_open': True, 'no_create_edit': True}"
+                            />
+                            <field name="purpose" readonly="1" />
+                            <field
+                                name="allowed_data_field_ids"
+                                widget="many2many_tags"
+                                domain="[('id', 'in', partner_record_id.allowed_data_field_ids)]"
+                            />
+                        </group>
+                        <group string="Portal Capture">
+                            <group col="2">
+                                <group>
+                                    <field name="portal_capture_image_preview_html" widget="html" nolabel="1" readonly="1"/>
+                                </group>
+                                <group/>
+                            </group>
+                            <field name="portal_capture_image_filename" invisible="1"/>
+                            <field name="portal_capture_taken_at" readonly="1" />
+                            <field name="portal_capture_latitude" readonly="1" />
+                            <field name="portal_capture_longitude" readonly="1" />
+                            <field name="portal_capture_accuracy_m" readonly="1" />
+                            <field name="face_match_status" readonly="1" />
+                            <field name="face_match_distance" readonly="1" />
+                            <field name="face_match_threshold" readonly="1" />
+                            <field name="face_match_checked_at" readonly="1" />
+                            <field name="auto_approved_via_face_match" readonly="1" />
+                            <field name="face_match_message" readonly="1" />
+                            <field name="fayda_otp_status" readonly="1" />
+                            <field name="fayda_otp_transaction_id" readonly="1" />
+                            <field name="fayda_otp_identifier" readonly="1" />
+                            <field name="fayda_otp_identifier_type" readonly="1" />
+                            <field name="fayda_otp_masked_mobile" readonly="1" />
+                            <field name="fayda_otp_verified_at" readonly="1" />
+                            <field name="auto_approved_via_otp" readonly="1" />
+                            <field name="fayda_otp_message" readonly="1" />
+                        </group>
+                    </group>
+
+                    <group col="2">
+                        <group string="Parties">
+                            <field name="farmer_id" />
+                            <field name="partner_record_id" />
+                            <field name="partner_code" readonly="1" />
+                        </group>
+                        <group string="Timeline">
+                            <field name="requester_user_id" readonly="1" />
+                            <field name="validity_from" />
+                            <field name="validity_to" />
+                            <field name="created_at" readonly="1" />
+                            <field name="approved_at" readonly="1" />
+                            <field name="rejected_at" readonly="1" />
+                            <field name="expired_at" readonly="1" />
+                            <field name="rejection_reason" />
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Data Scope">
+                            <field
+                                name="attribute_lists"
+                                readonly="1"
+                                placeholder='Auto-generated from Allowed Data Points, e.g. [{"register": ["full_name", "phone"]}]'
+                            />
+                        </page>
+                        <page string="Provider &amp; Target">
+                            <field name="consent_provider_register" />
+                            <field name="consent_provider_person_id" />
+                            <field name="consent_target_object_ids" placeholder='[{"register": ["id_1", "id_2"]}]' />
+                        </page>
+                        <page string="Attachments">
+                            <field name="attachment_ids" widget="many2many_binary" />
+                        </page>
+                        <page string="Receipts">
+                            <field name="receipt_ids" readonly="1">
+                                <tree>
+                                    <field name="partner_id" />
+                                    <field name="consent_partner_id" />
+                                    <field name="status" />
+                                    <field name="signature_algorithm" />
+                                    <field name="signed_at" />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_g2p_consent_request" model="ir.actions.act_window">
+        <field name="name">Consent Requests</field>
+        <field name="res_model">g2p.consent.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_g2p_consent_request_search" />
+    </record>
+
+    <record id="action_g2p_consent_request_pending" model="ir.actions.act_window">
+        <field name="name">Pending Requests</field>
+        <field name="res_model">g2p.consent.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_g2p_consent_request_search" />
+        <field name="domain">[('status', '=', 'pending')]</field>
+    </record>
+
+    <record id="action_g2p_consent_request_approved" model="ir.actions.act_window">
+        <field name="name">Approved Requests</field>
+        <field name="res_model">g2p.consent.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_g2p_consent_request_search" />
+        <field name="domain">[('status', '=', 'approved')]</field>
+    </record>
+
+    <record id="action_g2p_consent_request_rejected" model="ir.actions.act_window">
+        <field name="name">Rejected/Denied Requests</field>
+        <field name="res_model">g2p.consent.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_g2p_consent_request_search" />
+        <field name="domain">[('status', 'in', ['rejected', 'denied'])]</field>
+    </record>
+
+    <record id="action_g2p_consent_request_revoked_expired" model="ir.actions.act_window">
+        <field name="name">Revoked/Expired Requests</field>
+        <field name="res_model">g2p.consent.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_g2p_consent_request_search" />
+        <field name="domain">[('status', 'in', ['revoked', 'expired'])]</field>
+    </record>
+
+    <menuitem
+        id="menu_g2p_consent_requests_all"
+        name="All Requests"
+        parent="g2p_ati_consent_mgt.menu_g2p_ati_consent_management_root"
+        action="action_g2p_consent_request"
+        sequence="10"
+    />
+
+    <menuitem
+        id="menu_g2p_consent_requests_pending"
+        name="Pending Requests"
+        parent="g2p_ati_consent_mgt.menu_g2p_ati_consent_management_root"
+        action="action_g2p_consent_request_pending"
+        sequence="20"
+    />
+
+</odoo>

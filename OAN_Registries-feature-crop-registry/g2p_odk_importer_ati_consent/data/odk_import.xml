@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <record id="consent_odk_import" model="odk.import">
+        <field name="odk_config" ref="g2p_odk_importer_ati_consent.consent_odk_config" />
+        <field name="target_registry">individual</field>
+        <field name="is_consent_import">True</field>
+        <field name="enable_import_by_instance_id">True</field>
+        <field name="json_formatter"><![CDATA[
+{
+  "partner_user_login": (
+    .page_identity.partner_user_login
+    // .["page_identity-partner_user_login"]
+    // .partner_user_login
+    // .partner_user_email
+    // .partner_email
+    // .service_provider_email
+    // .partner.login
+    // .consent.partner_user_login
+    // .consent.partner_login
+    // .consent.partner_user.email
+    // .service_provider.user_login
+    // .service_provider.email
+  ),
+  "partner_record_id": (
+    .page_identity.partner_record_id
+    // .["page_identity-partner_record_id"]
+    // .partner_record_id
+    // .partner_id
+    // .partner.id
+    // .consent.partner_record_id
+    // .consent.partner_id
+    // .service_provider.partner_id
+  ),
+  "partner_code": (
+    .page_identity.partner_code
+    // .["page_identity-partner_code"]
+    // .partner_code
+    // .partner_ref
+    // .partner.code
+    // .partner.ref
+    // .consent.partner_code
+    // .consent.partner_ref
+    // .service_provider.code
+    // .service_provider.partner_code
+  ),
+  "partner_name": (
+    .page_identity.partner_name
+    // .["page_identity-partner_name"]
+    // .partner_name
+    // .partner.name
+    // .consent.partner_name
+    // .service_provider.name
+  ),
+  "national_id": (
+    .page_identity.national_id
+    // .["page_identity-national_id"]
+    // .national_id
+    // .uid
+    // .personal_info.national_id
+    // .personal_info.uid
+    // .farmer.national_id
+    // .farmer.uid
+  ),
+  "uid": (
+    .uid
+    // .national_uid
+    // .personal_info.uid
+    // .farmer.uid
+  ),
+  "rid": (
+    .rid
+    // .national_rid
+    // .personal_info.rid
+    // .farmer.rid
+  ),
+  "farmer_db_id": (.farmer_db_id // .farmer.id // .farmer_db.id),
+  "farmer_id": (
+    .page_identity.farmer_id
+    // .["page_identity-farmer_id"]
+    // .farmer_id
+    // .farmer.farmer_id
+    // .farmer.reference_id
+    // .beneficiary.farmer_id
+  ),
+  "consent_type": (
+    .page_request_details.consent_type
+    // .["page_request_details-consent_type"]
+    // .consent_type
+    // .consent.consent_type
+    // "specific"
+  ),
+  "validity_months": (
+    .page_request_details.validity_months
+    // .["page_request_details-validity_months"]
+    // .validity_months
+    // .consent.validity_months
+    // 12
+  ),
+  "purpose": (
+    .page_request_details.purpose
+    // .["page_request_details-purpose"]
+    // .purpose
+    // .consent.purpose
+    // .consent_purpose
+  ),
+  "originated_from": (.originated_from // .consent.originated_from // "partner"),
+  "allowed_data_field_codes": (
+    .page_request_details.allowed_data_field_codes
+    // .["page_request_details-allowed_data_field_codes"]
+    // .allowed_data_field_codes
+    // .allowed_data_fields
+    // .consent.allowed_data_field_codes
+    // .consent.allowed_data_fields
+    // []
+    | if type == "string" then split(" ")
+      elif type == "array" then map(tostring)
+      else []
+      end
+  ),
+  "consent_provider_register": (.consent_provider_register // .consent.provider_register),
+  "consent_provider_person_id": (.consent_provider_person_id // .consent.provider_person_id),
+  "consent_target_object_ids": (
+    .consent_target_object_ids
+    // .consent.target_object_ids
+    | if type == "null" then null else tostring end
+  ),
+  "attribute_lists": (
+    .attribute_lists
+    // .consent.attribute_lists
+    | if type == "null" then null else tostring end
+  ),
+  "consent_attachment": (
+    .page_evidence.consent_attachment
+    // .["page_evidence-consent_attachment"]
+    // .consent_attachment
+    // .attachment
+    // .attachment_file
+    // .consent.attachment
+    // .consent.document
+  ),
+  "camera_capture_image": (
+    .page_evidence.camera_capture_image
+    // .["page_evidence-camera_capture_image"]
+    // .camera_capture_image
+    // .camera_capture
+    // .captured_photo
+    // .consent.camera_capture_image
+  ),
+  "camera_capture_taken_at": (
+    .page_evidence.camera_capture_taken_at
+    // .["page_evidence-camera_capture_taken_at"]
+    // .camera_capture_taken_at
+    // .camera_capture_timestamp
+    // .submission_time
+    // .__system.submissionDate
+  ),
+  "camera_capture_location": (
+    (
+      if .["page_evidence-camera_capture_location-Latitude"] and .["page_evidence-camera_capture_location-Longitude"]
+      then {
+        "latitude": .["page_evidence-camera_capture_location-Latitude"],
+        "longitude": .["page_evidence-camera_capture_location-Longitude"],
+        "altitude": .["page_evidence-camera_capture_location-Altitude"],
+        "accuracy": .["page_evidence-camera_capture_location-Accuracy"]
+      }
+      else null
+      end
+    )
+    // .page_evidence.camera_capture_location
+    // .camera_capture_location
+    // .camera_location
+    // .capture_location
+    // .consent.camera_capture_location
+  ),
+  "camera_capture_accuracy": (
+    .camera_capture_accuracy
+    // .camera_accuracy
+    // .consent.camera_capture_accuracy
+  ),
+  "submission_time": .submission_time,
+  "odk_submission_date": .__system.submissionDate,
+  "odk_submitter_name": .__system.submitterName,
+  "odk_submitter_id": .__system.submitterId,
+  "instance_id": (.meta.instanceID // .meta.instanceId // .__id // .instance_id)
+}
+        ]]></field>
+    </record>
+
+</odoo>

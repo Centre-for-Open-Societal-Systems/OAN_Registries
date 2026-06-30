@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="g2p_ati_websub.FieldPathSelector">
+        <div class="g2p_field_path_selector">
+            <t t-if="state.ready and state.available">
+                <ModelFieldSelector t-props="selectorProps" />
+            </t>
+            <div t-else="" class="o_input text-muted g2p_field_path_selector_disabled">
+                <t t-esc="state.message or 'Select source path first'" />
+            </div>
+        </div>
+    </t>
+
+    <t t-name="g2p_ati_websub.DataFieldPreview">
+        <div class="g2p_data_field_preview">
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                <button
+                    type="button"
+                    class="btn btn-primary btn-sm"
+                    t-att-disabled="state.loading"
+                    t-on-click="generatePreview"
+                >
+                    <t t-if="state.loading">Generating Preview...</t>
+                    <t t-else="">Preview Payload</t>
+                </button>
+                <span t-if="previewPartnerName" class="text-muted small">
+                    Sample farmer: <strong><t t-esc="previewPartnerName" /></strong>
+                </span>
+            </div>
+            <div class="text-muted small mb-2">
+                Preview uses the current form values, including unsaved mapping lines.
+            </div>
+            <div t-if="state.error" class="alert alert-danger mb-2">
+                <t t-esc="state.error" />
+            </div>
+            <pre t-if="state.prettyJson" class="g2p_data_field_preview_code"><t t-esc="state.prettyJson" /></pre>
+        </div>
+    </t>
+</templates>

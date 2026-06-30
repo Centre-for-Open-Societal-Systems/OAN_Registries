@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <record id="consent_odk_config" model="odk.config">
+        <field name="name">ATI Consent Importer</field>
+        <field name="base_url" />
+        <field name="username" />
+        <field name="password" />
+        <field name="project">1</field>
+        <field name="form_id">consent_request</field>
+    </record>
+
+</odoo>

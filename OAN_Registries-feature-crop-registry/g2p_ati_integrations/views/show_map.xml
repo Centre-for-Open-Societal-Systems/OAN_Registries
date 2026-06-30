@@ -1,0 +1,64 @@
+<odoo>
+<record id="view_partner_form_inherit" model="ir.ui.view">
+    <field name="name">res.partner.form.inherit</field>
+    <field name="model">res.partner</field>
+    <field name="inherit_id" ref="g2p_registry_individual.view_individuals_form" />
+    <field name="arch" type="xml">
+        <xpath expr="//field[@name='land_information_ids']/tree" position="inside">
+
+                        <field name="soil_fertility" />
+                        <field name="current_land_use" />
+                        <field name="means_of_acquisition" />
+                        <field name="year_of_acquisition" />
+                        <field name="integration_status" />
+            <button
+                    name="action_open_map_view"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-map-marker"
+                    title="show on map"
+                    invisible="integration_status!='valid'"
+                />
+
+        </xpath>
+    </field>
+</record>
+
+<record id="your_map_view_id" model="ir.ui.view">
+    <field name="name">res.partner.map.view</field>
+    <field name="model">g2p.land.information</field>
+    <field name="arch" type="xml">
+        <lmap string="Partner Map">
+        </lmap>
+    </field>
+</record>
+
+
+<record id="action_partner_map_view" model="ir.actions.act_window">
+    <field name="name">land Map</field>
+    <field name="res_model">g2p.land.information</field>
+    <field name="view_mode">lmap,tree,form</field>
+    <field name="view_id" ref="your_map_view_id" />
+    <field name="target">new</field>
+</record>
+
+<record id="g2p_multiple_map_shapes_n_farmer_form_view" model="ir.ui.view">
+        <field name="name">Land Polygone Map View</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="g2p_registry_individual.view_individuals_form" />
+        <field name="arch" type="xml">
+           <xpath expr="//group[@name='computed_land_info']" position="after">
+               <group name="show_land_on_map">
+                   <button
+                        name="view_all_lands"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-map-marker"
+                        title="Show Map"
+                    />
+               </group>
+        </xpath>
+        </field>
+    </record>
+
+</odoo>

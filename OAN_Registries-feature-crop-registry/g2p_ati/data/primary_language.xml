@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="lang_amharic" model="g2p.lang">
+        <field name="name">Amharic</field>
+        <field name="code">Amharic</field>
+    </record>
+    <record id="lang_afaan_romo" model="g2p.lang">
+        <field name="name">Afaan Oromoo</field>
+        <field name="code">Afaan Oromoo</field>
+    </record>
+    <record id="lang_tigrinya" model="g2p.lang">
+        <field name="name">Tigrinya</field>
+        <field name="code">Tigrinya</field>
+    </record>
+    <record id="lang_sidamo" model="g2p.lang">
+        <field name="name">Sidamo</field>
+        <field name="code">Sidamo</field>
+    </record>
+    <record id="lang_afar" model="g2p.lang">
+        <field name="name">Afar</field>
+        <field name="code">Afar</field>
+    </record>
+    <record id="lang_somali" model="g2p.lang">
+        <field name="name">Somali</field>
+        <field name="code">Somali</field>
+    </record>
+    <record id="lang_gurage" model="g2p.lang">
+        <field name="name">Gurage</field>
+        <field name="code">Gurage</field>
+    </record>
+    <record id="lang_wolaytta" model="g2p.lang">
+        <field name="name">Wolaytta</field>
+        <field name="code">Wolaytta</field>
+    </record>
+    <record id="lang_hadiyya" model="g2p.lang">
+        <field name="name">Hadiyya</field>
+        <field name="code">Hadiyya</field>
+    </record>
+    <record id="lang_gedeo" model="g2p.lang">
+        <field name="name">Gedeo</field>
+        <field name="code">Gedeo</field>
+    </record>
+    <record id="lang_gamo" model="g2p.lang">
+        <field name="name">Gamo</field>
+        <field name="code">Gamo</field>
+    </record>
+    <record id="lang_silte" model="g2p.lang">
+        <field name="name">Silte</field>
+        <field name="code">Silte</field>
+    </record>
+    <record id="lang_kafa" model="g2p.lang">
+        <field name="name">Kafa</field>
+        <field name="code">Kafa</field>
+    </record>
+    <record id="lang_other_languages" model="g2p.lang">
+        <field name="name">Other Languages</field>
+        <field name="code">Other</field>
+    </record>
+</odoo>

@@ -1,0 +1,669 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<odoo>
+    <record id="zone_gulele_subcity_1401" model="g2p.zone">
+        <field name="code">ET1401</field>
+        <field name="name">Gulele Subcity</field>
+        <field name="region" ref="g2p_ati.region_addis_ababa_14" />
+    </record>
+
+    <record id="zone_addis_ketema_subcity_1402" model="g2p.zone">
+        <field name="code">1402</field>
+        <field name="name">Addis Ketema Subcity</field>
+        <field name="region" ref="g2p_ati.region_addis_ababa_14" />
+    </record>
+
+    <record id="zone_kolfe_keraniyo_subcity_1403" model="g2p.zone">
+        <field name="code">1403</field>
+        <field name="name">Kolfe Keraniyo Subcity</field>
+        <field name="region" ref="g2p_ati.region_addis_ababa_14" />
+    </record>
+
+    <record id="zone_lideta_subcity_1404" model="g2p.zone">
+        <field name="code">1404</field>
+        <field name="name">Lideta Subcity</field>
+        <field name="region" ref="g2p_ati.region_addis_ababa_14" />
+    </record>
+    <record id="zone_kerkos_subcity_1405" model="g2p.zone">
+        <field name="code">1405</field>
+        <field name="name">Kerkos Subcity</field>
+        <field name="region" ref="g2p_ati.region_addis_ababa_14" />
+    </record>
+    <record id="zone_arada_subcity_1406" model="g2p.zone">
+        <field name="code">1406</field>
+        <field name="name">Arada Subcity</field>
+        <field name="region" ref="g2p_ati.region_addis_ababa_14" />
+    </record>
+    <record id="zone_yeka_subcity_1407" model="g2p.zone">
+        <field name="code">1407</field>
+        <field name="name">Yeka Subcity</field>
+        <field name="region" ref="g2p_ati.region_addis_ababa_14" />
+    </record>
+    <record id="zone_bole_subcity_1408" model="g2p.zone">
+        <field name="code">1408</field>
+        <field name="name">Bole Subcity</field>
+        <field name="region" ref="g2p_ati.region_addis_ababa_14" />
+    </record>
+    <record id="zone_nifas_slik_lafto_subcity_1409" model="g2p.zone">
+        <field name="code">1409</field>
+        <field name="name">Nifas Slik Lafto Subcity</field>
+        <field name="region" ref="g2p_ati.region_addis_ababa_14" />
+    </record>
+    <record id="zone_akaki_kaliti_subcity_1410" model="g2p.zone">
+        <field name="code">1410</field>
+        <field name="name">Akaki Kaliti Subcity</field>
+        <field name="region" ref="g2p_ati.region_addis_ababa_14" />
+    </record>
+    <record id="zone_lemi_kura_1411" model="g2p.zone">
+        <field name="code">1411</field>
+        <field name="name">Lemi kura</field>
+        <field name="region" ref="g2p_ati.region_addis_ababa_14" />
+    </record>
+    <record id="zone_zone_1_awsiresu__201" model="g2p.zone">
+        <field name="code">ET0201</field>
+        <field name="name">Zone_1(Awsiresu)</field>
+        <field name="region" ref="g2p_ati.region_afar_2" />
+    </record>
+    <record id="zone_zone_2__kelbetiresu__202" model="g2p.zone">
+        <field name="code">ET0202</field>
+        <field name="name">Zone_2 (Kelbetiresu)</field>
+        <field name="region" ref="g2p_ati.region_afar_2" />
+    </record>
+    <record id="zone_zone_3__gebiresu__203" model="g2p.zone">
+        <field name="code">ET0203</field>
+        <field name="name">Zone_3 (Gebiresu)</field>
+        <field name="region" ref="g2p_ati.region_afar_2" />
+    </record>
+    <record id="zone_zone_4__fentiresu__204" model="g2p.zone">
+        <field name="code">ET0204</field>
+        <field name="name">Zone_4 (Fentiresu)</field>
+        <field name="region" ref="g2p_ati.region_afar_2" />
+    </record>
+    <record id="zone_zone_5__hari_resu__205" model="g2p.zone">
+        <field name="code">ET0205</field>
+        <field name="name">Zone_5 (Hari Resu)</field>
+        <field name="region" ref="g2p_ati.region_afar_2" />
+    </record>
+    <record id="zone_zone_6_206" model="g2p.zone">
+        <field name="code">ET0206</field>
+        <field name="name">Zone_6</field>
+        <field name="region" ref="g2p_ati.region_afar_2" />
+    </record>
+    <record id="zone_semen_gonder_301" model="g2p.zone">
+        <field name="code">ET0301</field>
+        <field name="name">Semen Gonder</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_debub_gonder_302" model="g2p.zone">
+        <field name="code">ET0302</field>
+        <field name="name">Debub Gonder</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_semen_wello_303" model="g2p.zone">
+        <field name="code">ET0303</field>
+        <field name="name">Semen Wello</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_debub_wello_304" model="g2p.zone">
+        <field name="code">ET0304</field>
+        <field name="name">Debub Wello</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_semen_shewa_305" model="g2p.zone">
+        <field name="code">ET0305</field>
+        <field name="name">Semen Shewa</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_misrak_gojjam_306" model="g2p.zone">
+        <field name="code">ET0306</field>
+        <field name="name">Misrak Gojjam</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_mirab_gojjam_307" model="g2p.zone">
+        <field name="code">ET0307</field>
+        <field name="name">Mirab Gojjam</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_waghimra_308" model="g2p.zone">
+        <field name="code">ET0308</field>
+        <field name="name">Waghimra</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_awi_309" model="g2p.zone">
+        <field name="code">ET0309</field>
+        <field name="name">Awi</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_oromiya_liyu_zone_310" model="g2p.zone">
+        <field name="code">ET0310</field>
+        <field name="name">Oromiya Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_bahir_dar_liyu_311" model="g2p.zone">
+        <field name="code">ET0314</field>
+        <field name="name">Bahir Dar Liyu</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_dessie_town_administration_313" model="g2p.zone">
+        <field name="code">313</field>
+        <field name="name">Dessie Town Administration</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_gondar_ketema_liyu_zone_314" model="g2p.zone">
+        <field name="code">314</field>
+        <field name="name">Gondar Ketema Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_maekelawi_gonder_315" model="g2p.zone">
+        <field name="code">ET0311</field>
+        <field name="name">Maekelawi Gonder</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_mirab_gonder_316" model="g2p.zone">
+        <field name="code">ET0312</field>
+        <field name="name">Mirab Gonder</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_semen_gojjam_317" model="g2p.zone">
+        <field name="code">ET0313</field>
+        <field name="name">Semen Gojjam</field>
+        <field name="region" ref="g2p_ati.region_amhara_3" />
+    </record>
+    <record id="zone_assosa_601" model="g2p.zone">
+        <field name="code">ET0603</field>
+        <field name="name">Assosa</field>
+        <field name="region" ref="g2p_ati.region_benishangul_gumuz_6" />
+    </record>
+    <record id="zone_metekel_602" model="g2p.zone">
+        <field name="code">ET0602</field>
+        <field name="name">Metekel</field>
+        <field name="region" ref="g2p_ati.region_benishangul_gumuz_6" />
+    </record>
+    <record id="zone_kemashi_603" model="g2p.zone">
+        <field name="code">ET0604</field>
+        <field name="name">Kemashi</field>
+        <field name="region" ref="g2p_ati.region_benishangul_gumuz_6" />
+    </record>
+    <record id="zone_mao_ena_komo_604" model="g2p.zone">
+        <field name="code">ET0605</field>
+        <field name="name">Mao Ena Komo</field>
+        <field name="region" ref="g2p_ati.region_benishangul_gumuz_6" />
+    </record>
+    <record id="zone_gurage_1001" model="g2p.zone">
+        <field name="code">ET0701</field>
+        <field name="name">Gurage</field>
+        <field name="region" ref="g2p_ati.region_central_ethiopia_10" />
+    </record>
+    <record id="zone_kabena_liyu_1002" model="g2p.zone">
+        <field name="code">ET0705</field>
+        <field name="name">Kabena Liyu</field>
+        <field name="region" ref="g2p_ati.region_central_ethiopia_10" />
+    </record>
+    <record id="zone_misrak_gurage_1003" model="g2p.zone">
+        <field name="code">ET0704</field>
+        <field name="name">Misrak Gurage</field>
+        <field name="region" ref="g2p_ati.region_central_ethiopia_10" />
+    </record>
+    <record id="zone_mareko_liyu_1004" model="g2p.zone">
+        <field name="code">ET0706</field>
+        <field name="name">Mareko Liyu</field>
+        <field name="region" ref="g2p_ati.region_central_ethiopia_10" />
+    </record>
+    <record id="zone_silte_1005" model="g2p.zone">
+        <field name="code">ET0720</field>
+        <field name="name">Silte</field>
+        <field name="region" ref="g2p_ati.region_central_ethiopia_10" />
+    </record>
+    <record id="zone_halaba_1006" model="g2p.zone">
+        <field name="code">ET0714</field>
+        <field name="name">Halaba</field>
+        <field name="region" ref="g2p_ati.region_central_ethiopia_10" />
+    </record>
+    <record id="zone_hadiya_1007" model="g2p.zone">
+        <field name="code">ET0702</field>
+        <field name="name">Hadiya</field>
+        <field name="region" ref="g2p_ati.region_central_ethiopia_10" />
+    </record>
+    <record id="zone_yem_1008" model="g2p.zone">
+        <field name="code">ET0724</field>
+        <field name="name">Yem</field>
+        <field name="region" ref="g2p_ati.region_central_ethiopia_10" />
+    </record>
+    <record id="zone_tembaro_leyu_1009" model="g2p.zone">
+        <field name="code">ET0707</field>
+        <field name="name">Tembaro Leyu</field>
+        <field name="region" ref="g2p_ati.region_central_ethiopia_10" />
+    </record>
+    <record id="zone_kembata_1010" model="g2p.zone">
+        <field name="code">ET0703</field>
+        <field name="name">Kembata</field>
+        <field name="region" ref="g2p_ati.region_central_ethiopia_10" />
+    </record>
+    <record id="zone_dire_dawa_1501" model="g2p.zone">
+        <field name="code">1501</field>
+        <field name="name">Dire Dawa</field>
+        <field name="region" ref="g2p_ati.region_dire_dawa_astedadar_15" />
+    </record>
+    <record id="zone_siti_501" model="g2p.zone">
+        <field name="code">ET0501</field>
+        <field name="name">Siti</field>
+        <field name="region" ref="g2p_ati.region_ethiopia_somali_5" />
+    </record>
+    <record id="zone_fafan_502" model="g2p.zone">
+        <field name="code">ET0502</field>
+        <field name="name">Fafan</field>
+        <field name="region" ref="g2p_ati.region_ethiopia_somali_5" />
+    </record>
+    <record id="zone_jerer_503" model="g2p.zone">
+        <field name="code">ET0503</field>
+        <field name="name">Jerer</field>
+        <field name="region" ref="g2p_ati.region_ethiopia_somali_5" />
+    </record>
+    <record id="zone_erer_504" model="g2p.zone">
+        <field name="code">ET0504</field>
+        <field name="name">Erer</field>
+        <field name="region" ref="g2p_ati.region_ethiopia_somali_5" />
+    </record>
+    <record id="zone_korahe_505" model="g2p.zone">
+        <field name="code">ET0505</field>
+        <field name="name">Korahe</field>
+        <field name="region" ref="g2p_ati.region_ethiopia_somali_5" />
+    </record>
+    <record id="zone_shebele_506" model="g2p.zone">
+        <field name="code">ET0506</field>
+        <field name="name">Shebele</field>
+        <field name="region" ref="g2p_ati.region_ethiopia_somali_5" />
+    </record>
+    <record id="zone_dollo_507" model="g2p.zone">
+        <field name="code">ET0507</field>
+        <field name="name">Dollo</field>
+        <field name="region" ref="g2p_ati.region_ethiopia_somali_5" />
+    </record>
+    <record id="zone_afder_508" model="g2p.zone">
+        <field name="code">ET0508</field>
+        <field name="name">Afder</field>
+        <field name="region" ref="g2p_ati.region_ethiopia_somali_5" />
+    </record>
+    <record id="zone_liben_509" model="g2p.zone">
+        <field name="code">ET0509</field>
+        <field name="name">Liben</field>
+        <field name="region" ref="g2p_ati.region_ethiopia_somali_5" />
+    </record>
+    <record id="zone_nogob_510" model="g2p.zone">
+        <field name="code">ET0510</field>
+        <field name="name">Nogob</field>
+        <field name="region" ref="g2p_ati.region_ethiopia_somali_5" />
+    </record>
+    <record id="zone_dawa_511" model="g2p.zone">
+        <field name="code">ET0511</field>
+        <field name="name">Dawa</field>
+        <field name="region" ref="g2p_ati.region_ethiopia_somali_5" />
+    </record>
+    <record id="zone_angewak_1201" model="g2p.zone">
+        <field name="code">ET1202</field>
+        <field name="name">Angewak</field>
+        <field name="region" ref="g2p_ati.region_gambela_12" />
+    </record>
+    <record id="zone_newer_1202" model="g2p.zone">
+        <field name="code">ET1201</field>
+        <field name="name">Newer</field>
+        <field name="region" ref="g2p_ati.region_gambela_12" />
+    </record>
+    <record id="zone_mejenger_1203" model="g2p.zone">
+        <field name="code">ET1203</field>
+        <field name="name">Mejenger</field>
+        <field name="region" ref="g2p_ati.region_gambela_12" />
+    </record>
+    <record id="zone_itang_special_1204" model="g2p.zone">
+        <field name="code">ET1204</field>
+        <field name="name">Itang Special</field>
+        <field name="region" ref="g2p_ati.region_gambela_12" />
+    </record>
+    <record id="zone_hareri_1301" model="g2p.zone">
+        <field name="code">ET1301</field>
+        <field name="name">Hareri</field>
+        <field name="region" ref="g2p_ati.region_hareri_13" />
+    </record>
+    <record id="zone_shagar_424" model="g2p.zone">
+        <field name="code">ET0420</field>
+        <field name="name">Shagar</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_mirab_wollega_401" model="g2p.zone">
+        <field name="code">ET0401</field>
+        <field name="name">Mirab Wollega</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_misrak_wollega_402" model="g2p.zone">
+        <field name="code">ET0402</field>
+        <field name="name">Misrak Wollega</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_ilu_ababor_403" model="g2p.zone">
+        <field name="code">ET0403</field>
+        <field name="name">Ilu Ababor</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_jimma_404" model="g2p.zone">
+        <field name="code">ET0404</field>
+        <field name="name">Jimma</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_mirab_shewa_405" model="g2p.zone">
+        <field name="code">ET0405</field>
+        <field name="name">Mirab Shewa</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_semen_shewa_406" model="g2p.zone">
+        <field name="code">ET0406</field>
+        <field name="name">Semen Shewa</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_misrak_shewa_407" model="g2p.zone">
+        <field name="code">ET0407</field>
+        <field name="name">Misrak Shewa</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_arsi_408" model="g2p.zone">
+        <field name="code">ET0408</field>
+        <field name="name">Arsi</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_mirab_hararghe_409" model="g2p.zone">
+        <field name="code">ET0409</field>
+        <field name="name">Mirab Hararghe</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_misrak_hararge_410" model="g2p.zone">
+        <field name="code">ET0410</field>
+        <field name="name">Misrak Hararge</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_merab_bale_411" model="g2p.zone">
+        <field name="code">ET0411</field>
+        <field name="name">Merab Bale</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_borena_412" model="g2p.zone">
+        <field name="code">ET0412</field>
+        <field name="name">Borena</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_debub_mirab_shewa_413" model="g2p.zone">
+        <field name="code">ET0413</field>
+        <field name="name">Debub Mirab Shewa</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_guji_414" model="g2p.zone">
+        <field name="code">ET0414</field>
+        <field name="name">Guji</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_mirab_guji_415" model="g2p.zone">
+        <field name="code">ET0415</field>
+        <field name="name">Mirab Guji</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <!-- <record id="zone_mirab_shewa_416" model="g2p.zone">
+        <field name="code">416</field>
+        <field name="name">Mirab Shewa</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record> -->
+    <record id="zone_mirab_arsi_417" model="g2p.zone">
+        <field name="code">ET0417</field>
+        <field name="name">Mirab Arsi</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_kelem_wollega_418" model="g2p.zone">
+        <field name="code">ET0418</field>
+        <field name="name">Kelem Wollega</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_horo_guduru_wollega_419" model="g2p.zone">
+        <field name="code">ET0419</field>
+        <field name="name">Horo Guduru Wollega</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_buno_bedele_420" model="g2p.zone">
+        <field name="code">ET0416</field>
+        <field name="name">Buno Bedele</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_adama_liyu_zone_421" model="g2p.zone">
+        <field name="code">421</field>
+        <field name="name">Adama Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_asela_liyu_zone_422" model="g2p.zone">
+        <field name="code">422</field>
+        <field name="name">Asela Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_bishoftu_liyu_zone_423" model="g2p.zone">
+        <field name="code">423</field>
+        <field name="name">Bishoftu Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_dukam_liyu_zone_425" model="g2p.zone">
+        <field name="code">425</field>
+        <field name="name">Dukam Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+
+    <record id="zone_nekemte_liyu_zone_428" model="g2p.zone">
+        <field name="code">428</field>
+        <field name="name">Nekemte Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_jimma_liyu_429" model="g2p.zone">
+        <field name="code">429</field>
+        <field name="name">Jimma Liyu</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+
+    <record id="zone_shashamane_liyu_zone_431" model="g2p.zone">
+        <field name="code">431</field>
+        <field name="name">Shashamane Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+
+    <record id="zone_robe_liyu_zone_433" model="g2p.zone">
+        <field name="code">433</field>
+        <field name="name">Robe Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_ambo_city_admin_434" model="g2p.zone">
+        <field name="code">434</field>
+        <field name="name">Ambo City Admin</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_batu_liyu_zone_435" model="g2p.zone">
+        <field name="code">435</field>
+        <field name="name">Batu Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_modjo_liyu_zone_436" model="g2p.zone">
+        <field name="code">436</field>
+        <field name="name">Modjo Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_holeta_liyu_zone_437" model="g2p.zone">
+        <field name="code">437</field>
+        <field name="name">Holeta Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_woliso_liyu_zone_438" model="g2p.zone">
+        <field name="code">438</field>
+        <field name="name">Woliso Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_bishan_guracha_liyu_zone_439" model="g2p.zone">
+        <field name="code">439</field>
+        <field name="name">Bishan Guracha Liyu Zone</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_misrak_bale_440" model="g2p.zone">
+        <field name="code">ET0421</field>
+        <field name="name">Misrak Bale</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_misrak_borena_441" model="g2p.zone">
+        <field name="code">ET0422</field>
+        <field name="name">Misrak Borena</field>
+        <field name="region" ref="g2p_ati.region_oromiya_4" />
+    </record>
+    <record id="zone_hawassa_city_admnistration_801" model="g2p.zone">
+        <field name="code">801</field>
+        <field name="name">Hawassa City Admnistration</field>
+        <field name="region" ref="g2p_ati.region_sidama_8" />
+    </record>
+    <record id="zone_sidama_semenawi_zone_802" model="g2p.zone">
+        <field name="code">802</field>
+        <field name="name">Sidama Semenawi Zone</field>
+        <field name="region" ref="g2p_ati.region_sidama_8" />
+    </record>
+    <record id="zone_sidama_mehal_zone_803" model="g2p.zone">
+        <field name="code">803</field>
+        <field name="name">Sidama Mehal Zone</field>
+        <field name="region" ref="g2p_ati.region_sidama_8" />
+    </record>
+    <record id="zone_sidama_debubawi_zone_804" model="g2p.zone">
+        <field name="code">804</field>
+        <field name="name">Sidama Debubawi Zone</field>
+        <field name="region" ref="g2p_ati.region_sidama_8" />
+    </record>
+    <record id="zone_sidama_misrakawi_zone_805" model="g2p.zone">
+        <field name="code">805</field>
+        <field name="name">Sidama Misrakawi Zone</field>
+        <field name="region" ref="g2p_ati.region_sidama_8" />
+    </record>
+    <record id="zone_welayta_701" model="g2p.zone">
+        <field name="code">ET0801</field>
+        <field name="name">Welayta</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_gamo_702" model="g2p.zone">
+        <field name="code">ET0802</field>
+        <field name="name">Gamo</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_gofa_703" model="g2p.zone">
+        <field name="code">ET0803</field>
+        <field name="name">Gofa</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_basketo_special_704" model="g2p.zone">
+        <field name="code">ET0804</field>
+        <field name="name">Basketo Special</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_ari_zone_705" model="g2p.zone">
+        <field name="code">705</field>
+        <field name="name">Ari Zone</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_debub_omo_706" model="g2p.zone">
+        <field name="code">ET0812</field>
+        <field name="name">Debub Omo</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_gardula_707" model="g2p.zone">
+        <field name="code">707</field>
+        <field name="name">Gardula</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_alle_708" model="g2p.zone">
+        <field name="code">ET0806</field>
+        <field name="name">Alle</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_konso_709" model="g2p.zone">
+        <field name="code">ET0809</field>
+        <field name="name">Konso</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_burji_liyu_710" model="g2p.zone">
+        <field name="code">ET0810</field>
+        <field name="name">Burji Liyu</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_korey_711" model="g2p.zone">
+        <field name="code">711</field>
+        <field name="name">korey</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_gedeo_712" model="g2p.zone">
+        <field name="code">ET0811</field>
+        <field name="name">Gedeo</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_dilla_city_admin_713" model="g2p.zone">
+        <field name="code">713</field>
+        <field name="name">Dilla City Admin</field>
+        <field name="region" ref="g2p_ati.region_south_ethiopia_7" />
+    </record>
+    <record id="zone_sheka_901" model="g2p.zone">
+        <field name="code">ET1101</field>
+        <field name="name">Sheka</field>
+        <field name="region" ref="g2p_ati.region_south_west_ethiopia_people_9" />
+    </record>
+    <record id="zone_bench_sheko_902" model="g2p.zone">
+        <field name="code">ET1103</field>
+        <field name="name">Bench Sheko</field>
+        <field name="region" ref="g2p_ati.region_south_west_ethiopia_people_9" />
+    </record>
+    <record id="zone_merab_omo_903" model="g2p.zone">
+        <field name="code">ET1105</field>
+        <field name="name">Merab Omo</field>
+        <field name="region" ref="g2p_ati.region_south_west_ethiopia_people_9" />
+    </record>
+    <record id="zone_kefa_904" model="g2p.zone">
+        <field name="code">ET1102</field>
+        <field name="name">Kefa</field>
+        <field name="region" ref="g2p_ati.region_south_west_ethiopia_people_9" />
+    </record>
+    <record id="zone_konta_905" model="g2p.zone">
+        <field name="code">ET1106</field>
+        <field name="name">Konta</field>
+        <field name="region" ref="g2p_ati.region_south_west_ethiopia_people_9" />
+    </record>
+    <record id="zone_dawro_906" model="g2p.zone">
+        <field name="code">ET1104</field>
+        <field name="name">Dawro</field>
+        <field name="region" ref="g2p_ati.region_south_west_ethiopia_people_9" />
+    </record>
+    <record id="zone_semen_mirab_101" model="g2p.zone">
+        <field name="code">ET0101</field>
+        <field name="name">Semen Mirab</field>
+        <field name="region" ref="g2p_ati.region_tigray_1" />
+    </record>
+    <record id="zone_mehakelawi_102" model="g2p.zone">
+        <field name="code">ET0102</field>
+        <field name="name">Mehakelawi</field>
+        <field name="region" ref="g2p_ati.region_tigray_1" />
+    </record>
+    <record id="zone_misrakawi_103" model="g2p.zone">
+        <field name="code">ET0103</field>
+        <field name="name">Misrakawi</field>
+        <field name="region" ref="g2p_ati.region_tigray_1" />
+    </record>
+    <record id="zone_debubawi_104" model="g2p.zone">
+        <field name="code">ET0104</field>
+        <field name="name">Debubawi</field>
+        <field name="region" ref="g2p_ati.region_tigray_1" />
+    </record>
+    <record id="zone_mirabawi_105" model="g2p.zone">
+        <field name="code">ET0105</field>
+        <field name="name">Mirabawi</field>
+        <field name="region" ref="g2p_ati.region_tigray_1" />
+    </record>
+    <record id="zone_mekele_106" model="g2p.zone">
+        <field name="code">ET0107</field>
+        <field name="name">Mekele</field>
+        <field name="region" ref="g2p_ati.region_tigray_1" />
+    </record>
+    <record id="zone_debub_misrak_107" model="g2p.zone">
+        <field name="code">ET0106</field>
+        <field name="name">Debub Misrak</field>
+        <field name="region" ref="g2p_ati.region_tigray_1" />
+    </record>
+</odoo>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="finance_access_loans" model="g2p.finance.access">
+        <field name="name">Loans</field>
+        <field name="code">loan</field>
+    </record>
+    <record id="finance_access_insurance" model="g2p.finance.access">
+        <field name="name">Insurance</field>
+        <field name="code">insurance</field>
+    </record>
+    <record id="finance_access_saving" model="g2p.finance.access">
+        <field name="name">Saving</field>
+        <field name="code">saving</field>
+    </record>
+        <record id="finance_access_digital_banking" model="g2p.finance.access">
+        <field name="name">Digital Banking</field>
+        <field name="code">digital_banking</field>
+    </record>
+</odoo>

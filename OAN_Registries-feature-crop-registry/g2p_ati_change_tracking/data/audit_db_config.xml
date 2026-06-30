@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- External Audit Database Configuration -->
+        <record id="audit_db_host" model="ir.config_parameter">
+            <field name="key">log_db.db.host</field>
+            <field name="value"></field>
+        </record>
+
+        <record id="audit_db_port" model="ir.config_parameter">
+            <field name="key">log_db.db.port</field>
+            <field name="value"></field>
+        </record>
+
+        <record id="audit_db_name" model="ir.config_parameter">
+            <field name="key">log_db.db.name</field>
+            <field name="value">log</field>
+        </record>
+
+        <record id="audit_db_user" model="ir.config_parameter">
+            <field name="key">log_db.db.user</field>
+            <field name="value"></field>
+        </record>
+
+        <record id="audit_db_password" model="ir.config_parameter">
+            <field name="key">log_db.db.password</field>
+            <field name="value"></field>
+        </record>
+    </data>
+</odoo>

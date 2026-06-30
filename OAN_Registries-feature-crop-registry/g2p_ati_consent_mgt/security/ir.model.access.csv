@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_g2p_ati_create_portal_user_wizard_system,g2p.ati.create.portal.user.wizard.system,model_g2p_ati_create_portal_user_wizard,base.group_system,1,1,1,1
+access_g2p_consent_portal_role_system,g2p.consent.portal.role.system,model_g2p_consent_portal_role,base.group_system,1,1,1,1
+access_g2p_consent_reason_system,g2p.consent.reason.system,model_g2p_consent_reason,base.group_system,1,1,1,1

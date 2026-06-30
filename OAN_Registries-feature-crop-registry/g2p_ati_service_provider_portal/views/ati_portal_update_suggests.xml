@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template id="ati_update_suggests_template" name="G2P Service Provider group">
+        <t t-call="g2p_agent_portal_base.base">
+            <t t-set="title">List of group beneficiary | Service Provider Portal</t>
+            <div class="main-container1">
+                <div class="mx-auto">
+                    <div
+                        style="max-width: 1400px"
+                        class="top-content mx-auto d-flex flex-row justify-content-between align-items-center px-2 py-3"
+                    >
+
+                    <div class="d-flex flex-row justify-content-between">
+
+                        <div class="d-flex flex-column  justify-content-start ">
+                            <h5
+                                    style="font: normal 600 15px / 22px Inter !important;"
+                                    class="all-title"
+                                >Suggestion List</h5>
+
+                            <ol class="breadcrumb bg-transparent d-flex flex-col ">
+                                <li class="breadcrumb-item">
+                                    <a href="/serviceprovider/home">Dashboard</a>
+                                </li>
+                                <li class="breadcrumb-item active" aria-current="page">Suggestions</li>
+                            </ol>
+                        </div>
+                        </div>
+
+
+                        <!-- <div>
+                            <a t-attf-href="/serviceprovider/group/create/" style="float:right;">
+                                <button type="button" class="btn btn-primary create-new"> Create New <span
+                                        class="mx-1"
+                                    />
+                                    <span class="fa fa-plus" />
+                                </button>
+                            </a>
+                        </div> -->
+
+                    </div>
+
+
+                    <div class="list-view">
+
+
+                        <div
+                            class="table-head-container align-items-lg-center py-3  d-flex flex-column flex-lg-row flex-md-wrap justify-content-between px-3 mx-auto "
+                        >
+
+
+                            <div id="head_name_rec">
+                                <p class="table-title d-flex flex-row"> Suggestion List <span
+                                        class="count-text"
+                                    >&amp;nbsp;<t t-out="len(updte_suggests)    " /> Records</span>
+
+                                </p>
+                            </div>
+
+
+                            <form class="form-inline my-2 my-lg-0">
+                                <div class="search-box">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="13.6"
+                                        height="13.6"
+                                        fill="currentColor"
+                                        class="bi bi-search search-icon"
+                                        viewBox="0 0 16 16"
+                                    >
+                                        <path
+                                            d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"
+                                        />
+                                    </svg>
+                                    <input
+                                        placeholder="Search"
+                                        class="search-text"
+                                        name="q"
+                                        id="search-text"
+                                    />
+                                    <span id="search-text-clear">
+                                        <i class="fa fa-times" />
+                                    </span>
+                                </div>
+                                <div
+                                    id="search-result-count"
+                                    style="color: #783E83;font-weight:500;padding:5px"
+                                />
+                            </form>
+                        </div>
+
+                        <div class="tables-values-container px-3">
+                            <table id="newreimbursements">
+                                <thead class="d-none d-lg-table-header-group">
+                                    <tr>
+                                        <th class="sr-column">Sr.No.</th>
+                                        <th class="name-column">Suggester<i class="fa fa-sort" /></th>
+                                        <th class="fixed-width-column-group">Record</th>
+                                        <th class="fixed-width-column-group">Reason</th>
+                                        <th class="fixed-width-column-group">Status </th>
+                                        <th class="fixed-width-column-group">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="updte_suggests" t-as="update">
+                                        <tr class="grid2_table">
+                                            <td class="tr_grid_item1">
+                                            </td>
+                                            <td
+                                                data-label="Suggester"
+                                                class="tr_grid_item2"
+                                                style="color:#078148; font: normal normal 600 13px/16px Inter;"
+                                            >
+                                                <t t-out="update['requester_id']['name']" />
+                                            </td>
+                                            <td data-label="Record" class="tr_grid_item4">
+                                                <t t-out="update['record_id']['name']" />
+                                            </td>
+                                            <td data-label="Reason" class="tr_grid_item5">
+                                                <t t-out="update['reason']" />
+                                            </td>
+
+                                            <td data-label="Status" class="tr_grid_item6">
+                                                <div class="status-icon">
+
+                                                    <t t-if="update['status'] == 'newSuggestion'">
+
+                                                        <p style="font-weight: bold;">New Suggestion</p>
+
+
+
+                                                    </t>
+                                                    <t t-else="">
+                                                        <p> Updated </p>
+
+                                                    </t>
+
+                                                </div>
+                                            </td>
+
+                                            <td data-label="Action" class="tr_grid_item3">
+                                                <a
+                                                    t-attf-href="/serviceprovider/individual/update/{{ update.record_id.id }}"
+                                                >
+                                                    <button string="Update" type="object" class="view-button">
+                                                        Update
+                                                    </button>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="page-buttons" class="pagination justify-content-center">
+                        </div>
+                    </div>
+                </div>
+                <script
+                    type="text/javascript"
+                    src="/g2p_ati_service_provider_portal/static/src/js/table_pagination_and_row.js"
+                />
+                <link rel="stylesheet" href="/g2p_ati_service_provider_portal/static/src/css/list.css" />
+            </div>
+        </t>
+    </template>
+</odoo>

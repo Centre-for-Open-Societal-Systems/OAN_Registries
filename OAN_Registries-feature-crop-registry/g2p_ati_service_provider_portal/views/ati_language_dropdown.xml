@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template
+        id="inherited_language_dropdown"
+        inherit_id="g2p_agent_portal_base.base"
+        name="ATI Service Provider Legacy Language Patch"
+        priority="980"
+    >
+        <!-- Keep the legacy xmlid alive with a harmless patch so older DB records stop
+             carrying the previously broken language override. -->
+        <xpath expr="//div[hasclass('language-dropdown')]" position="attributes">
+            <attribute name="data-ati-language-patch">current</attribute>
+        </xpath>
+    </template>
+</odoo>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record model="ir.module.category" id="g2p_ati_change_tracking.security_g2p_ati_change_tracking_groups">
+        <field name="name">G2P Change Log</field>
+    </record>
+
+    <record model="res.groups" id="group_g2p_ati_change_tracking_user">
+        <field name="name">Change Log User</field>
+        <field name="category_id" ref="g2p_ati_change_tracking.security_g2p_ati_change_tracking_groups" />
+    </record>
+
+    <record model="res.groups" id="group_g2p_ati_change_tracking_manager">
+        <field name="name">Change Log Manager</field>
+        <field name="category_id" ref="g2p_ati_change_tracking.security_g2p_ati_change_tracking_groups" />
+        <field name="implied_ids" eval="[(4, ref('g2p_ati_change_tracking.group_g2p_ati_change_tracking_user'))]" />
+    </record>
+
+    <record id="base.group_system" model="res.groups">
+        <field
+            name="implied_ids"
+            eval="[(4, ref('g2p_ati_change_tracking.group_g2p_ati_change_tracking_manager'))]"
+        />
+    </record>
+
+    <!-- Also grant Change Log Manager to ATI System Admin and Super Admin groups -->
+    <record id="g2p_ati.group_system_admin" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('g2p_ati_change_tracking.group_g2p_ati_change_tracking_manager'))]"/>
+    </record>
+
+    <record id="g2p_registry_base.group_g2p_admin" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('g2p_ati_change_tracking.group_g2p_ati_change_tracking_manager'))]"/>
+    </record>
+</odoo>

@@ -1,0 +1,62 @@
+/* ── Bold field labels ───────────────────────────────────────────────── */
+
+.o_form_view .o_form_label {
+    font-weight: 700 !important;
+    color: #374151 !important;
+}
+
+/* Bold column headers in inline tree views */
+.o_field_widget .o_list_table thead th .o_column_title {
+    font-weight: 700 !important;
+    color: #374151 !important;
+}
+
+/* ── Crop Maturity Status: keep dropdown options black ──────────────────
+   decoration-success / decoration-warning adds Bootstrap text-success /
+   text-warning to the field widget, which inherits into the <select>
+   options. Force options back to black regardless of field state.
+   ──────────────────────────────────────────────────────────────────── */
+
+.o_field_widget[name="crop_maturity_status"] select option,
+.o_field_widget[name="crop_maturity_status"] .o_select_list_item {
+    color: #000000 !important;
+}
+
+/* When "Not Yet Ready" (green key) is selected, show the displayed
+   value in green (Bootstrap success color) */
+.o_field_widget[name="crop_maturity_status"].text-success select,
+.o_field_widget[name="crop_maturity_status"].text-success .o_field_selection {
+    color: #198754 !important;   /* Bootstrap success green */
+    font-weight: 600;
+}
+
+/* When "Ready for Harvest" (yellow key) is selected, show in amber */
+.o_field_widget[name="crop_maturity_status"].text-warning select,
+.o_field_widget[name="crop_maturity_status"].text-warning .o_field_selection {
+    color: #d97706 !important;   /* Amber / warning */
+    font-weight: 600;
+}
+
+/* Seasonal Crops alignment */
+.o_field_widget[name="seasonal_line_ids"] .o_list_table thead th,
+.o_field_widget[name="seasonal_line_ids"] .o_list_table tbody td,
+.o_field_widget[name="actual_seasonal_line_ids"] .o_list_table thead th,
+.o_field_widget[name="actual_seasonal_line_ids"] .o_list_table tbody td {
+    text-align: left !important;
+}
+
+
+table.custom_tree_5_cols,
+.custom_tree_5_cols table {
+    table-layout: fixed !important;
+    width: 100% !important;
+}
+
+table.custom_tree_5_cols th,
+table.custom_tree_5_cols td,
+.custom_tree_5_cols table th,
+.custom_tree_5_cols table td {
+    width: 20% !important;
+    max-width: 20% !important;
+    text-align: left !important;
+}

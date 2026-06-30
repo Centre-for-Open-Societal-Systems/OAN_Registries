@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="water_source_rainfall" model="g2p.water.source">
+        <field name="name">Rainfed</field>
+        <field name="code">rainfall</field>
+    </record>
+    <record id="water_source_irrigation_ground" model="g2p.water.source">
+        <field name="name">Irrigation - Ground Water</field>
+        <field name="code">irrigation_ground</field>
+    </record>
+    <record id="water_source_irrigation_surface" model="g2p.water.source">
+        <field name="name">Irrigation - Surface Water</field>
+        <field name="code">irrigation_surface</field>
+    </record>
+    <record id="water_source_well_water" model="g2p.water.source">
+        <field name="name">Well Water(GroundWater)</field>
+        <field name="code">well_water</field>
+    </record>
+    <record id="water_source_water_harvesting" model="g2p.water.source">
+        <field name="name">Water Harvesting</field>
+        <field name="code">water_harvesting</field>
+    </record>
+    <record id="water_source_surface_water" model="g2p.water.source">
+        <field name="name">Surface Water</field>
+        <field name="code">surface_water</field>
+    </record>
+</odoo>

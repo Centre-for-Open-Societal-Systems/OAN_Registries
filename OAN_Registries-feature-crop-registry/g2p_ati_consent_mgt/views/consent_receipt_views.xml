@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_g2p_consent_receipt_search" model="ir.ui.view">
+        <field name="name">g2p.consent.receipt.search</field>
+        <field name="model">g2p.consent.receipt</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" />
+                <field name="partner_id" />
+                <field name="consent_partner_id" />
+                <field name="consent_request_id" />
+                <field name="status" />
+                <group expand="0" string="Group By">
+                    <filter name="group_by_status" string="Status" context="{'group_by': 'status'}" />
+                    <filter name="group_by_partner" string="Farmer" context="{'group_by': 'partner_id'}" />
+                    <filter name="group_by_consent_partner" string="Consent Partner" context="{'group_by': 'consent_partner_id'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_g2p_consent_receipt_tree" model="ir.ui.view">
+        <field name="name">g2p.consent.receipt.tree</field>
+        <field name="model">g2p.consent.receipt</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="partner_id" />
+                <field name="consent_partner_id" />
+                <field name="consent_request_id" />
+                <field name="status" />
+                <field name="signature_algorithm" />
+                <field name="signed_at" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_consent_receipt_form" model="ir.ui.view">
+        <field name="name">g2p.consent.receipt.form</field>
+        <field name="model">g2p.consent.receipt</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="action_open_consent_request"
+                        type="object"
+                        string="Open Consent Request"
+                        class="btn-primary"
+                    />
+                    <field name="status" widget="statusbar" statusbar_visible="pending,approved,rejected,revoked,denied,expired" />
+                </header>
+                <sheet>
+                    <group col="2">
+                        <group>
+                            <field name="name" readonly="1" />
+                            <field name="partner_id" />
+                            <field name="consent_partner_id" />
+                            <field name="consent_request_id" />
+                        </group>
+                        <group>
+                            <field name="signature_algorithm" />
+                            <field name="signature" readonly="1" />
+                            <field name="signed_at" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Attribute List">
+                            <field name="attribute_list" widget="text" readonly="1" />
+                        </page>
+                        <page string="Attribute Payload">
+                            <field name="attribute_payload" widget="text" readonly="1" />
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_g2p_consent_receipt" model="ir.actions.act_window">
+        <field name="name">Consent Receipts</field>
+        <field name="res_model">g2p.consent.receipt</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_g2p_consent_receipt_search" />
+    </record>
+
+    <menuitem
+        id="menu_g2p_consent_receipts"
+        name="Receipts"
+        parent="g2p_ati_consent_mgt.menu_g2p_ati_consent_management_root"
+        action="action_g2p_consent_receipt"
+        sequence="25"
+    />
+</odoo>

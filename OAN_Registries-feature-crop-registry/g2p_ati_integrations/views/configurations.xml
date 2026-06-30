@@ -1,0 +1,94 @@
+<odoo>
+
+<record id="view_g2p_validation_status_tree" model="ir.ui.view">
+    <field name="name">g2p.validation.status.tree</field>
+    <field name="model">g2p.validation.status</field>
+    <field name="arch" type="xml">
+        <tree editable="bottom">
+            <field name="name" />
+        </tree>
+    </field>
+</record>
+
+<record id="view_g2p_validation_status_form" model="ir.ui.view">
+    <field name="name">g2p.validation.status.form</field>
+    <field name="model">g2p.validation.status</field>
+    <field name="arch" type="xml">
+        <form>
+            <group>
+                <field name="name" string="State" />
+            </group>
+        </form>
+    </field>
+</record>
+
+<record id="action_g2p_validation_status" model="ir.actions.act_window">
+    <field name="name">Enrichment Status</field>
+    <field name="res_model">g2p.validation.status</field>
+    <field name="view_mode">tree,form</field>
+    <field name="context">{}</field>
+    <field name="groups_id" eval="[(6, 0, [ref('g2p_draft_publish.group_int_admin')])]"/>
+</record>
+
+
+<record id="action_narlis_integration" model="ir.actions.act_window">
+    <field name="name">NARLIS Integration</field>
+    <field name="res_model">narlis.integration</field>
+    <field name="view_mode">tree,form</field>
+    <field name="context">{}</field>
+    <field name="groups_id" eval="[(6, 0, [ref('g2p_draft_publish.group_int_admin')])]"/>
+</record>
+
+<record id="view_narlis_integration_form" model="ir.ui.view">
+    <field name="name">narlis.integration.form</field>
+    <field name="model">narlis.integration</field>
+    <field name="arch" type="xml">
+        <form>
+            <group>
+                <field name="end_point_url" string="End Point Url" />
+                <field name="api_key" string="API Key" />
+                <field name="host_url" string="Host url" />
+            </group>
+        </form>
+    </field>
+</record>
+
+<record id="view_narlis_integration_tree" model="ir.ui.view">
+    <field name="name">narlis.integration.tree</field>
+    <field name="model">narlis.integration</field>
+    <field name="arch" type="xml">
+        <tree>
+                <field name="end_point_url" string="End Point Url" />
+                <field name="api_key" string="API Key" />
+                <field name="host_url" string="Host url" />
+        </tree>
+    </field>
+</record>
+
+    <record id="action_add_prefix_on_land_id" model="ir.actions.server">
+    <field name="name">Add Prefix on Land ID</field>
+    <field name="model_id" ref="g2p_ati_integrations.model_g2p_land_information" />
+    <field name="state">code</field>
+    <field name="code">model.update_land_id_prefix()</field>
+    <field name="groups_id" eval="[(6, 0, [ref('g2p_draft_publish.group_int_admin')])]"/>
+</record>
+
+  <menuitem
+        id="narlis_integration_config"
+        name="NARLIS Integration"
+        parent="base.menu_custom"
+        action="action_narlis_integration"
+        sequence="1"
+        groups="g2p_draft_publish.group_int_admin"
+    />
+<menuitem
+        id="add_prefix_on_land_id"
+        name="Add Prefix On The Land Id"
+        parent="base.menu_custom"
+        action="action_add_prefix_on_land_id"
+        sequence="1"
+        groups="g2p_draft_publish.group_int_admin"
+    />
+
+
+</odoo>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Sequence for g2p.crop -->
+        <record id="seq_g2p_crop" model="ir.sequence">
+            <field name="name">Crop Sequence</field>
+            <field name="code">g2p.crop</field>
+            <field name="prefix">CROP/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+
+    <record id="machinery_tractor" model="g2p.machinery">
+        <field name="name">Tractor</field>
+        <field name="code">tractor</field>
+    </record>
+
+    <record id="machinery_combine_harvester" model="g2p.machinery">
+        <field name="name">Combine Harvester</field>
+        <field name="code">combine_harvester</field>
+    </record>
+
+    <record id="machinery_planter" model="g2p.machinery">
+        <field name="name">Planter</field>
+        <field name="code">planter</field>
+    </record>
+
+    <record id="machinery_other" model="g2p.machinery">
+        <field name="name">Other</field>
+        <field name="code">other</field>
+    </record>
+
+    <record id="machinery_harvester" model="g2p.machinery">
+        <field name="name">Harvester</field>
+        <field name="code">harvester</field>
+    </record>
+
+    <record id="machinery_combiner" model="g2p.machinery">
+        <field name="name">Combiner</field>
+        <field name="code">combiner</field>
+    </record>
+
+
+    <record id="machinery_multi_crop_trasher" model="g2p.machinery">
+        <field name="name">Multi-Crop Trasher</field>
+        <field name="code">multi_crop_trasher</field>
+    </record>
+
+    <record id="machinery_maize_sheller" model="g2p.machinery">
+        <field name="name">Maize sheller</field>
+        <field name="code">maize_sheller</field>
+    </record>
+
+    <record id="machinery_rice_polisher" model="g2p.machinery">
+        <field name="name">Rice polisher</field>
+        <field name="code">rice_polisher</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_res_partner_form_consent_inherit" model="ir.ui.view">
+        <field name="name">res.partner.form.consent.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="g2p_ati.g2p_registry_individual_form_view_inherit" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[hasclass('oe_button_box')]" position="inside">
+                <button
+                    class="oe_stat_button"
+                    type="object"
+                    name="action_view_consent_requests"
+                    icon="fa-check-square-o"
+                    invisible="is_farmer!='yes'"
+                >
+                    <field name="consent_request_count" widget="statinfo" string="Consents" />
+                </button>
+                <button
+                    class="oe_stat_button"
+                    type="object"
+                    name="action_view_consent_receipts"
+                    icon="fa-file-text-o"
+                    invisible="is_farmer!='yes'"
+                >
+                    <field name="consent_receipt_count" widget="statinfo" string="Receipts" />
+                </button>
+            </xpath>
+
+            <xpath expr="//sheet/notebook[@name='individual_detail']" position="inside">
+                <page string="Consent Requests" name="consent_requests" invisible="is_farmer!='yes'">
+                    <field name="consent_request_ids" context="{'default_farmer_id': active_id}">
+                        <tree editable="bottom">
+                            <field name="consent_creation_request_id" />
+                            <field name="partner_record_id" />
+                            <field name="consent_type" />
+                            <field name="status" />
+                            <field name="validity_from" />
+                            <field name="validity_to" />
+                            <field name="created_at" />
+                        </tree>
+                    </field>
+                </page>
+                <page string="Consent Receipts" name="consent_receipts" invisible="is_farmer!='yes'">
+                    <field name="consent_receipt_ids" readonly="1">
+                        <tree>
+                            <field name="consent_request_id" />
+                            <field name="consent_partner_id" />
+                            <field name="status" />
+                            <field name="signature_algorithm" />
+                            <field name="signed_at" />
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

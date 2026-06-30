@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+  <record id="request_view_tree" model="ir.ui.view">
+    <field name="name">request.view.tree</field>
+    <field name="model">request</field>
+    <field name="arch" type="xml">
+      <tree decoration-danger="status == 'rejected'" decoration-success="status == 'accepted'">
+        <field name="record_id" />
+        <field name="requester_id" />
+        <field name="status" />
+        <field name="type" />
+        <field name="reason" />
+
+        <button
+                    title="Accept"
+                    icon="fa-check"
+                    name="accept_request"
+                    type="object"
+                    class="btn btn-success"
+                    invisible="status != 'pending'"
+                />
+        <button
+                    title="Reject"
+                    icon="fa-times"
+                    name="reject_request"
+                    type="object"
+                    class="btn btn-danger"
+                    invisible="status != 'pending'"
+                />
+
+      </tree>
+    </field>
+  </record>
+
+  <record id="request_view_form" model="ir.ui.view">
+    <field name="name">request.view.form</field>
+    <field name="model">request</field>
+    <field name="arch" type="xml">
+      <form string="">
+        <header>
+          <button
+                        string="Accept"
+                        name="accept_request"
+                        type="object"
+                        class="btn btn-success"
+                        invisible="status != 'pending'"
+                    />
+          <button
+                        string="Reject"
+                        name="reject_request"
+                        type="object"
+                        class="btn btn-danger"
+                        invisible="status != 'pending'"
+                    />
+        </header>
+
+        <sheet>
+          <group>
+            <field name="record_id" readonly="1" />
+            <field name="enumerator_id" invisible="true" />
+            <field name="requester_id" readonly="1" />
+            <field name="status" readonly="1" />
+            <field name="type" readonly="1" />
+            <field name="reason" readonly="1" />
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+
+  <record id="request_action" model="ir.actions.act_window">
+    <field name="name">Requests</field>
+    <field name="res_model">request</field>
+    <field name="view_mode">tree,form</field>
+
+  </record>
+
+  <menuitem
+        id="requests_menu"
+        name="Edit Suggestions"
+        action="request_action"
+        sequence="100000"
+        parent="g2p_registry_base.g2p_main_menu_root"
+    />
+
+
+</odoo>

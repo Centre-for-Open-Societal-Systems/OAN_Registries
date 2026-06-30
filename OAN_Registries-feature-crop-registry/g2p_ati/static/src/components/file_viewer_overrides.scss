@@ -1,0 +1,8 @@
+// Ensure file viewer modal stays above other modals (e.g., draft form dialog).
+.modal:has(.o-FileViewer) {
+    z-index: 2000; // above default bootstrap modal (1055)
+}
+
+.modal:has(.o-FileViewer) .o-FileViewer {
+    z-index: 0; // reset negative z-index from base styles
+}

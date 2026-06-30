@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <record id="fp_odk_import" model="odk.import">
+        <field name="odk_config" ref="g2p_odk_importer_ati.fp_odk_config" />
+        <field name="target_registry">group</field>
+        <field name="json_formatter">{
+  "submission_time": .submission_time,
+  "hh_is_household_head": .household_questions.household_head,
+  "member_registered": .household_questions.member_registered,
+  "head_registered": .household_questions.head_registered,
+  "member_reference_id": .household_questions.member_reference_id,
+  "relationship_with_head": .household_questions.relationship_with_head,
+  "relationship_to_head": .household_questions.relationship_to_head,
+  "is_psnp_user": .household_questions.is_psnp_user,
+  "has_national_id": .national_id_section.national_id,
+  "uid": .national_id_section.national_uid,
+  "rid": .national_id_section.national_rid,
+  "region": .basic_info.locale_info.region,
+  "zone": .basic_info.locale_info.zone,
+  "woreda": .basic_info.locale_info.woreda,
+  "other_woreda": .basic_info.locale_info.other_woreda,
+  "kebele": .basic_info.locale_info.kebele,
+  "other_kebele": .basic_info.locale_info.other_kebele,
+  "primary_Language": .basic_info.locale_info.language,
+  "given_name": .basic_info.personal_info.first_name_english,
+  "family_name": .basic_info.personal_info.father_name_english,
+  "gf_name_eng": .basic_info.personal_info.grandfather_name_english,
+  "name": (.basic_info.personal_info.first_name_english + " " +  .basic_info.personal_info.father_name_english + " " + .basic_info.personal_info.grandfather_name_english | ascii_upcase),
+  "first_name_amh": .basic_info.personal_info.first_name_amharic,
+  "family_name_amh": .basic_info.personal_info.father_name_amharic,
+  "gf_name_amh": .basic_info.personal_info.grandfather_name_amharic,
+  "first_name_other": .basic_info.personal_info.first_name_other,
+  "family_name_other": .basic_info.personal_info.father_name_other,
+  "gf_name_other": .basic_info.personal_info.grandfather_name_other,
+  "gender": .basic_info.personal_info.gender,
+  "birthdate": .basic_info.personal_info.date_of_birth,
+  "age": .basic_info.personal_info.age,
+  "has_personal_phone": .basic_info.personal_info.phone_number,
+  "phone_ids":
+  (if .basic_info.personal_info.phone_number == "yes"
+    then
+      if .basic_info.personal_info.secondary_phone_number
+      then [{"phone_no": .basic_info.personal_info.primary_phone_number, "phone_type": "primary"}, {"phone_no": .basic_info.personal_info.secondary_phone_number, "phone_type": "secondary"}]
+      else [{"phone_no": .basic_info.personal_info.primary_phone_number, "phone_type": "primary"}]
+      end
+    else
+      if .basic_info.personal_info.secondary_phone_number
+      then [{"phone_no": .basic_info.personal_info.other_phone_number, "phone_type": "other"}, {"phone_no": .basic_info.personal_info.secondary_phone_number, "phone_type": "secondary"}]
+      else [{"phone_no": .basic_info.personal_info.other_phone_number, "phone_type": "other"}]
+      end
+    end),
+  "email": .basic_info.personal_info.email,
+  "farming_type": .basic_info.personal_info.farming_type,
+  "is_disabled": .basic_info.personal_info.disability,
+  "martial_status": .socio_economic_data.marital_status,
+  "education": .socio_economic_data.education_level,
+  "hh_income_type": .socio_economic_data.income_source,
+  "other_income_type": .socio_economic_data.other_income_source,
+
+  "size_of_family": .socio_economic_data.size_of_family,
+  "number_of_children_in_family": .socio_economic_data.number_of_children_in_family,
+  "number_of_males_in_family": .socio_economic_data.number_of_males_in_family,
+  "number_of_females_in_family": .socio_economic_data.number_of_females_in_family,
+
+  "is_member_of_primary_cooperative": .membership.primary_cooperative,
+  "primary_cooperatives": .membership.name_of_primary_cooperative,
+  "other_primary_cooperative": .membership.other_primary_cooperative,
+  "is_member_of_cooperative_union": .membership.coop_union,
+  "cooperative_unions": .membership.name_of_union,
+  "other_coop_union": .membership.other_coop_union,
+  "is_member_in_farmer_cluster": .membership.farmer_cluster,
+  "primary_commodity": .membership.primary_commodity,
+  "role_in_farmer_cluster": .membership.farmer_role,
+  "land_information_ids": .land_info.land_info_repeat,
+  "crop_information_ids": .crop_information.crop_repeat,
+  "crop_water_sources": .crop_information.crop_water_source,
+  "livestock_information_ids": .livestock_info.livestock_repeat,
+  "livestock_water_sources": .livestock_info.livestock_water_source,
+  "do_you_use_fertilizer": .agricultural_input.fertilizer_utilized,
+  "do_you_use_pesticide": .agricultural_input.pesticide_utilized,
+  "do_you_use_insecticide": .agricultural_input.insecticide_utilized,
+  "do_you_use_improved_seed": .agricultural_input.improved_seed_utilized,
+  "access_to_machinery": .access_to_resource.machinery_access,
+  "type_of_machinery": .access_to_resource.type_of_machinery,
+  "finance_accesses": .access_to_finance.finance,
+  "has_finance_access": .access_to_finance.finance_access,
+  "is_farmer": "yes",
+  "farmer_location": .farmer_location.location,
+  "odk_reference_id": .farmer_reference_id_section.farmer_reference_id,
+  "additional_farmers":
+  (if .other_farmers_in_hh.other_farmers_in_hh_section.other_farmer_information == "yes"
+    then .other_farmers_in_hh.other_farmers_repeat // [] | map({
+    "has_national_id": .hh_member_national_id_section.hh_member_national_id,
+    "uid": .hh_member_national_id_section.hh_member_national_uid,
+    "rid": .hh_member_national_id_section.hh_member_national_rid,
+    "region": .hh_member_basic_info.hh_member_locale_info.hh_member_region,
+    "zone": .hh_member_basic_info.hh_member_locale_info.hh_member_zone,
+    "woreda": .hh_member_basic_info.hh_member_locale_info.hh_member_woreda,
+    "other_woreda": .hh_member_basic_info.hh_member_locale_info.hh_member_other_woreda,
+    "kebele": .hh_member_basic_info.hh_member_locale_info.hh_member_kebele,
+    "other_kebele": .hh_member_basic_info.hh_member_locale_info.hh_member_other_kebele,
+    "primary_Language": .hh_member_basic_info.hh_member_locale_info.hh_member_language,
+    "given_name": .hh_member_basic_info.hh_member_personal_info.hh_member_first_name_english,
+    "family_name": .hh_member_basic_info.hh_member_personal_info.hh_member_father_name_english,
+    "gf_name_eng": .hh_member_basic_info.hh_member_personal_info.hh_member_grandfather_name_english,
+    "name": (.hh_member_basic_info.hh_member_personal_info.hh_member_first_name_english + " " +  .hh_member_basic_info.hh_member_personal_info.hh_member_father_name_english + " " + .hh_member_basic_info.hh_member_personal_info.hh_member_grandfather_name_english | ascii_upcase),
+    "first_name_amh": .hh_member_basic_info.hh_member_personal_info.hh_member_first_name_amharic,
+    "family_name_amh": .hh_member_basic_info.hh_member_personal_info.hh_member_father_name_amharic,
+    "gf_name_amh": .hh_member_basic_info.hh_member_personal_info.hh_member_grandfather_name_amharic,
+    "first_name_other": .hh_member_basic_info.hh_member_personal_info.hh_member_first_name_other,
+    "family_name_other": .hh_member_basic_info.hh_member_personal_info.hh_member_father_name_other,
+    "gf_name_other": .hh_member_basic_info.hh_member_personal_info.hh_member_grandfather_name_other,
+    "gender": .hh_member_basic_info.hh_member_personal_info.hh_member_gender,
+    "birthdate": .hh_member_basic_info.hh_member_personal_info.hh_member_date_of_birth,
+    "age": .hh_member_basic_info.hh_member_personal_info.hh_member_age,
+    "has_personal_phone": .hh_member_basic_info.hh_member_personal_info.hh_member_phone_number,
+    "phone_ids":
+    (if .hh_member_basic_info.hh_member_personal_info.hh_member_phone_number == "yes"
+      then
+        if .hh_member_basic_info.hh_member_personal_info.hh_member_secondary_phone_number
+        then [{"phone_no": .hh_member_basic_info.hh_member_personal_info.hh_member_primary_phone_number, "phone_type": "primary"}, {"phone_no": .hh_member_basic_info.hh_member_personal_info.hh_member_secondary_phone_number, "phone_type": "secondary"}]
+        else [{"phone_no": .hh_member_basic_info.hh_member_personal_info.hh_member_primary_phone_number, "phone_type": "primary"}]
+        end
+      else
+        if .hh_member_basic_info.hh_member_personal_info.hh_member_secondary_phone_number
+        then [{"phone_no": .hh_member_basic_info.hh_member_personal_info.hh_member_other_phone_number, "phone_type": "other"}, {"phone_no": .hh_member_basic_info.hh_member_personal_info.hh_member_secondary_phone_number, "phone_type": "secondary"}]
+        else [{"phone_no": .hh_member_basic_info.hh_member_personal_info.hh_member_other_phone_number, "phone_type": "other"}]
+        end
+      end),
+    "email": .hh_member_basic_info.hh_member_personal_info.hh_member_email,
+    "household_relationship": .hh_member_basic_info.hh_member_personal_info.hh_member_relationship,
+    "farming_type": .hh_member_basic_info.hh_member_personal_info.hh_member_farming_type,
+    "is_disabled": .hh_member_basic_info.hh_member_personal_info.hh_member_disability,
+    "is_psnp_user": .hh_member_socio_economic_data.hh_member_is_psnp_user,
+    "martial_status": .hh_member_socio_economic_data.hh_member_marital_status,
+    "education": .hh_member_socio_economic_data.hh_member_education_level,
+    "hh_income_type": .hh_member_socio_economic_data.hh_member_income_source,
+    "other_income_type": .hh_member_socio_economic_data.hh_member_other_income_source,
+
+    "size_of_family": .socio_economic_data.hh_member_size_of_family,
+    "number_of_children_in_family": .socio_economic_data.hh_member_number_of_children_in_family,
+    "number_of_males_in_family": .socio_economic_data.hh_member_number_of_males_in_family,
+    "number_of_females_in_family": .socio_economic_data.hh_member_number_of_females_in_family,
+
+    "is_member_of_primary_cooperative": .hh_member_membership.hh_member_primary_cooperative,
+    "primary_cooperatives": .hh_member_membership.hh_member_name_of_primary_cooperative,
+    "other_primary_cooperative": .hh_member_membership.hh_member_other_primary_cooperative,
+    "is_member_of_cooperative_union": .hh_member_membership.hh_member_coop_union,
+    "cooperative_unions": .hh_member_membership.hh_member_name_of_union,
+    "other_coop_union": .hh_member_membership.hh_member_other_coop_union,
+    "is_member_in_farmer_cluster": .hh_member_membership.hh_member_farmer_cluster,
+    "primary_commodity": .hh_member_membership.hh_member_primary_commodity,
+    "role_in_farmer_cluster": .hh_member_membership.hh_member_farmer_role,
+    "land_information_ids": .hh_member_land_info.hh_member_land_info_repeat,
+    "crop_information_ids": .hh_member_crop_information.hh_member_crop_details,
+    "crop_water_sources": .hh_member_crop_information.hh_member_crop_water_source,
+    "livestock_information_ids": .hh_member_livestock_info.hh_member_livestock_repeat,
+    "livestock_water_sources": .hh_member_livestock_info.hh_member_livestock_water_source,
+    "do_you_use_fertilizer": .hh_member_agricultural_input.hh_member_fertilizer_utilized,
+    "do_you_use_pesticide": .hh_member_agricultural_input.hh_member_pesticide_utilized,
+    "do_you_use_insecticide": .hh_member_agricultural_input.hh_member_insecticide_utilized,
+    "do_you_use_improved_seed": .hh_member_agricultural_input.hh_member_improved_seed_utilized,
+    "access_to_machinery": .hh_member_access_to_resource.hh_member_machinery_access,
+    "type_of_machinery": .hh_member_access_to_resource.hh_member_type_of_machinery,
+    "finance_accesses": .hh_member_access_to_finance.hh_member_finance,
+    "has_finance_access": .hh_member_access_to_finance.hh_member_finance_access,
+    "hh_is_household_head": "no",
+    "is_farmer": "yes",
+    "odk_reference_id": .hh_member_reference_id_section.hh_memeber_farmer_reference_id,
+    })
+    else null
+    end),
+  "other_household_members":
+  (if .other_hh_members.other_hh_members_yes_no == "yes"
+    then .other_hh_members.other_hh_members_repeat // [] | map({
+    "name": .other_member_name_english,
+    "name_amharic": .other_member_name_amharic,
+    "name_other": .other_member_name_other,
+    "gender": .member_gender,
+    "household_relationship": .household_relationship,
+    "birthdate": .member_dob,
+    "hh_is_household_head": "no",
+    "is_farmer": "no",
+    })
+    else null
+    end),
+  "data_enumerator_name":  .__system.submitterName,
+  "data_enumerator_odk_id": .__system.submitterId,
+  "data_enumerator_deviceid": .__system.deviceId,
+  "odk_submission_date": .__system.submissionDate,
+}</field>
+    </record>
+
+</odoo>

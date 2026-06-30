@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="g2p_primary_commodity_view_tree" model="ir.ui.view">
+        <field name="name">g2p.primary.commodity.view.tree</field>
+        <field name="model">g2p.primary.commodity</field>
+        <field name="arch" type="xml">
+            <tree create="true" delete="true" edit="true" editable="bottom">
+                    <field name="name" />
+                    <field name="code" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="g2p_primary_commodity_action" model="ir.actions.act_window">
+        <field name="name">Primary Commodity</field>
+        <field name="res_model">g2p.primary.commodity</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+        id="g2p_primary_coomodity_menu"
+        action="g2p_primary_commodity_action"
+        name="Primary Commodity"
+        sequence="620"
+        parent="g2p_registry_base.g2p_configuration_menu_root"
+    />
+</odoo>

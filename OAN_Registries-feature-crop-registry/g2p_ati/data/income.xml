@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="income_source_crop_production" model="g2p.hh.income">
+        <field name="name">Crop Production</field>
+        <field name="code">crop</field>
+    </record>
+    <record id="income_source_livestock_production" model="g2p.hh.income">
+        <field name="name">Livestock Production</field>
+        <field name="code">livestock</field>
+    </record>
+    <record id="income_source_gov_ngo" model="g2p.hh.income">
+        <field name="name">Government/ NGO support</field>
+        <field name="code">gov_ngo</field>
+    </record>
+    <record id="income_source_others" model="g2p.hh.income">
+        <field name="name">Others</field>
+        <field name="code">other</field>
+    </record>
+</odoo>

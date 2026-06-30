@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="primary_commodity_wheat" model="g2p.primary.commodity">
+        <field name="name">Wheat</field>
+        <field name="code">wheat</field>
+    </record>
+    <record id="primary_commodity_teff" model="g2p.primary.commodity">
+        <field name="name">Teff</field>
+        <field name="code">teff</field>
+    </record>
+    <record id="primary_commodity_maize" model="g2p.primary.commodity">
+        <field name="name">Maize</field>
+        <field name="code">maize</field>
+    </record>
+    <record id="primary_commodity_sesame" model="g2p.primary.commodity">
+        <field name="name">Sesame</field>
+        <field name="code">sesame</field>
+    </record>
+    <record id="primary_commodity_malt_barley" model="g2p.primary.commodity">
+        <field name="name">Malt Barley</field>
+        <field name="code">malt</field>
+    </record>
+    <record id="primary_commodity_tomato" model="g2p.primary.commodity">
+        <field name="name">Tomato</field>
+        <field name="code">tomato</field>
+    </record>
+    <record id="primary_commodity_onion" model="g2p.primary.commodity">
+        <field name="name">Onion</field>
+        <field name="code">onion</field>
+    </record>
+    <record id="primary_commodity_avocado" model="g2p.primary.commodity">
+        <field name="name">Avocado</field>
+        <field name="code">avocado</field>
+    </record>
+    <record id="primary_commodity_banana" model="g2p.primary.commodity">
+        <field name="name">Banana</field>
+        <field name="code">banana</field>
+    </record>
+    <record id="primary_commodity_mango" model="g2p.primary.commodity">
+        <field name="name">Mango</field>
+        <field name="code">mango</field>
+    </record>
+    <record id="primary_commodity_soybean" model="g2p.primary.commodity">
+        <field name="name">Soybean</field>
+        <field name="code">soybean</field>
+    </record>
+</odoo>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+<record id="inherit_reject_wizard_view_with_cancel" model="ir.ui.view">
+    <field name="name">reject.wizard.form.inherit.cancel</field>
+    <field name="model">reject.wizard</field>
+    <field name="inherit_id" ref="g2p_draft_publish.reject_wizard_view" />
+    <field name="arch" type="xml">
+        <xpath expr="//footer" position="inside">
+            <button string="Cancel" class="btn btn-secondary" special="cancel" />
+        </xpath>
+    </field>
+</record>
+
+</odoo>

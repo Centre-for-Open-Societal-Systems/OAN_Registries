@@ -1,0 +1,495 @@
+<odoo>
+     <record id="view_draft_imported_kanban" model="ir.ui.view">
+        <field name="name">draft.record</field>
+        <field name="model">draft.record</field>
+        <field name="arch" type="xml">
+        
+            <kanban
+                default_group_by="validation_status"
+                string="Enrichment Status"
+                class="o_kanban_small_column o_kanban_project_tasks"
+                quick_create="false" create="false" 
+                quick_create_view="view_g2p_validation_status_form"
+                editable="top"
+                records_draggable="0"
+            >
+            <field name="name" />
+            <field name="source_db_ids" />
+            <field name="status_remark" />
+            <field name="rejection_reason" />
+            <templates>
+                <t t-name="kanban-box">
+                    <t t-set="kanban_record" t-value="record" />
+                    <div t-attf-class="my-2 o_kanban_card shadow-sm border rounded p-3">
+                        <!-- Card Header -->
+                        <div class="o_kanban_details mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="text-primary">
+                                    <field name="name" />
+                                </strong>
+                                <div>
+                                        <field widget="badge" name="state" class="badge" />
+
+
+                                </div>
+
+
+                               
+                            </div>
+                            <div class="mt-2">
+                                <field name="source_db_ids" widget="many2many_tags" options="{'color_field': 'color'}" />
+                            </div>
+                            <div class="mt-2">
+                                <span class="text-success fw-semibold">Created by: </span>
+                                <field name="create_uid" class="text-success fw-bold" />
+                            </div>
+                        </div>
+
+                        <separator/>
+
+
+                        <div class="mt-2">
+                            <div class="d-flex flex-wrap gap-2 justify-content-between">
+                               
+                                <t t-if="record.state.raw_value != 'published'">
+                                    <button
+                                            string="Change State"
+                                            type="object"
+                                            name="action_change_state"
+                                            groups="g2p_draft_publish.group_int_validator,g2p_draft_publish.group_int_admin"
+                                            class="btn btn-secondary btn-sm"
+                                        />
+                                </t>
+
+
+                                <t t-if="record.state.raw_value == 'draft' or record.state.raw_value == 'rejected'">
+                                    <button
+                                            string="Edit"
+                                            type="object"
+                                            name="action_open_wizard"
+                                            groups="g2p_draft_publish.group_int_validator,g2p_draft_publish.group_int_admin"
+                                            class="btn btn-primary btn-sm"
+                                        />
+                                    <button
+                                            string="Submit"
+                                            type="object"
+                                            name="action_submit"
+                                            groups="g2p_draft_publish.group_int_validator,g2p_draft_publish.group_int_admin"
+                                            class="btn btn-success btn-sm"
+                                        />
+                                </t>
+
+                                <t t-if="record.state.raw_value == 'submitted'">
+
+                               
+                                <button
+
+                                            string="Publish"
+                                            type="object"
+                                            name="action_publish"
+                                            groups="g2p_draft_publish.group_int_approver,g2p_draft_publish.group_int_admin"
+                                            class="btn btn-success btn-sm"
+                                        />
+                                <button
+                                            string="Reject"
+                                            invisible="state!='submitted'"
+                                            type="object"
+                                            name="action_reject"
+                                            groups="g2p_draft_publish.group_int_approver,g2p_draft_publish.group_int_admin"
+                                            class="btn btn-danger btn-sm"
+                                        />
+                                </t>
+
+                            </div>
+                        </div>
+
+                        
+                        <t t-if="record.state.raw_value != 'published' and record.rejection_reason.raw_value">
+                            <div class="mt-3 mb-3">
+                                <strong class="text-muted">Rejection Remark: </strong>
+                                <field name="rejection_reason" />
+                            </div>
+                        </t>
+
+                        <t t-if="record.state.raw_value != 'published' and record.status_remark.raw_value">
+                            <div class="mt-3 mb-3">
+                                <strong class="text-muted">Status Remark: </strong>
+                                <field name="status_remark" />
+                            </div>
+                        </t>
+                   
+
+                    </div>
+                </t>
+            </templates>
+
+        </kanban>
+        </field>
+    </record>
+
+
+    <record id="view_partner_form_inherited" model="ir.ui.view">
+        <field name="name">res.partner.form.inherited.lang</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="arch" type="xml">
+             <xpath expr="//field[@name='lang']" position="after">
+                <field name="asigned_region" widget="many2many_tags" />
+                <field name="language_skills" widget="many2many_tags" />
+             </xpath>
+        </field>
+    </record>
+
+    <record id="res_partner_source_db_tags" model="ir.ui.view">
+        <field name="name">res.partner.source.db.tags</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="g2p_registry_individual.view_individuals_form" />
+        <field name="active" eval="False" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='age']" position="after">
+                <field name="source_db_ids" widget="many2many_tags" options="{'color_field': 'color'}" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_draft_imported_record_form_source_tags" model="ir.ui.view">
+        <field name="name">draft.record.form.source.tags</field>
+        <field name="model">draft.record</field>
+        <field name="inherit_id" ref="g2p_draft_publish.view_draft_imported_record_form" />
+        <field name="active" eval="False" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@class='oe_title mb24']" position="after">
+                <group>
+                    <field name="source_db_ids" widget="many2many_tags" options="{'color_field': 'color'}" />
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+
+
+    <record id="view_draft_imported_farmer_record_tree" model="ir.ui.view">
+        <field name="name">draft.record.tree</field>
+        <field name="model">draft.record</field>
+        <field name="inherit_id" ref="g2p_draft_publish.view_draft_imported_record_tree" />
+        <field name="arch" type="xml">     
+            <xpath expr="//field[@name='addl_name']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </xpath>
+            
+            <xpath expr="//field[@name='family_name']" position="after">
+                <field name="gf_name_eng" 
+                readonly="id!=False"
+                 />
+            </xpath>
+            <xpath expr="//field[@name='gf_name_eng']" position="after">
+                <field name="source_db_ids" widget="many2many_tags" options="{'color_field': 'color'}" />
+            </xpath>
+            <xpath expr="//field[@name='source_db_ids']" position="after">
+                <field name="create_uid" class="text-success fw-semibold" />
+            </xpath>
+            <xpath expr="//field[@name='region']" position="after">
+                <field name="zone" readonly="1" />
+                <field name="woreda" readonly="1" />
+                <field name="kebele" readonly="1" />
+            </xpath>
+            <xpath expr="//button[@name='action_open_wizard']" position="replace">
+                <button
+                    string="Edit"
+                    invisible="state in ('published','submitted')"
+                    type="object"
+                    name="action_open_wizard"
+                    groups="g2p_draft_publish.group_int_validator,g2p_draft_publish.group_int_admin,g2p_draft_publish.group_int_approver"
+                />
+                <button
+                    string="Edit"
+                    invisible="state != 'submitted'"
+                    type="object"
+                    name="action_open_wizard"
+                    groups="g2p_draft_publish.group_int_approver,g2p_draft_publish.group_int_admin"
+                />
+            </xpath>
+            <xpath expr="//button[@name='action_submit']" position="replace">
+                <button
+                    string="Submit"
+                    invisible="state not in ('draft','rejected')"
+                    type="object"
+                    name="action_submit"
+                    groups="g2p_draft_publish.group_int_validator,g2p_draft_publish.group_int_admin"
+                />
+            </xpath>
+        </field>
+    </record>
+
+
+
+
+
+    <record id="view_draft_imported_farmer_record_lmap" model="ir.ui.view">
+        <field name="name">draft.record.map</field>
+        <field name="model">draft.record</field>
+        <field name="arch" type="xml">
+            <lmap />
+        </field>
+    </record>
+
+    <record id="res_partner_hide_publish_reject_buttons" model="ir.ui.view">
+        <field name="name">res.partner.form.hide.buttons</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="g2p_draft_publish.g2p_validation_form_view" />
+        <field name="arch" type="xml">
+
+            <xpath expr="//header" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+
+        </field>
+    </record> 
+
+    <record id="res_partner_draft_farmer_data_top" model="ir.ui.view">
+        <field name="name">res.partner.draft.farmer.data.top</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="g2p_draft_publish.g2p_validation_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[@class='oe_title mb24']" position="before">
+                <xpath
+                    expr="//sheet/notebook[@name='individual_detail']/page[@name='basic_info']/group[@name='farmer_socio_economic_data']"
+                    position="move"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="res_partner_draft_farmer_data_top_view_only" model="ir.ui.view">
+        <field name="name">res.partner.draft.farmer.data.top.view.only</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="g2p_draft_publish.g2p_validation_form_view_only" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[@class='oe_title mb24']" position="before">
+                <xpath
+                    expr="//sheet/notebook[@name='individual_detail']/page[@name='basic_info']/group[@name='farmer_socio_economic_data']"
+                    position="move"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="res_partner_draft_children_requires_male_female" model="ir.ui.view">
+    <field name="name">res.partner.draft.children.readonly.until.male.female</field>
+    <field name="model">res.partner</field>
+    <field name="inherit_id" ref="g2p_draft_publish.g2p_validation_form_view" />
+    <field name="arch" type="xml">
+        <xpath expr="//field[@name='number_of_children_in_family']" position="attributes">
+            <attribute name="readonly">not number_of_males_in_family and not number_of_females_in_family</attribute>
+        </xpath>
+    </field>
+</record>
+
+    <record id="res_partner_draft_family_size_force_save" model="ir.ui.view">
+        <field name="name">res.partner.draft.family.size.force.save</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="g2p_draft_publish.g2p_validation_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='size_of_family']" position="attributes">
+                <attribute name="force_save">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="res_partner_draft_source_db_tags" model="ir.ui.view">
+        <field name="name">res.partner.draft.source.db.tags</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="g2p_draft_publish.g2p_validation_form_view" />
+        <field name="active" eval="False" />
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='other']" position="inside">
+                <group string="Import Information">
+                    <field name="source_db_ids" widget="many2many_tags" options="{'color_field': 'color'}" />
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="g2p_validation_base_tree_view_db_import_label" model="ir.ui.view">
+        <field name="name">g2p.validation.base.tree.import.source</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="g2p_draft_publish.g2p_validation_base_tree_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='db_import']" position="replace">
+                <field
+                    name="rec_import_source"
+                    string="Import Source"
+                    widget="badge"
+                    decoration-info="rec_import_source"
+                />
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="action_draft_imported_farmer_record" model="ir.actions.act_window">
+        <field name="name">Draft</field>
+        <field name="res_model">draft.record</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="domain">[('state', 'not in', ['submitted', 'published'])]</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                (0,0,{'view_mode': 'kanban', 'view_id': ref('g2p_ati_integrations.view_draft_imported_kanban')}),
+                (0,0,{'view_mode': 'tree', 'view_id': ref('view_draft_imported_farmer_record_tree')}),
+                (0,0,{'view_mode': 'form', 'view_id': ref('g2p_draft_publish.view_draft_imported_record_form')})]"
+        />
+    </record>
+
+    <record id="action_ati_cleaned_record" model="ir.actions.act_window">
+        <field name="name">Cleaned</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                (0,0,{'view_mode': 'tree', 'view_id': ref('g2p_registry_individual.view_individuals_list_tree')}),
+                (0,0,{'view_mode': 'form', 'view_id': ref('g2p_registry_individual.view_individuals_form')})]"
+        />
+        <field name="domain">[('db_import', '=', 'yes')]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+
+    <record id="action_draft_imported_record" model="ir.actions.act_window">
+        <field name="name">Draft</field>
+        <field name="res_model">draft.record</field>
+        <field name="view_mode">kanban,tree,form,lmap</field>
+        <field name="domain">[('state', '!=', 'submitted')]</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                (0,0,{'view_mode': 'kanban', 'view_id': ref('view_draft_imported_kanban')}),
+                (0,0,{'view_mode': 'tree', 'view_id': ref('view_draft_imported_farmer_record_tree')}),
+                (0,0,{'view_mode': 'form', 'view_id': ref('g2p_draft_publish.view_draft_imported_record_form')})]"
+        />
+    </record>
+
+    <record id="g2p_draft_publish.menu_draft_imported_farmer_record" model="ir.ui.menu">
+        <field name="name">Drafts</field>
+        <field name="action" ref="action_draft_imported_farmer_record" />
+    </record>
+
+
+    <menuitem
+        id="menu_g2p_integration_configurations"
+        name="Configurations"
+        parent="g2p_draft_publish.draft_publish_main_menu"
+        sequence="100"
+        groups="g2p_draft_publish.group_int_admin"
+    />
+    <menuitem
+        id="menu_g2p_validation_status"
+        name="Enrichment Status"
+        parent="menu_g2p_integration_configurations"
+        action="g2p_ati_integrations.action_g2p_validation_status"
+        groups="g2p_draft_publish.group_int_admin"
+    />
+
+    <record id="view_g2p_ati_integration_users_tree" model="ir.ui.view">
+        <field name="name">g2p.ati.integration.users.tree</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <tree string="Integration Users">
+                <field name="name" />
+                <field name="phone" />
+                <field name="mobile" />
+                <field name= "language_skills"/>
+                <field name= "asigned_region" widget="many2many_tags"/>
+                <field name="user_ids" widget="many2many_tags" optional="show" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_ati_integration_users_form" model="ir.ui.view">
+        <field name="name">g2p.ati.integration.users.form</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <form string="Integration User">
+                <sheet>
+                    <group>
+                        <field name="name" />
+                        <field name="phone" />
+                        <field name="mobile" />
+                        <field name="language_skills" widget="many2many_tags" />
+                        <field name="asigned_region" widget="many2many_tags" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_g2p_ati_integration_users" model="ir.actions.act_window">
+        <field name="name">Data Integration Users</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field
+            name="view_ids"
+            eval="[(5, 0, 0),
+                (0,0,{'view_mode': 'tree', 'view_id': ref('g2p_ati_integrations.view_g2p_ati_integration_users_tree')}),
+                (0,0,{'view_mode': 'form', 'view_id': ref('g2p_ati_integrations.view_g2p_ati_integration_users_form')})]"
+        />
+        <field
+            name="domain"
+            eval="[('user_ids.groups_id', 'in', [
+                ref('g2p_draft_publish.group_int_validator'),
+                ref('g2p_draft_publish.group_int_approver'),
+                ref('g2p_draft_publish.group_int_admin')
+            ])]"
+        />
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <menuitem
+        id="menu_g2p_ati_integration_users"
+        name="Data Integration Users"
+        parent="menu_g2p_integration_configurations"
+        action="action_g2p_ati_integration_users"
+        sequence="20"
+        groups="g2p_draft_publish.group_int_admin"
+    />
+
+    <menuitem
+        id="g2p_draft_publish.menu_ati_cleand_records_root"
+        name="Cleaned Records"
+        action="action_ati_cleaned_record"
+        groups="g2p_draft_publish.group_int_admin,g2p_draft_publish.group_int_approver"
+        web_icon="g2p_ati_integrations,static/description/checkmark.png"
+    />
+
+
+
+    <record id="g2p_ati.menu_action_crop_info" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('g2p_draft_publish.group_int_admin')),(4, ref('g2p_draft_publish.group_int_approver'))]"/>
+    </record>
+
+    <record id="g2p_ati.menu_action_livestock" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('g2p_draft_publish.group_int_admin')),(4, ref('g2p_draft_publish.group_int_approver'))]"/>
+    </record>
+
+    <record id="g2p_ati.menu_action_land_info" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('g2p_draft_publish.group_int_admin')),(4, ref('g2p_draft_publish.group_int_approver'))]"/>
+    </record>
+
+    <record id="g2p_ati.menu_action_household" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('g2p_draft_publish.group_int_admin')),(4, ref('g2p_draft_publish.group_int_approver'))]"/>
+    </record>
+
+    <record id="g2p_ati.menu_action_individual" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('g2p_draft_publish.group_int_admin')),(4, ref('g2p_draft_publish.group_int_approver'))]"/>
+    </record>
+
+    <record id="g2p_ati.menu_action_farmer" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('g2p_draft_publish.group_int_admin')),(4, ref('g2p_draft_publish.group_int_approver'))]"/>
+    </record>
+
+
+
+
+</odoo>

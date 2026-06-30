@@ -1,0 +1,1060 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <data>
+
+        <!-- Tree View -->
+        <record id="view_crop_registry_tree" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.tree</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="arch" type="xml">
+                <tree string="Crop Sown Registry">
+                    <field name="partner_id"
+                           context="{'show_farmer_id': True}"
+                           options="{'no_create': True}"/>
+                    <field name="fyda_id"/>
+                    <field name="farmer_display_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Form View -->
+        <record id="view_g2p_crop_registry_form" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.form</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="arch" type="xml">
+                <form string="Crop Sown Registry">
+                    <sheet>
+                        <div class="oe_title" invisible="1">
+                            <label for="name" string="Registry ID"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group string="Farmer Identity">
+                            <group>
+                                <field name="partner_id"
+                                       context="{'show_farmer_id': True}"
+                                       options="{'no_create': True}"/>
+                                <field name="fyda_id" readonly="1" force_save="1"/>
+                                <field name="farmer_display_id" readonly="1" force_save="1"/>
+<!--                                <field name="owner_name"/>-->
+                                <field name="region_id" readonly="1" force_save="1"/>
+                            </group>
+                            <group>
+                                <field name="zone_id" readonly="1" force_save="1"/>
+                                <field name="woreda_id" readonly="1" force_save="1"/>
+                                <field name="kebele_id" options="{'no_create': True}" readonly="1" force_save="1"/>
+                                <field name="gps" readonly="1" force_save="1"/>
+                            </group>
+                        <notebook>
+<!--                            <page string="Land Details">-->
+<!--                                <group>-->
+<!--&lt;!&ndash;                                    <field name="land_plan"/>&ndash;&gt;-->
+<!--                                    -->
+<!--&lt;!&ndash;                                    <field name="current_land_use"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                                    <field name="irrigation_type"/>&ndash;&gt;-->
+<!--                                </group>-->
+<!--                            </page>-->
+                            <page string="Planning">
+                                <group string="Planned Crops">
+                                    <field name="annual_line_ids" nolabel="1" colspan="2">
+                                        <tree>
+                                            <field name="sync_id" column_invisible="1" force_save="1"/>
+                                            <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                            <field name="land_category" width="16%" class="text-start"/>
+                                            <field name="season_id" width="16%" class="text-start"/>
+                                            <field name="crop_name_id" width="16%" class="text-start"/>
+                                            <field name="crop_category_id" width="16%" class="text-start"/>
+                                            <field name="crop_variety_id" width="16%" class="text-start"/>
+                                        </tree>
+                                        <form>
+                                            <sheet>
+                                                <field name="sync_id" invisible="1" force_save="1"/>
+                                                <div class="oe_title mt-2 mb-4" invisible="not land_category">
+                                                    <h1 invisible="land_category != 'annual'" style="color: #017e84;">Annual Input</h1>
+                                                    <h1 invisible="land_category != 'perennial'" style="color: #017e84;">Perennial Input</h1>
+                                                    <h1 invisible="land_category != 'biennial'" style="color: #017e84;">Biennial Input</h1>
+                                                </div>
+
+                                                <group string="Land / Plot Details">
+                                                    <group>
+                                                        <field name="land_info_id" domain="[('partner_id', '=', parent.partner_id)]"/>
+                                                        <field name="land_category"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="ownership_type" readonly="1" force_save="1"/>
+                                                        <field name="land_area" readonly="1" force_save="1"/>
+                                                        <field name="region_name_id" readonly="1" force_save="1"/>
+                                                        <field name="zone_name_id" readonly="1" force_save="1"/>
+                                                        <field name="woreda_name_id" readonly="1" force_save="1"/>
+                                                        <field name="kebele_id" readonly="1" force_save="1"/>
+                                                        <field name="soil_fertility" readonly="1" force_save="1"/>
+                                                        <field name="gps" readonly="1" force_save="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Season Details" invisible="not land_category">
+                                                    <group>
+                                                        <field name="season_id" options="{'no_create': True, 'no_open': True}"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="start_gc" readonly="1" force_save="1"/>
+                                                        <field name="start_month" readonly="1" force_save="1"/>
+                                                        <field name="start_day" readonly="1" force_save="1"/>
+                                                        <field name="end_gc" readonly="1" force_save="1"/>
+                                                        <field name="end_month" readonly="1" force_save="1"/>
+                                                        <field name="end_day" readonly="1" force_save="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Crop Details" invisible="not land_category">
+                                                    <group>
+                                                        <field name="crop_name_id"/>
+                                                        <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]"/>
+                                                        <field name="collected_gc"/>
+                                                        <field name="collected_ec"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="crop_id_ref" readonly="1"/>
+                                                        <field name="crop_category_id" readonly="1"/>
+                                                    </group>
+                                                </group>
+
+                                                <group string="Crop Planned Inputs" invisible="not land_category">
+                                                    <group>
+                                                        <field name="crop_growth_duration"/>
+                                                        <field name="crop_planned_area"/>
+                                                        <field name="crop_expected"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Seed Planned Inputs" invisible="not land_category">
+                                                    <group>
+                                                        <field name="seed_planned"/>
+                                                        <field name="seed_planned_qty"/>
+                                                        <field name="seed_planned_fertilizer_type"/>
+                                                    </group>
+                                                    <group>
+
+                                                        <field name="seed_planned_fertilizer_qty"/>
+                                                        <!-- <field name="seed_planned_fertilizer_sack"/> -->
+                                                        <field name="planned_labor"/>
+                                                    </group>
+                                                    <field name="water_resource_line_ids" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="water_resource_id"/>
+                                                            <field name="method_id" options="{'no_create': True}"/>
+                                                            <field name="frequency"/>
+                                                        </tree>
+                                                    </field>
+                                                </group>
+                                                <group invisible="1">
+                                                     <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}"/>
+                                                 </group>
+                                                 <group string="Cluster Information" invisible="1">
+                                                     <group>
+                                                         <field name="cluster_plan"/>
+                                                         <field name="cluster_collected_land"/>
+                                                         <field name="cluster_collected_quintal"/>
+                                                         <field name="cluster_participant_farmers"/>
+                                                     </group>
+                                                     <group>
+                                                         <field name="collected_land"/>
+                                                         <field name="collected_land_quintal"/>
+                                                         <field name="collected_by_combiner"/>
+                                                     </group>
+                                                 </group>
+                                            </sheet>
+                                        </form>
+                                    </field>
+                                </group>
+                                <group string="Perennial Crops" invisible="1">
+                                        <field name="perennial_line_ids" nolabel="1" colspan="2">
+                                        <tree>
+                                            <field name="sync_id" column_invisible="1" force_save="1"/>
+                                            <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                            <field name="season_id" width="11%" class="text-start"/>
+                                            <field name="crop_name_id" width="11%" class="text-start"/>
+                                            <field name="crop_category_id" width="11%" class="text-start"/>
+                                            <field name="crop_variety_id" width="11%" class="text-start"/>
+                                            <field name="crop_planned_area" width="11%" class="text-start"/>
+                                            <field name="crop_growth_duration" width="11%" class="text-start"/>
+                                            <field name="seed_planned" width="11%" class="text-start"/>
+                                            <field name="seed_planned_fertilizer_type" width="11%" class="text-start"/>
+                                            <field name="water_resource_line_ids" widget="many2many_tags" width="12%" class="text-start"/>
+                                        </tree>
+                                        <form>
+                                            <sheet>
+                                                <field name="sync_id" invisible="1" force_save="1"/>
+
+                                                <group string="Land / Plot Details">
+                                                    <group>
+                                                        <field name="land_info_id" domain="[('partner_id', '=', parent.partner_id)]"/>
+                                                        <field name="land_category"/>
+                                                    </group>
+
+                                                    <group>
+                                                        <field name="ownership_type" readonly="1" force_save="1"/>
+                                                        <field name="land_area" readonly="1" force_save="1"/>
+                                                        <field name="region_name_id" readonly="1" force_save="1"/>
+                                                        <field name="zone_name_id" readonly="1" force_save="1"/>
+                                                        <field name="woreda_name_id" readonly="1" force_save="1"/>
+                                                        <field name="kebele_id" readonly="1" force_save="1"/>
+                                                        <field name="soil_fertility" readonly="1" force_save="1"/>
+                                                        <field name="gps" readonly="1" force_save="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Season Details">
+                                                    <group>
+                                                        <field name="season_id" options="{'no_create': True, 'no_open': True}"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="start_gc" readonly="1" force_save="1"/>
+                                                        <field name="start_month" readonly="1" force_save="1"/>
+                                                        <field name="start_day" readonly="1" force_save="1"/>
+                                                        <field name="end_gc" readonly="1" force_save="1"/>
+                                                        <field name="end_month" readonly="1" force_save="1"/>
+                                                        <field name="end_day" readonly="1" force_save="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Crop Details">
+                                                    <group>
+                                                        <field name="crop_name_id"/>
+                                                        <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]"/>
+                                                        <field name="collected_gc"/>
+                                                        <field name="collected_ec"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="crop_id_ref" readonly="1"/>
+                                                        <field name="crop_category_id" readonly="1"/>
+                                                    </group>
+                                                </group>
+
+                                                <group string="Crop Planned Inputs">
+                                                    <group>
+                                                        <field name="crop_growth_duration"/>
+                                                        <field name="crop_planned_area"/>
+                                                        <field name="crop_expected"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Seed Planned Inputs">
+                                                    <group>
+                                                        <field name="seed_planned"/>
+                                                        <field name="seed_planned_qty"/>
+                                                        <field name="seed_planned_fertilizer_type"/>
+                                                    </group>
+                                                    <group>
+
+                                                        <field name="seed_planned_fertilizer_qty"/>
+                                                        <!-- <field name="seed_planned_fertilizer_sack"/> -->
+                                                        <field name="planned_labor"/>
+                                                    </group>
+                                                    <field name="water_resource_line_ids" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="water_resource_id"/>
+                                                            <field name="method_id" options="{'no_create': True}"/>
+                                                            <field name="frequency"/>
+                                                        </tree>
+                                                    </field>
+                                                </group>
+                                                <group invisible="1">
+                                                    <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}"/>
+                                                </group>
+                                                <group string="Cluster Information" invisible="1">
+                                                    <group>
+                                                        <field name="cluster_plan"/>
+                                                        <field name="cluster_collected_land"/>
+                                                        <field name="cluster_collected_quintal"/>
+                                                        <field name="cluster_participant_farmers"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="collected_land"/>
+                                                        <field name="collected_land_quintal"/>
+                                                        <field name="collected_by_combiner"/>
+                                                    </group>
+                                                </group>
+
+
+                                            </sheet>
+                                        </form>
+                                    </field>
+                                </group>
+                                                                <group string="Biennial Crops" invisible="1">
+                                        <field name="biennial_line_ids" nolabel="1" colspan="2">
+                                        <tree>
+                                            <field name="sync_id" column_invisible="1" force_save="1"/>
+                                            <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                            <field name="season_id" width="11%" class="text-start"/>
+                                            <field name="crop_name_id" width="11%" class="text-start"/>
+                                            <field name="crop_category_id" width="11%" class="text-start"/>
+                                            <field name="crop_variety_id" width="11%" class="text-start"/>
+                                            <field name="crop_planned_area" width="11%" class="text-start"/>
+                                            <field name="crop_growth_duration" width="11%" class="text-start"/>
+                                            <field name="seed_planned" width="11%" class="text-start"/>
+                                            <field name="seed_planned_fertilizer_type" width="11%" class="text-start"/>
+                                            <field name="water_resource_line_ids" widget="many2many_tags" width="12%" class="text-start"/>
+                                        </tree>
+                                        <form>
+                                            <sheet>
+                                                <field name="sync_id" invisible="1" force_save="1"/>
+
+                                                <group string="Land / Plot Details">
+                                                    <group>
+                                                        <field name="land_info_id" domain="[('partner_id', '=', parent.partner_id)]"/>
+                                                        <field name="land_category"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="ownership_type" readonly="1" force_save="1"/>
+                                                        <field name="land_area" readonly="1" force_save="1"/>
+                                                        <field name="region_name_id" readonly="1" force_save="1"/>
+                                                        <field name="zone_name_id" readonly="1" force_save="1"/>
+                                                        <field name="woreda_name_id" readonly="1" force_save="1"/>
+                                                        <field name="kebele_id" readonly="1" force_save="1"/>
+                                                        <field name="soil_fertility" readonly="1" force_save="1"/>
+                                                        <field name="gps" readonly="1" force_save="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Season Details">
+                                                    <group>
+                                                        <field name="season_id" options="{'no_create': True, 'no_open': True}"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="start_gc" readonly="1" force_save="1"/>
+                                                        <field name="start_month" readonly="1" force_save="1"/>
+                                                        <field name="start_day" readonly="1" force_save="1"/>
+                                                        <field name="end_gc" readonly="1" force_save="1"/>
+                                                        <field name="end_month" readonly="1" force_save="1"/>
+                                                        <field name="end_day" readonly="1" force_save="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Crop Details">
+                                                    <group>
+                                                        <field name="crop_name_id"/>
+                                                        <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]"/>
+                                                        <field name="collected_gc"/>
+                                                        <field name="collected_ec"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="crop_id_ref" readonly="1"/>
+                                                        <field name="crop_category_id" readonly="1"/>
+                                                    </group>
+                                                </group>
+
+                                                <group string="Crop Planned Inputs">
+                                                    <group>
+                                                        <field name="crop_growth_duration"/>
+                                                        <field name="crop_planned_area"/>
+                                                        <field name="crop_expected"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Seed Planned Inputs">
+                                                    <group>
+                                                        <field name="seed_planned"/>
+                                                        <field name="seed_planned_qty"/>
+                                                        <field name="seed_planned_fertilizer_type"/>
+                                                    </group>
+                                                    <group>
+
+                                                        <field name="seed_planned_fertilizer_qty"/>
+                                                        <!-- <field name="seed_planned_fertilizer_sack"/> -->
+                                                        <field name="planned_labor"/>
+                                                    </group>
+                                                    <field name="water_resource_line_ids" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="water_resource_id"/>
+                                                            <field name="method_id" options="{'no_create': True}"/>
+                                                            <field name="frequency"/>
+                                                        </tree>
+                                                    </field>
+                                                </group>
+                                                <group invisible="1">
+                                                    <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}"/>
+                                                </group>
+                                                <group string="Cluster Information" invisible="1">
+                                                    <group>
+                                                        <field name="cluster_plan"/>
+                                                        <field name="cluster_collected_land"/>
+                                                        <field name="cluster_collected_quintal"/>
+                                                        <field name="cluster_participant_farmers"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="collected_land"/>
+                                                        <field name="collected_land_quintal"/>
+                                                        <field name="collected_by_combiner"/>
+                                                    </group>
+                                                </group>
+
+
+                                            </sheet>
+                                        </form>
+                                    </field>
+                                </group>
+                            </page>
+                            <page string="Cultivation / Land Preparation">
+                                <field name="has_no_planning_data" invisible="1"/>
+                                <div class="alert alert-warning" role="alert" invisible="not has_no_planning_data" style="margin-bottom: 10px;">
+                                    There is no data in the Planning section. You are creating a cultivation record directly here.
+                                </div>
+                                <group string="Actual Crops">
+                                    <field name="actual_annual_line_ids" nolabel="1" colspan="2">
+                                        <tree decoration-danger="is_mismatch" decoration-success="not is_mismatch and crop_name_id">
+                                            <field name="sync_id" column_invisible="1" force_save="1"/>
+                                            <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                            <field name="land_category" width="16%" class="text-start"/>
+                                            <field name="season_id" width="16%" class="text-start"/>
+                                            <field name="crop_name_id" width="16%" class="text-start"/>
+                                            <field name="crop_category_id" width="16%" class="text-start" readonly="1"/>
+                                            <field name="crop_variety_id" width="16%" class="text-start" domain="[('crop_id', '=', crop_name_id)]"/>
+                                            <field name="collected_gc" column_invisible="1"/>
+                                            <field name="collected_ec" column_invisible="1"/>
+                                            <field name="is_mismatch" column_invisible="1"/>
+                                        </tree>
+                                        <form>
+                                            <sheet>
+                                                <field name="sync_id" invisible="1" force_save="1"/>
+                                                <field name="is_manual" invisible="1"/>
+                                                <field name="is_planning" invisible="1"/>
+                                                <div class="alert alert-warning" role="alert" invisible="is_planning">
+                                                    You are creating a record directly here. This record is not linked to the planning section.
+                                                </div>
+                                                <div class="oe_title mt-2 mb-4" invisible="not land_category">
+                                                    <h1 invisible="land_category != 'annual'" style="color: #017e84;">Actual Annual Input</h1>
+                                                    <h1 invisible="land_category != 'perennial'" style="color: #017e84;">Actual Perennial Input</h1>
+                                                    <h1 invisible="land_category != 'biennial'" style="color: #017e84;">Actual Biennial Input</h1>
+                                                </div>
+                                                <group string="Land / Plot Details">
+                                                    <group>
+                                                        <field name="land_info_id" domain="[('partner_id', '=', parent.partner_id)]" readonly="not is_manual" force_save="1"/>
+                                                        <field name="land_category" readonly="not is_manual" force_save="1" invisible="not is_manual"/>
+                                                    </group>
+                                                    <group invisible="not is_manual">
+                                                        <field name="ownership_type" readonly="1" force_save="1"/>
+                                                        <field name="land_area" readonly="1" force_save="1"/>
+                                                        <field name="region_name_id" readonly="1" force_save="1"/>
+                                                        <field name="zone_name_id" readonly="1" force_save="1"/>
+                                                        <field name="woreda_name_id" readonly="1" force_save="1"/>
+                                                        <field name="kebele_id" readonly="1" force_save="1"/>
+                                                        <field name="soil_fertility" readonly="1" force_save="1"/>
+                                                        <field name="gps" readonly="1" force_save="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Season Details" invisible="not land_category">
+                                                    <group>
+                                                        <field name="season_id" options="{'no_create': True, 'no_open': True}"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="start_gc" readonly="1" force_save="1"/>
+                                                        <field name="start_month" readonly="1" force_save="1"/>
+                                                        <field name="start_day" readonly="1" force_save="1"/>
+                                                        <field name="end_gc" readonly="1" force_save="1"/>
+                                                        <field name="end_month" readonly="1" force_save="1"/>
+                                                        <field name="end_day" readonly="1" force_save="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Crop Details" invisible="not land_category">
+                                                    <group>
+                                                        <field name="crop_name_id"/>
+                                                        <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]"/>
+                                                        <field name="collected_gc"/>
+                                                        <field name="collected_ec"/>
+                                                        <field name="remark" placeholder="Reason for changing the crop"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="crop_id_ref" readonly="1"/>
+                                                        <field name="crop_category_id" readonly="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Crop Actual Inputs" invisible="not land_category">
+                                                    <group>
+                                                        <field name="actual_growth_duration"/>
+                                                        <field name="actual_crop_area"/>
+                                                        <field name="actual_yield"/>
+                                                        <field name="cultivated_by"/>
+                                                        <field name="land_prep_method_ids" widget="many2many_tags"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Seed Actual Inputs" invisible="not land_category">
+                                                    <group>
+                                                        <field name="actual_seed_class"/>
+                                                        <field name="actual_seed_qty"/>
+                                                        <field name="actual_fertilizer_type"/>
+                                                    </group>
+                                                    <group>
+
+                                                        <field name="actual_fertilizer_qty"/>
+                                                        <!-- <field name="actual_fertilizer_sack"/> -->
+                                                    </group>
+                                                    <group>
+                                                        <field name="pest_occurrence"/>
+                                                        <field name="weed_occurrence"/>
+                                                    </group>
+                                                    <field name="pest_line_ids" invisible="pest_occurrence != 'yes'" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="pest_type"/>
+                                                            <field name="pest_name_id"/>
+                                                            <field name="pesticide_method"/>
+                                                            <field name="pesticides_type"/>
+                                                            <field name="pesticide_name_id"/>
+                                                            <field name="pesticide_frequency"/>
+                                                        </tree>
+                                                    </field>
+                                                    <field name="weed_line_ids" invisible="weed_occurrence != 'yes'" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="weed_type"/>
+                                                            <field name="weed_name_id"/>
+                                                            <field name="pesticide_method"/>
+                                                            <field name="weedicide_type"/>
+                                                            <field name="weedicide_name_id"/>
+                                                            <field name="pesticide_frequency"/>
+                                                        </tree>
+                                                    </field>
+                                                    <field name="water_resource_line_ids" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="water_resource_id"/>
+                                                            <field name="method_id" options="{'no_create': True}"/>
+                                                            <field name="frequency"/>
+                                                        </tree>
+                                                    </field>
+                                                </group>
+                                                <field name="has_cluster_farming" invisible="1"/>
+                                                <group string="CLUSTER INFORMATION(Actual)" invisible="has_cluster_farming != 'yes'">
+                                                    <group>
+                                                        <field name="actual_cluster_plan"/>
+                                                        <field name="actual_cluster_collected_land"/>
+                                                        <field name="actual_cluster_collected_quintal"/>
+                                                        <field name="actual_cluster_participant_farmers"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="actual_collected_land"/>
+                                                        <field name="actual_collected_land_quintal"/>
+                                                        <field name="actual_collected_by_combiner"/>
+                                                    </group>
+                                                </group>
+                                            </sheet>
+                                        </form>
+                                    </field>
+                                </group>
+                                <group string="Perennial Crops" invisible="1">
+                                    <field name="actual_perennial_line_ids" nolabel="1" colspan="2">
+                                        <tree decoration-danger="is_mismatch" decoration-success="not is_mismatch and crop_name_id">
+                                            <field name="sync_id" column_invisible="1" force_save="1"/>
+                                            <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                            <field name="season_id" width="11%" class="text-start"/>
+                                            <field name="crop_name_id" width="11%" class="text-start"/>
+                                            <field name="crop_category_id" width="11%" class="text-start" readonly="1"/>
+                                            <field name="crop_variety_id" width="11%" class="text-start" domain="[('crop_id', '=', crop_name_id)]"/>
+                                            <field name="actual_crop_area" width="11%" class="text-start"/>
+                                            <field name="actual_growth_duration" width="11%" class="text-start"/>
+                                            <field name="actual_seed_class" width="11%" class="text-start"/>
+                                            <field name="actual_fertilizer_type" width="11%" class="text-start"/>
+                                            <field name="water_resource_line_ids" widget="many2many_tags" width="12%" class="text-start"/>
+                                            <field name="collected_gc" column_invisible="1"/>
+                                            <field name="collected_ec" column_invisible="1"/>
+                                            <field name="is_mismatch" column_invisible="1"/>
+                                        </tree>
+                                        <form>
+                                            <sheet>
+                                                <field name="sync_id" invisible="1" force_save="1"/>
+                                                <field name="is_manual" invisible="1"/>
+                                                <field name="is_planning" invisible="1"/>
+                                                <div class="alert alert-warning" role="alert" invisible="is_planning">
+                                                    You are creating a record directly here. This record is not linked to the planning section.
+                                                </div>
+                                                <group string="Land / Plot Details">
+                                                    <group>
+                                                        <field name="land_info_id" domain="[('partner_id', '=', parent.partner_id)]" readonly="not is_manual" force_save="1"/>
+                                                        <field name="land_category" readonly="not is_manual" force_save="1" invisible="not is_manual"/>
+                                                    </group>
+                                                    <group invisible="not is_manual">
+                                                        <field name="ownership_type" readonly="1" force_save="1"/>
+                                                        <field name="land_area" readonly="1" force_save="1"/>
+                                                        <field name="region_name_id" readonly="1" force_save="1"/>
+                                                        <field name="zone_name_id" readonly="1" force_save="1"/>
+                                                        <field name="woreda_name_id" readonly="1" force_save="1"/>
+                                                        <field name="kebele_id" readonly="1" force_save="1"/>
+                                                        <field name="soil_fertility" readonly="1" force_save="1"/>
+                                                        <field name="gps" readonly="1" force_save="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Season Details">
+                                                    <group>
+                                                        <field name="season_id" options="{'no_create': True, 'no_open': True}"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="start_gc" readonly="1" force_save="1"/>
+                                                        <field name="start_month" readonly="1" force_save="1"/>
+                                                        <field name="start_day" readonly="1" force_save="1"/>
+                                                        <field name="end_gc" readonly="1" force_save="1"/>
+                                                        <field name="end_month" readonly="1" force_save="1"/>
+                                                        <field name="end_day" readonly="1" force_save="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Crop Details">
+                                                    <group>
+                                                        <field name="crop_name_id"/>
+                                                        <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]"/>
+                                                        <field name="collected_gc"/>
+                                                        <field name="collected_ec"/>
+                                                        <field name="remark" placeholder="Reason for changing the crop"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="crop_id_ref" readonly="1"/>
+                                                        <field name="crop_category_id" readonly="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Crop Actual Inputs">
+                                                    <group>
+                                                        <field name="actual_growth_duration"/>
+                                                        <field name="actual_crop_area"/>
+                                                        <field name="actual_yield"/>
+                                                        <field name="cultivated_by"/>
+                                                        <field name="land_prep_method_ids" widget="many2many_tags"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Seed Actual Inputs">
+                                                    <group>
+                                                        <field name="actual_seed_class"/>
+                                                        <field name="actual_seed_qty"/>
+                                                        <field name="actual_fertilizer_type"/>
+                                                    </group>
+                                                    <group>
+
+                                                        <field name="actual_fertilizer_qty"/>
+                                                        <!-- <field name="actual_fertilizer_sack"/> -->
+                                                    </group>
+                                                    <group>
+                                                        <field name="pest_occurrence"/>
+                                                        <field name="weed_occurrence"/>
+                                                    </group>
+                                                    <field name="pest_line_ids" invisible="pest_occurrence != 'yes'" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="pest_type"/>
+                                                            <field name="pest_name_id"/>
+                                                            <field name="pesticide_method"/>
+                                                            <field name="pesticides_type"/>
+                                                            <field name="pesticide_name_id"/>
+                                                            <field name="pesticide_frequency"/>
+                                                        </tree>
+                                                    </field>
+                                                    <field name="weed_line_ids" invisible="weed_occurrence != 'yes'" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="weed_type"/>
+                                                            <field name="weed_name_id"/>
+                                                            <field name="pesticide_method"/>
+                                                            <field name="weedicide_type"/>
+                                                            <field name="weedicide_name_id"/>
+                                                            <field name="pesticide_frequency"/>
+                                                        </tree>
+                                                    </field>
+                                                    <field name="water_resource_line_ids" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="water_resource_id"/>
+                                                            <field name="method_id" options="{'no_create': True}"/>
+                                                            <field name="frequency"/>
+                                                        </tree>
+                                                    </field>
+                                                </group>
+                                                <field name="has_cluster_farming" invisible="1"/>
+                                                <group string="CLUSTER INFORMATION(Actual)" invisible="has_cluster_farming != 'yes'">
+                                                    <group>
+                                                        <field name="actual_cluster_plan"/>
+                                                        <field name="actual_cluster_collected_land"/>
+                                                        <field name="actual_cluster_collected_quintal"/>
+                                                        <field name="actual_cluster_participant_farmers"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="actual_collected_land"/>
+                                                        <field name="actual_collected_land_quintal"/>
+                                                        <field name="actual_collected_by_combiner"/>
+                                                    </group>
+                                                </group>
+                                            </sheet>
+                                        </form>
+                                    </field>
+                                </group>
+
+                            </page>
+
+<page string="Sowing">
+                                <group string="Sowing Crops">
+                                <field name="production_detail_ids" nolabel="1" colspan="2">
+                                    <form>
+                                        <sheet>
+                                            <field name="sync_id" invisible="1" force_save="1"/>
+                                            <group string="Sowing">
+                                                <group>
+                                                    <field name="land_info_id" readonly="1" force_save="1"/>
+                                                    <field name="sowing_status"/>
+                                                    <field name="cluster_status"/>
+                                                </group>
+                                                <group>
+                                                    <field name="season_id" readonly="1" force_save="1"/>
+                                                    <field name="crop_name_id" string="Actual Crop name" readonly="1" force_save="1"/>
+                                                    <field name="actual_sowing_date" readonly="1" force_save="1"/>
+                                                    <field name="actual_fertilizer_type" readonly="1" force_save="1"/>
+
+                                                    <field name="actual_fertilizer_qty" readonly="1" force_save="1"/>
+                                                    <field name="sown_by_tractor" invisible="1"/>
+                                                </group>
+                                            </group>
+                                            </sheet>
+                                        </form>
+                                    <tree>
+                                        <field name="sync_id" column_invisible="1" force_save="1"/>
+                                        <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                        <field name="season_id"/>
+                                        <field name="crop_name_id"/>
+                                        <field name="sowing_status"/>
+                                        <field name="cluster_status"/>
+                                        <field name="actual_sowing_date"/>
+                                    </tree>
+                                </field>
+                                </group>
+                            </page>
+
+                            <page string="Harvesting">
+                                <group string="Harvesting Crops">
+                                <field name="production_detail_ids" nolabel="1" colspan="2">
+                                    <form>
+                                        <sheet>
+                                            <field name="sync_id" invisible="1" force_save="1"/>
+                                            <group>
+                                            </group>
+                                            <group string="Harvest">
+                                                <group>
+                                                    <field name="land_info_id" readonly="1" force_save="1"/>
+                                                    <field name="crop_maturity_status"
+                                                           decoration-success="crop_maturity_status == 'green'"
+                                                           decoration-warning="crop_maturity_status == 'yellow'"/>
+                                                    <field name="harvest_date"/>
+                                                    <field name="area_harvested"/>
+                                                    <field name="qty_harvested"/>
+                                                </group>
+                                                <group>
+                                                    <field name="post_harvest_loss_pct"/>
+                                                    <field name="qty_stored"/>
+                                                    <field name="qty_sold"/>
+                                                </group>
+                                            </group>
+                                            <group string="Production Result (Computed)">
+                                                <group>
+                                                    <field name="yield_per_ha" readonly="1"/>
+                                                    <field name="yield_performance_pct" readonly="1"/>
+                                                    <field name="fertilizer_efficiency" readonly="1"/>
+                                                </group>
+                                                <group>
+                                                    <field name="land_utilization_rate" readonly="1"/>
+                                                    <field name="seed_productivity" readonly="1"/>
+                                                </group>
+                                            </group>
+                                            </sheet>
+                                        </form>
+                                    <tree>
+                                        <field name="sync_id" column_invisible="1" force_save="1"/>
+                                        <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                        <field name="crop_maturity_status"
+                                               decoration-success="crop_maturity_status == 'green'"
+                                               decoration-warning="crop_maturity_status == 'yellow'"/>
+                                        <field name="harvest_date"/>
+                                        <field name="area_harvested"/>
+                                        <field name="qty_harvested"/>
+                                        <field name="post_harvest_loss_pct"/>
+                                        <field name="qty_stored"/>
+                                        <field name="qty_sold"/>
+                                        <field name="yield_per_ha" readonly="1"/>
+                                    </tree>
+                                </field>
+                                </group>
+                            </page>
+<page string="Survey Personnel">
+                                <group>
+                                    <field name="surveyor_name"/>
+                                    <field name="surveyor_mobile_number"/>
+                                    <field name="supervisor_name"/>
+                                    <field name="supervisor_mobile_number"/>
+                                    <field name="first_approvel_status"/>
+
+                                </group>
+                                                                <group string="Biennial Crops" invisible="1">
+                                    <field name="actual_biennial_line_ids" nolabel="1" colspan="2">
+                                        <tree decoration-danger="is_mismatch" decoration-success="not is_mismatch and crop_name_id">
+                                            <field name="sync_id" column_invisible="1" force_save="1"/>
+                                            <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                            <field name="season_id" width="11%" class="text-start"/>
+                                            <field name="crop_name_id" width="11%" class="text-start"/>
+                                            <field name="crop_category_id" width="11%" class="text-start" readonly="1"/>
+                                            <field name="crop_variety_id" width="11%" class="text-start" domain="[('crop_id', '=', crop_name_id)]"/>
+                                            <field name="actual_crop_area" width="11%" class="text-start"/>
+                                            <field name="actual_growth_duration" width="11%" class="text-start"/>
+                                            <field name="actual_seed_class" width="11%" class="text-start"/>
+                                            <field name="actual_fertilizer_type" width="11%" class="text-start"/>
+                                            <field name="water_resource_line_ids" widget="many2many_tags" width="12%" class="text-start"/>
+                                            <field name="collected_gc" column_invisible="1"/>
+                                            <field name="collected_ec" column_invisible="1"/>
+                                            <field name="is_mismatch" column_invisible="1"/>
+                                        </tree>
+                                        <form>
+                                            <sheet>
+                                                <field name="sync_id" invisible="1" force_save="1"/>
+                                                <field name="is_manual" invisible="1"/>
+                                                <field name="is_planning" invisible="1"/>
+                                                <div class="alert alert-warning" role="alert" invisible="is_planning">
+                                                    You are creating a record directly here. This record is not linked to the planning section.
+                                                </div>
+                                                <group string="Land / Plot Details">
+                                                    <group>
+                                                        <field name="land_info_id" domain="[('partner_id', '=', parent.partner_id)]" readonly="not is_manual" force_save="1"/>
+                                                        <field name="land_category" readonly="not is_manual" force_save="1" invisible="not is_manual"/>
+                                                    </group>
+                                                    <group invisible="not is_manual">
+                                                        <field name="ownership_type" readonly="1" force_save="1"/>
+                                                        <field name="land_area" readonly="1" force_save="1"/>
+                                                        <field name="region_name_id" readonly="1" force_save="1"/>
+                                                        <field name="zone_name_id" readonly="1" force_save="1"/>
+                                                        <field name="woreda_name_id" readonly="1" force_save="1"/>
+                                                        <field name="kebele_id" readonly="1" force_save="1"/>
+                                                        <field name="soil_fertility" readonly="1" force_save="1"/>
+                                                        <field name="gps" readonly="1" force_save="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Season Details">
+                                                    <group>
+                                                        <field name="season_id" options="{'no_create': True, 'no_open': True}"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="start_gc" readonly="1" force_save="1"/>
+                                                        <field name="start_month" readonly="1" force_save="1"/>
+                                                        <field name="start_day" readonly="1" force_save="1"/>
+                                                        <field name="end_gc" readonly="1" force_save="1"/>
+                                                        <field name="end_month" readonly="1" force_save="1"/>
+                                                        <field name="end_day" readonly="1" force_save="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Crop Details">
+                                                    <group>
+                                                        <field name="crop_name_id"/>
+                                                        <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]"/>
+                                                        <field name="collected_gc"/>
+                                                        <field name="collected_ec"/>
+                                                        <field name="remark" placeholder="Reason for changing the crop"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="crop_id_ref" readonly="1"/>
+                                                        <field name="crop_category_id" readonly="1"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Crop Actual Inputs">
+                                                    <group>
+                                                        <field name="actual_growth_duration"/>
+                                                        <field name="actual_crop_area"/>
+                                                        <field name="actual_yield"/>
+                                                        <field name="cultivated_by"/>
+                                                        <field name="land_prep_method_ids" widget="many2many_tags"/>
+                                                    </group>
+                                                </group>
+                                                <group string="Seed Actual Inputs">
+                                                    <group>
+                                                        <field name="actual_seed_class"/>
+                                                        <field name="actual_seed_qty"/>
+                                                        <field name="actual_fertilizer_type"/>
+                                                    </group>
+                                                    <group>
+
+                                                        <field name="actual_fertilizer_qty"/>
+                                                        <!-- <field name="actual_fertilizer_sack"/> -->
+                                                    </group>
+                                                    <group>
+                                                        <field name="pest_occurrence"/>
+                                                        <field name="weed_occurrence"/>
+                                                    </group>
+                                                    <field name="pest_line_ids" invisible="pest_occurrence != 'yes'" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="pest_type"/>
+                                                            <field name="pest_name_id"/>
+                                                            <field name="pesticide_method"/>
+                                                            <field name="pesticides_type"/>
+                                                            <field name="pesticide_name_id"/>
+                                                            <field name="pesticide_frequency"/>
+                                                        </tree>
+                                                    </field>
+                                                    <field name="weed_line_ids" invisible="weed_occurrence != 'yes'" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="weed_type"/>
+                                                            <field name="weed_name_id"/>
+                                                            <field name="pesticide_method"/>
+                                                            <field name="weedicide_type"/>
+                                                            <field name="weedicide_name_id"/>
+                                                            <field name="pesticide_frequency"/>
+                                                        </tree>
+                                                    </field>
+                                                    <field name="water_resource_line_ids" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="water_resource_id"/>
+                                                            <field name="method_id" options="{'no_create': True}"/>
+                                                            <field name="frequency"/>
+                                                        </tree>
+                                                    </field>
+                                                </group>
+                                                <field name="has_cluster_farming" invisible="1"/>
+                                                <group string="CLUSTER INFORMATION(Actual)" invisible="has_cluster_farming != 'yes'">
+                                                    <group>
+                                                        <field name="actual_cluster_plan"/>
+                                                        <field name="actual_cluster_collected_land"/>
+                                                        <field name="actual_cluster_collected_quintal"/>
+                                                        <field name="actual_cluster_participant_farmers"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="actual_collected_land"/>
+                                                        <field name="actual_collected_land_quintal"/>
+                                                        <field name="actual_collected_by_combiner"/>
+                                                    </group>
+                                                </group>
+                                            </sheet>
+                                        </form>
+                                    </field>
+                                </group>
+
+                            </page>
+
+
+<!-- <page string="Farmers Required">
+                                <group>
+                                    <field name="male_farmers"/>
+                                    <field name="female_farmers"/>
+                                    <field name="total_farmers"/>
+                                </group>
+                            </page> -->
+
+                        
+                        </notebook>
+                        </group>
+                                            </sheet>
+                                        </form>
+            </field>
+        </record>
+
+        <!-- Search View -->
+        <record id="view_g2p_crop_registry_search" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.search</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="arch" type="xml">
+                <search string="Search Crop Sown Registry">
+
+                    <!-- Search Fields -->
+<!--                    <field name="farmer_display_id"/>-->
+                    <field name="zone_id"/>
+                    <field name="woreda_id"/>
+                    <field name="kebele_id"/>
+                    <field name="land_info_id"/>
+<!--                    <field name="owner_name"/>-->
+                    <field name="crop_name_id"/>
+
+                    <!-- Filters -->
+                    <filter string="Approved Level 1"
+                            name="first_approved"
+                            domain="[('first_approvel_status', '=', True)]"/>
+
+
+                    <!-- Group By -->
+                    <group expand="0" string="Group By">
+
+                        <filter string="Zone"
+                                name="group_by_zone"
+                                context="{'group_by':'zone_id'}"/>
+
+                        <filter string="Woreda"
+                                name="group_by_woreda"
+                                context="{'group_by':'woreda_id'}"/>
+
+                        <filter string="Crop"
+                                name="group_by_crop"
+                                context="{'group_by':'crop_name_id'}"/>
+
+
+
+                    </group>
+
+                </search>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_g2p_crop_registry" model="ir.actions.act_window">
+            <field name="name">Crop Sown Registry</field>
+            <field name="res_model">g2p.crop.registry</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="view_g2p_crop_registry_search"/>
+        </record>
+
+        <!-- Menu -->
+        <menuitem id="g2p_crop_registry_menu_item_id"
+                  name="Crop Sown Registry"
+        />
+
+        <menuitem
+                id="menu_gn_division"
+                name="Crop Sown Registry"
+                parent="g2p_crop_registry_menu_item_id"
+                action="action_g2p_crop_registry"
+                sequence="6"
+        />
+
+
+        <record id="view_g2p_pest_tree" model="ir.ui.view">
+            <field name="name">g2p.pest.tree</field>
+            <field name="model">g2p.pest</field>
+            <field name="arch" type="xml">
+                <tree string="Pests">
+                    <field name="pest_type"/>
+                    <field name="name"/>
+                    <field name="code"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_g2p_pesticide_tree" model="ir.ui.view">
+            <field name="name">g2p.pesticide.tree</field>
+            <field name="model">g2p.pesticide</field>
+            <field name="arch" type="xml">
+                <tree string="Pesticides">
+                    <field name="pesticide_type"/>
+                    <field name="name"/>
+                    <field name="code"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_g2p_weed_tree" model="ir.ui.view">
+            <field name="name">g2p.weed.tree</field>
+            <field name="model">g2p.weed</field>
+            <field name="arch" type="xml">
+                <tree string="Weeds">
+                    <field name="weed_type"/>
+                    <field name="name"/>
+                    <field name="code"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_g2p_weedicide_tree" model="ir.ui.view">
+            <field name="name">g2p.weedicide.tree</field>
+            <field name="model">g2p.weedicide</field>
+            <field name="arch" type="xml">
+                <tree string="Weedicides">
+                    <field name="weedicide_type"/>
+                    <field name="name"/>
+                    <field name="code"/>
+                </tree>
+            </field>
+        </record>
+    </data>
+
+    <record id="view_res_partner_crop_info_water_inherit" model="ir.ui.view">
+        <field name="name">res.partner.crop.info.water.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="g2p_ati.g2p_registry_individual_form_view_inherit" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='crop_information_ids']/tree/field[@name='season']" position="after">
+                <field name="water_resource_line_ids" widget="many2many_tags" />
+            </xpath>
+        </field>
+    </record>
+</odoo>
