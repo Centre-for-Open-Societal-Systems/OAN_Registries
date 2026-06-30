@@ -39,14 +39,12 @@ class OdkImport(models.Model):
         env = self.env
 
         code_fields = {
-            'region_name_id':           'g2p.region',
-            'zone_name_id':             'g2p.zone',
-            'woreda_name_id':           'g2p.woreda',
+            'region_id':           'g2p.region',
+            'zone_id':             'g2p.zone',
+            'woreda_id':           'g2p.woreda',
             'crop_name_id':             'g2p.crop',
-            'crop_variety_id':          'g2p.crop.category',
-            'cultivation_crop_name_id': 'g2p.crop',
-            'sown_crop_name_id':        'g2p.crop',
-            'harvested_crop_name_id':   'g2p.crop',
+            'crop_category_id':         'g2p.crop.category',
+            'crop_variety_id':          'g2p.crop.variety',
             'live_stock_type_id':       'g2p.livestock.type',
         }
 

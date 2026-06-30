@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <!-- ══════════════════════════════════════════════
+             Sequence
+        ══════════════════════════════════════════════ -->
+        <record id="seq_g2p_crop_production" model="ir.sequence">
+            <field name="name">Crop Production</field>
+            <field name="code">g2p.crop.production</field>
+            <field name="prefix">PROD/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- ══════════════════════════════════════════════
+             Production – Tree View
+        ══════════════════════════════════════════════ -->
+        <record id="view_crop_production_tree" model="ir.ui.view">
+            <field name="name">g2p.crop.production.tree</field>
+            <field name="model">g2p.crop.production</field>
+            <field name="arch" type="xml">
+                <tree string="Production" create="0">
+                    <field name="name"/>
+                    <field name="reg_farmer_id"/>
+                    <field name="reg_farmer_display_id"/>
+                    <field name="reg_crop_name_id"/>
+                    <field name="sowing_status"/>
+                    <field name="cluster_status"/>
+                    <!-- <field name="sown_area"/> -->
+                    <field name="actual_sowing_date"/>
+                    <field name="harvest_date" optional="show"/>
+                    <field name="qty_harvested" optional="show"/>
+                    <field name="yield_per_ha" optional="show"/>
+                    <field name="yield_performance_pct" optional="show"/>
+                    <!-- hidden – needed for relay fields -->
+                    <field name="crop_registry_id" column_invisible="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- ══════════════════════════════════════════════
+             Production – Form View
+        ══════════════════════════════════════════════ -->
+        <record id="view_crop_production_form" model="ir.ui.view">
+            <field name="name">g2p.crop.production.form</field>
+            <field name="model">g2p.crop.production</field>
+            <field name="arch" type="xml">
+                <form string="Production">
+                    <sheet>
+
+                        <!-- Reference badge at the top -->
+                        <div class="oe_title">
+                            <label for="name" string="Reference"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                            <div class="o_row">
+                                <label for="season_id" string="Season"/>
+                                <field name="season_id" readonly="1"/>
+                                <label for="crop_name_id" string="Crop Name"/>
+                                <field name="crop_name_id" readonly="1"/>
+                            </div>
+                            <div class="o_row">
+                            </div>
+                        </div>
+
+                        <!-- crop_registry_id is invisible here – set via the Crop Registry form's Production tab -->
+                        <field name="crop_registry_id" invisible="1"/>
+
+                        <!-- ── Farmer Identity ── -->
+                        <group string="Farmer Identity">
+                            <group>
+                                <field name="reg_farmer_id" readonly="1"/>
+                                <field name="reg_fyda_id" readonly="1"/>
+                                <field name="reg_farmer_display_id" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="reg_region_name_id" readonly="1"/>
+                                <field name="reg_zone_name_id" readonly="1"/>
+                                <field name="reg_woreda_name_id" readonly="1"/>
+                                <field name="reg_kebele_id" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <!-- ── Cultivation Details ── -->
+                        <group string="Cultivation Details">
+                            <group>
+                                <field name="reg_crop_name_id" readonly="1"/>
+                                <field name="reg_crop_category_id" readonly="1"/>
+                                <field name="reg_crop_variety_id" readonly="1"/>
+                            </group>
+                            <group>
+                            </group>
+                        </group>
+
+                        <notebook>
+
+                            <!-- ── Sowing Tab ── -->
+                            <page string="Sowing">
+                                <group string="Sowing Details">
+                                    <group>
+                                        <field name="sowing_status" readonly="1"/>
+                                        <field name="cluster_status" readonly="1"/>
+                                        <field name="actual_sowing_date" readonly="1"/>
+                                    </group>
+                                    <group>
+                                        <!-- <field name="sown_area" readonly="1"/> -->
+                                        <field name="sown_by_tractor" readonly="1" invisible="1"/>
+                                        <!-- <field name="mechanization_rate_sowing" readonly="1"/> -->
+                                    </group>
+                                </group>
+                            </page>
+
+                            <!-- ── Harvest Tab (visible when sown) ── -->
+                            <page string="Harvest" invisible="sowing_status != 'sown'">
+                                <group string="Harvest Details">
+                                    <group>
+                                        <field name="crop_maturity_status"
+                                               decoration-success="crop_maturity_status == 'green'"
+                                               decoration-warning="crop_maturity_status == 'yellow'"
+                                               readonly="1"/>
+                                        <field name="harvest_date" readonly="1"/>
+                                        <field name="area_harvested" readonly="1"/>
+                                        <field name="qty_harvested" readonly="1"/>
+                                    </group>
+                                    <group>
+                                        <field name="post_harvest_loss_pct" readonly="1"/>
+                                        <field name="qty_stored" readonly="1"/>
+                                        <field name="qty_sold" readonly="1"/>
+                                    </group>
+                                </group>
+                                <!-- <group string="Harvest Method">
+                                    <field name="harvest_method" readonly="1"/>
+                                    <field name="harvest_method_area" invisible="not harvest_method" readonly="1"/>
+                                </group> -->
+                            </page>
+
+                            <!-- ── Production Result Tab ── -->
+                            <page string="Production Result" invisible="sowing_status != 'sown'">
+                                <group string="Computed Outputs" colspan="2">
+                                    <group>
+                                        <field name="yield_per_ha" readonly="1"/>
+                                        <field name="yield_performance_pct" readonly="1"/>
+                                        <field name="fertilizer_efficiency" readonly="1"/>
+                                    </group>
+                                    <group>
+                                        <field name="land_utilization_rate" readonly="1"/>
+                                        <field name="seed_productivity" readonly="1"/>
+                                    </group>
+                                </group>
+                            </page>
+
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- ══════════════════════════════════════════════
+             Action
+        ══════════════════════════════════════════════ -->
+        <record id="action_g2p_crop_production" model="ir.actions.act_window">
+            <field name="name">Production</field>
+            <field name="res_model">g2p.crop.production</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <!-- ══════════════════════════════════════════════
+             Menu Item
+        ══════════════════════════════════════════════ -->
+        <menuitem
+            id="menu_g2p_crop_production"
+            name="Production"
+            parent="g2p_crop_registry.g2p_crop_registry_menu_item_id"
+            action="action_g2p_crop_production"
+            active="False"
+            sequence="20"/>
+
+    </data>
+</odoo>

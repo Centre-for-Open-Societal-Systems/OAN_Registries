@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="land_prep_method_tractor" model="g2p.land.prep.method">
+            <field name="name">Tractor</field>
+        </record>
+        <record id="land_prep_method_manual" model="g2p.land.prep.method">
+            <field name="name">Manual</field>
+        </record>
+    </data>
+</odoo>
