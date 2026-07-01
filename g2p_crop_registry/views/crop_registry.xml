@@ -114,7 +114,6 @@
                                                         <field name="collected_ec"/>
                                                     </group>
                                                     <group>
-                                                        <field name="crop_id_ref" readonly="1"/>
                                                         <field name="crop_category_id" readonly="1"/>
                                                     </group>
                                                 </group>
@@ -223,7 +222,6 @@
                                                         <field name="collected_ec"/>
                                                     </group>
                                                     <group>
-                                                        <field name="crop_id_ref" readonly="1"/>
                                                         <field name="crop_category_id" readonly="1"/>
                                                     </group>
                                                 </group>
@@ -333,7 +331,6 @@
                                                         <field name="collected_ec"/>
                                                     </group>
                                                     <group>
-                                                        <field name="crop_id_ref" readonly="1"/>
                                                         <field name="crop_category_id" readonly="1"/>
                                                     </group>
                                                 </group>
@@ -458,7 +455,6 @@
                                                         <field name="remark" placeholder="Reason for changing the crop"/>
                                                     </group>
                                                     <group>
-                                                        <field name="crop_id_ref" readonly="1"/>
                                                         <field name="crop_category_id" readonly="1"/>
                                                     </group>
                                                 </group>
@@ -596,7 +592,6 @@
                                                         <field name="remark" placeholder="Reason for changing the crop"/>
                                                     </group>
                                                     <group>
-                                                        <field name="crop_id_ref" readonly="1"/>
                                                         <field name="crop_category_id" readonly="1"/>
                                                     </group>
                                                 </group>
@@ -837,7 +832,6 @@
                                                         <field name="remark" placeholder="Reason for changing the crop"/>
                                                     </group>
                                                     <group>
-                                                        <field name="crop_id_ref" readonly="1"/>
                                                         <field name="crop_category_id" readonly="1"/>
                                                     </group>
                                                 </group>

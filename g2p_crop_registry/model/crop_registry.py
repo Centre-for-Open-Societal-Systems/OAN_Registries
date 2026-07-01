@@ -1149,7 +1149,6 @@ class G2PPerennialLine(models.Model):
     end_day = fields.Integer(string="End Day", compute="_compute_end_date", store=True)
 
     crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
-    crop_id_ref = fields.Char(related="crop_name_id.crop_id", string="Crop ID", readonly=True)
     collected_gc = fields.Date(string="Planned Date (GC)")
     collected_ec = fields.Char(string="Planned Date (EC)")
     crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
@@ -1501,7 +1500,6 @@ class G2PPerennialActualLine(models.Model):
                         self.water_resource_line_ids = [(5, 0, 0)] + water_resources
     season_id = fields.Many2one('g2p.season', string="Season", required=True)
     crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
-    crop_id_ref = fields.Char(related="crop_name_id.crop_id", string="Crop ID", readonly=True)
     collected_gc = fields.Date(string="Actual Planted Date (GC)")
     collected_ec = fields.Char(string="Actual Planted Date (EC)")
     crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
@@ -1767,7 +1765,6 @@ class G2PAnnualLine(models.Model):
     end_day = fields.Integer(string="End Day", compute="_compute_end_date", store=True)
 
     crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
-    crop_id_ref = fields.Char(related="crop_name_id.crop_id", string="Crop ID", readonly=True)
     collected_gc = fields.Date(string="Planned Date (GC)")
     collected_ec = fields.Char(string="Planned Date (EC)")
     crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
@@ -2119,7 +2116,6 @@ class G2PAnnualActualLine(models.Model):
                     if water_resources:
                         self.water_resource_line_ids = [(5, 0, 0)] + water_resources
     crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
-    crop_id_ref = fields.Char(related="crop_name_id.crop_id", string="Crop ID", readonly=True)
     collected_gc = fields.Date(string="Actual Planted Date (GC)")
     collected_ec = fields.Char(string="Actual Planted Date (EC)")
     crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
@@ -2505,7 +2501,6 @@ class G2PBiennialLine(models.Model):
     end_day = fields.Integer(string="End Day", compute="_compute_end_date", store=True)
 
     crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
-    crop_id_ref = fields.Char(related="crop_name_id.crop_id", string="Crop ID", readonly=True)
     collected_gc = fields.Date(string="Planned Date (GC)")
     collected_ec = fields.Char(string="Planned Date (EC)")
     crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
@@ -2852,7 +2847,6 @@ class G2PBiennialActualLine(models.Model):
                         self.water_resource_line_ids = [(5, 0, 0)] + water_resources
     season_id = fields.Many2one('g2p.season', string="Season", required=True)
     crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
-    crop_id_ref = fields.Char(related="crop_name_id.crop_id", string="Crop ID", readonly=True)
     collected_gc = fields.Date(string="Actual Planted Date (GC)")
     collected_ec = fields.Char(string="Actual Planted Date (EC)")
     crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
