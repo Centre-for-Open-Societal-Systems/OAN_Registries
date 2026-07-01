@@ -1,5 +1,0 @@
-<templates id="template_custom_leaflet_render" xml:space="preserve">
-    <t t-name="g2p_leaflet_map.MapRenderer">
-        <t t-call="g2p_ati_integrations.CustomLeafletMapRenderer" />
-    </t>
-</templates>

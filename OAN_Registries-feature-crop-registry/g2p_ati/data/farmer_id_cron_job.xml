@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!--
-Part of OpenG2P. See LICENSE file for full copyright and licensing details.
--->
-<odoo>
-	<record model="ir.cron" id="g2p_social_registry.ir_cron_retry_ref_id_job">
-        <field name="active" eval="True" />
-    </record>
-</odoo>

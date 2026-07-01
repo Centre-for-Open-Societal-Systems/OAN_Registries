@@ -1,8 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-
-
-g2p_odk_importer.access_odk_config,ODK Configuration,g2p_odk_importer.model_odk_config,base.group_user,0,0,0,0
-g2p_odk_importer_access_odk_config_group_data_validator,ODK Configuration group_data_validator ,g2p_odk_importer.model_odk_config,g2p_ati.group_data_validator,0,0,0,0
-g2p_odk_importer_access_odk_config_group_system_admin,ODK Configuration group_system_admin,g2p_odk_importer.model_odk_config,g2p_ati.group_system_admin,0,0,0,0
-access_odk_config_data_admin_group_data_admin,ODK Configuration group_data_admin,g2p_odk_importer.model_odk_config,g2p_ati.group_data_admin,1,1,1,1
-access_odk_config_super_admin,ODK Configuration,g2p_odk_importer.model_odk_config,g2p_registry_base.group_g2p_admin,1,1,1,1

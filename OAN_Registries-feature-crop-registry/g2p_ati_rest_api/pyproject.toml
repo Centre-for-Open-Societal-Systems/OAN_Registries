@@ -1,6 +1,0 @@
-[build-system]
-requires = ["whool"]
-build-backend = "whool.buildapi"
-
-[tool.whool]
-post_version_strategy_override = "none"
