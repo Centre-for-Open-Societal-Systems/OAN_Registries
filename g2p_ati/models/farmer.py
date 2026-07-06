@@ -613,6 +613,22 @@ class G2PFarmer(models.Model):
             else:
                 record.farmer_id = False
 
+    @api.depends_context('show_farmer_id')
+    def _compute_display_name(self):
+        super()._compute_display_name()
+        if self.env.context.get('show_farmer_id'):
+            for record in self:
+                if record.is_farmer == 'yes' and record.farmer_id:
+                    record.display_name = record.farmer_id
+
+    @api.model
+    def name_search(self, name, args=None, operator='ilike', limit=100):
+        if self.env.context.get('show_farmer_id'):
+            args = args or []
+            domain = ['|', ('farmer_id', operator, name), ('name', operator, name)] + args
+            return self.search(domain, limit=limit).name_get()
+        return super().name_search(name, args=args, operator=operator, limit=limit)
+
     # def _ensure_farmer_id(self):
     #     if not self:
     #         return
