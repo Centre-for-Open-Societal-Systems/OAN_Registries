@@ -5,6 +5,9 @@ from datetime import date
 from odoo.addons.g2p_ati.models.utils import eth_date
 import uuid
 
+
+
+
 class G2PCrop(models.Model):
     _name = 'g2p.crop.registry'
     _description = 'G2p Crop Registry'
@@ -83,6 +86,36 @@ class G2PCrop(models.Model):
         "crop_registry_id",
         string="Perennial Crops (Actual)",
     )
+    actual_crop_area_exceeded = fields.Boolean(compute="_compute_actual_crop_area_exceeded")
+    actual_crop_area_warning = fields.Text(compute="_compute_actual_crop_area_exceeded")
+
+    @api.depends('actual_annual_line_ids.actual_crop_area', 'actual_annual_line_ids.land_info_id',
+                 'actual_perennial_line_ids.actual_crop_area', 'actual_perennial_line_ids.land_info_id',
+                 'actual_biennial_line_ids.actual_crop_area', 'actual_biennial_line_ids.land_info_id')
+    def _compute_actual_crop_area_exceeded(self):
+        for rec in self:
+            land_areas = {}
+            for line in rec.actual_annual_line_ids:
+                if line.land_info_id:
+                    land_areas[line.land_info_id] = land_areas.get(line.land_info_id, 0.0) + line.actual_crop_area
+            for line in rec.actual_perennial_line_ids:
+                if line.land_info_id:
+                    land_areas[line.land_info_id] = land_areas.get(line.land_info_id, 0.0) + line.actual_crop_area
+            for line in rec.actual_biennial_line_ids:
+                if line.land_info_id:
+                    land_areas[line.land_info_id] = land_areas.get(line.land_info_id, 0.0) + line.actual_crop_area
+
+            exceeded = False
+            warning_msg = []
+            for land, total_actual in land_areas.items():
+                if total_actual > land.total_land_area:
+                    exceeded = True
+                    warning_msg.append(
+                        f"The total land area for Land ID '{land.land_id}' is {land.total_land_area:.2f} ha, "
+                        f"but the current value of the actual crop records is higher than that ({total_actual:.2f} ha)."
+                    )
+            rec.actual_crop_area_exceeded = exceeded
+            rec.actual_crop_area_warning = "\n".join(warning_msg) if warning_msg else ""
 
     # =======================================
     # UI Fields: Sowing
@@ -99,7 +132,7 @@ class G2PCrop(models.Model):
     harvest_detail_ids = fields.One2many(
         "g2p.crop.production",
         "crop_registry_id",
-        string="Harvest Details",
+        string="Harvesting Details",
     )
 
     # =======================================
@@ -140,6 +173,17 @@ class G2PCrop(models.Model):
         for vals in vals_list:
             if vals.get('name', 'New') == 'New':
                 vals['name'] = self.env['ir.sequence'].next_by_code('g2p.crop.registry') or 'New'
+
+            # Prevent duplicates by ignoring create commands from harvest_detail_ids
+            # since they are already created via production_detail_ids
+            if 'harvest_detail_ids' in vals:
+                filtered_harvest = []
+                for cmd in vals['harvest_detail_ids']:
+                    if cmd[0] == 0:
+                        continue
+                    filtered_harvest.append(cmd)
+                vals['harvest_detail_ids'] = filtered_harvest
+
         records = super(G2PCrop, self).create(vals_list)
         for record in records:
             record._sync_crop_information()
@@ -172,8 +216,17 @@ class G2PCrop(models.Model):
         sync_direction = None
         if any(f in vals for f in ['actual_annual_line_ids', 'actual_perennial_line_ids', 'actual_biennial_line_ids']):
             sync_direction = 'actual_to_prod'
-        elif 'production_detail_ids' in vals:
+        elif 'production_detail_ids' in vals or 'harvest_detail_ids' in vals:
             sync_direction = 'prod_to_actual'
+
+        # Prevent duplicates by ignoring create commands from harvest_detail_ids
+        if 'harvest_detail_ids' in vals:
+            filtered_harvest = []
+            for cmd in vals['harvest_detail_ids']:
+                if cmd[0] == 0:
+                    continue
+                filtered_harvest.append(cmd)
+            vals['harvest_detail_ids'] = filtered_harvest
 
         res = super(G2PCrop, self).write(vals)
         self._sync_crop_information()
@@ -218,6 +271,8 @@ class G2PCrop(models.Model):
                 fert_type = actual.actual_fertilizer_type if actual else False
                 actual_crop_area = actual.actual_crop_area if actual else 0.0
                 actual_yield_val = actual.actual_yield if actual else 0.0
+                seed_class = actual.actual_seed_class if actual and hasattr(actual, 'actual_seed_class') else False
+                cultivated_by_val = actual.cultivated_by if actual and hasattr(actual, 'cultivated_by') else False
 
                 # Write cached values directly to the DB record
                 update_vals = {}
@@ -233,19 +288,16 @@ class G2PCrop(models.Model):
                     update_vals['actual_fertilizer_qty'] = fert_qty
                 if fert_type and prod.actual_fertilizer_type != fert_type:
                     update_vals['actual_fertilizer_type'] = fert_type
+                if prod.actual_seed_class != seed_class:
+                    update_vals['actual_seed_class'] = seed_class
+                if prod.cultivated_by != cultivated_by_val:
+                    update_vals['cultivated_by'] = cultivated_by_val
+                # Cache actual_yield from cultivation → used in yield_performance_pct formula
+                if prod.actual_yield_cached != actual_yield_val:
+                    update_vals['actual_yield_cached'] = actual_yield_val
 
-                if actual and prod.qty_harvested != actual_yield_val:
-                    if sync_direction == 'actual_to_prod':
-                        update_vals['qty_harvested'] = actual_yield_val
-                    elif sync_direction == 'prod_to_actual':
-                        actual.write({'actual_yield': prod.qty_harvested})
-                    else:
-                        if prod.qty_harvested == 0.0:
-                            update_vals['qty_harvested'] = actual_yield_val
-                        elif actual_yield_val == 0.0:
-                            actual.write({'actual_yield': prod.qty_harvested})
-                        else:
-                            actual.write({'actual_yield': prod.qty_harvested})
+                # NOTE: actual_yield is always set from crop_expected (planning → cultivation sync).
+                # Do NOT overwrite it from qty_harvested here.
 
                 if update_vals:
                     prod.write(update_vals)
@@ -260,17 +312,13 @@ class G2PCrop(models.Model):
             # Sync water resources to farmer profile directly
 
 
-            def _sync_water_lines(crop_info, source_line):
-                crop_info.water_resource_line_ids.unlink()
+            def _sync_water_lines(partner, source_line):
                 if hasattr(source_line, 'water_resource_line_ids'):
-                    for w in source_line.water_resource_line_ids:
-                        if w.water_resource_id:
-                            self.env['g2p.water.resource.line'].create({
-                                'crop_information_id': crop_info.id,
-                                'water_resource_id': w.water_resource_id.id,
-                                'method_id': w.method_id,
-                                'frequency': w.frequency,
-                            })
+                    new_water_sources = [w.water_resource_id.id for w in source_line.water_resource_line_ids if w.water_resource_id]
+                    if new_water_sources:
+                        partner.write({
+                            'crop_water_sources': [(4, ws_id) for ws_id in new_water_sources]
+                        })
 
             if record.actual_annual_line_ids:
                 for s_line in record.actual_annual_line_ids:
@@ -285,14 +333,16 @@ class G2PCrop(models.Model):
                     vals = {
                         'partner_id': partner.id,
                         'crop': s_line.crop_name_id.id,
-                        'season': s_line.season_id.id if 's_line' in locals() else (h_line.season_id.id if 'h_line' in locals() else False),
+                        'season': s_line.season_id.id if 's_line' in locals() else False,
+                        'collected_gc': s_line.collected_gc,
+                        'collected_ec': s_line.collected_ec,
                     }
                     if existing:
                         existing.write(vals)
-                        _sync_water_lines(existing, s_line if "s_line" in locals() else h_line)
+                        _sync_water_lines(partner, s_line)
                     else:
                         new_info = self.env['g2p.crop.information'].create(vals)
-                        _sync_water_lines(new_info, s_line if "s_line" in locals() else h_line)
+                        _sync_water_lines(partner, s_line)
 
             elif record.actual_biennial_line_ids:
                 for b_line in record.actual_biennial_line_ids:
@@ -310,12 +360,16 @@ class G2PCrop(models.Model):
                     vals = {
                         'partner_id': partner.id,
                         'crop': h_line.crop_name_id.id,
-                        'season': s_line.season_id.id if 's_line' in locals() else (h_line.season_id.id if 'h_line' in locals() else False),
+                        'season': h_line.season_id.id,
+                        'collected_gc': h_line.collected_gc,
+                        'collected_ec': h_line.collected_ec,
                     }
                     if existing:
                         existing.write(vals)
+                        _sync_water_lines(partner, h_line)
                     else:
                         new_info = self.env['g2p.crop.information'].create(vals)
+                        _sync_water_lines(partner, h_line)
 
     @api.onchange('partner_id')
     def _onchange_partner_id_details(self):
@@ -398,14 +452,6 @@ class G2PCrop(models.Model):
         self.crop_variety_id = False
         return {'domain': {'crop_variety_id': [('crop_id', '=', self.crop_name_id.id)]}}
 
-    # @api.onchange('crop_name_id')
-    # def _onchange_crop_name_id(self):
-    #     for rec in self:
-    #         if rec.crop_name_id:
-    #             rec.crop_category_id = rec.crop_name_id.category.id
-    #         else:
-    #             rec.crop_category_id = False
-
     @api.depends('annual_line_ids.crop_name_id', 'annual_line_ids.crop_variety_id',
                  'perennial_line_ids.crop_name_id', 'perennial_line_ids.crop_variety_id')
     def _compute_primary_crop_details(self):
@@ -439,6 +485,12 @@ class G2PCrop(models.Model):
                     raise ValidationError(
                         "Fayda ID must be in this format: FAN-1234567890123456"
                     )
+
+    @api.constrains('actual_annual_line_ids', 'actual_perennial_line_ids', 'actual_biennial_line_ids')
+    def _check_actual_crop_area_limits(self):
+        for rec in self:
+            if rec.actual_crop_area_exceeded:
+                raise ValidationError(rec.actual_crop_area_warning)
 
     @api.onchange('annual_line_ids')
     def _onchange_sync_annual_lines(self):
@@ -568,6 +620,9 @@ class G2PCrop(models.Model):
                         if planned_line.collected_by_combiner != actual.actual_collected_by_combiner:
                             actual.actual_collected_by_combiner = planned_line.collected_by_combiner
 
+                        # Always propagate expected yield from planning → cultivation
+                        actual.actual_yield = planned_line.crop_expected
+
                         planned_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in planned_line.water_resource_line_ids}
                         actual_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in actual.water_resource_line_ids}
                         if planned_waters != actual_waters:
@@ -587,6 +642,7 @@ class G2PCrop(models.Model):
                         'season_id': planned_line.season_id.id if planned_line.season_id else False,
                         'land_info_id': planned_line.land_info_id.id if planned_line.land_info_id else False,
                         'crop_name_id': planned_line.crop_name_id.id,
+                        'expected_yield': planned_line.crop_expected,
                     })
                     rec.production_detail_ids += new_prod
                 else:
@@ -599,6 +655,8 @@ class G2PCrop(models.Model):
                             prod.season_id = planned_line.season_id.id
                         if planned_line.land_info_id and prod.land_info_id != planned_line.land_info_id:
                             prod.land_info_id = planned_line.land_info_id.id
+                        if prod.expected_yield != planned_line.crop_expected:
+                            prod.expected_yield = planned_line.crop_expected
 
             # Cleanup orphaned annual actual lines
             planned_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id]
@@ -612,6 +670,7 @@ class G2PCrop(models.Model):
                 if orphaned_prod:
                     rec.production_detail_ids -= orphaned_prod
 
+            rec.harvest_detail_ids = rec.production_detail_ids
 
     @api.onchange('perennial_line_ids')
     def _onchange_sync_perennial_lines(self):
@@ -729,6 +788,9 @@ class G2PCrop(models.Model):
                         if planned_line.collected_by_combiner != actual.actual_collected_by_combiner:
                             actual.actual_collected_by_combiner = planned_line.collected_by_combiner
 
+                        # Always propagate expected yield from planning → cultivation
+                        actual.actual_yield = planned_line.crop_expected
+
                         planned_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in planned_line.water_resource_line_ids}
                         actual_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in actual.water_resource_line_ids}
                         if planned_waters != actual_waters:
@@ -748,6 +810,7 @@ class G2PCrop(models.Model):
                         'season_id': planned_line.season_id.id if planned_line.season_id else False,
                         'land_info_id': planned_line.land_info_id.id if planned_line.land_info_id else False,
                         'crop_name_id': planned_line.crop_name_id.id,
+                        'expected_yield': planned_line.crop_expected,
                     })
                     rec.production_detail_ids += new_prod
                 else:
@@ -760,6 +823,8 @@ class G2PCrop(models.Model):
                             prod.season_id = planned_line.season_id.id
                         if planned_line.land_info_id and prod.land_info_id != planned_line.land_info_id:
                             prod.land_info_id = planned_line.land_info_id.id
+                        if prod.expected_yield != planned_line.crop_expected:
+                            prod.expected_yield = planned_line.crop_expected
 
             # Cleanup orphaned perennial actual lines
             planned_perennial_sync_ids = [l.sync_id for l in rec.perennial_line_ids if l.sync_id]
@@ -774,6 +839,7 @@ class G2PCrop(models.Model):
                 if orphaned_perennial_prod:
                     rec.production_detail_ids -= orphaned_perennial_prod
 
+            rec.harvest_detail_ids = rec.production_detail_ids
 
     @api.onchange('biennial_line_ids')
     def _onchange_sync_biennial_lines(self):
@@ -891,6 +957,9 @@ class G2PCrop(models.Model):
                         if planned_line.collected_by_combiner != actual.actual_collected_by_combiner:
                             actual.actual_collected_by_combiner = planned_line.collected_by_combiner
 
+                        # Always propagate expected yield from planning → cultivation
+                        actual.actual_yield = planned_line.crop_expected
+
                         planned_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in planned_line.water_resource_line_ids}
                         actual_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in actual.water_resource_line_ids}
                         if planned_waters != actual_waters:
@@ -910,6 +979,7 @@ class G2PCrop(models.Model):
                         'season_id': planned_line.season_id.id if planned_line.season_id else False,
                         'land_info_id': planned_line.land_info_id.id if planned_line.land_info_id else False,
                         'crop_name_id': planned_line.crop_name_id.id,
+                        'expected_yield': planned_line.crop_expected,
                     })
                     rec.production_detail_ids += new_prod
                 else:
@@ -922,6 +992,8 @@ class G2PCrop(models.Model):
                             prod.season_id = planned_line.season_id.id
                         if planned_line.land_info_id and prod.land_info_id != planned_line.land_info_id:
                             prod.land_info_id = planned_line.land_info_id.id
+                        if prod.expected_yield != planned_line.crop_expected:
+                            prod.expected_yield = planned_line.crop_expected
 
             # Cleanup orphaned biennial actual lines
             planned_biennial_sync_ids = [l.sync_id for l in rec.biennial_line_ids if l.sync_id]
@@ -935,6 +1007,7 @@ class G2PCrop(models.Model):
                 orphaned_biennial_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
                 if orphaned_biennial_prod:
                     rec.production_detail_ids -= orphaned_biennial_prod
+            rec.harvest_detail_ids = rec.production_detail_ids
 
     @api.onchange('actual_annual_line_ids')
     def _onchange_sync_actual_to_production_annual(self):
@@ -970,8 +1043,6 @@ class G2PCrop(models.Model):
                         prod_line.expected_yield = expected_yield
                     if prod_line.planned_area != planned_area:
                         prod_line.planned_area = planned_area
-                    if prod_line.qty_harvested != actual_line.actual_yield:
-                        prod_line.qty_harvested = actual_line.actual_yield
                 else:
                     new_prod = self.env['g2p.crop.production'].new({
                         'sync_id': actual_line.sync_id,
@@ -993,6 +1064,7 @@ class G2PCrop(models.Model):
             orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
             if orphaned_prod:
                 rec.production_detail_ids -= orphaned_prod
+        rec.harvest_detail_ids = rec.production_detail_ids
 
     @api.onchange('actual_perennial_line_ids')
     def _onchange_sync_actual_to_production_perennial(self):
@@ -1025,8 +1097,6 @@ class G2PCrop(models.Model):
                         prod_line.expected_yield = expected_yield
                     if prod_line.planned_area != planned_area:
                         prod_line.planned_area = planned_area
-                    if prod_line.qty_harvested != actual_line.actual_yield:
-                        prod_line.qty_harvested = actual_line.actual_yield
                 else:
                     new_prod = self.env['g2p.crop.production'].new({
                         'sync_id': actual_line.sync_id,
@@ -1050,6 +1120,7 @@ class G2PCrop(models.Model):
             if orphaned_prod:
                 rec.production_detail_ids -= orphaned_prod
 
+        rec.harvest_detail_ids = rec.production_detail_ids
 
     @api.onchange('actual_biennial_line_ids')
     def _onchange_sync_actual_to_production_biennial(self):
@@ -1082,8 +1153,6 @@ class G2PCrop(models.Model):
                         prod_line.expected_yield = expected_yield
                     if prod_line.planned_area != planned_area:
                         prod_line.planned_area = planned_area
-                    if prod_line.qty_harvested != actual_line.actual_yield:
-                        prod_line.qty_harvested = actual_line.actual_yield
                 else:
                     new_prod = self.env['g2p.crop.production'].new({
                         'sync_id': actual_line.sync_id,
@@ -1101,7 +1170,7 @@ class G2PCrop(models.Model):
                     })
                     rec.production_detail_ids += new_prod
 
-    @api.onchange('production_detail_ids')
+    @api.onchange('production_detail_ids', 'harvest_detail_ids')
     def _onchange_sync_production_to_actual(self):
         for rec in self:
             for prod_line in rec.production_detail_ids:
@@ -1112,1951 +1181,15 @@ class G2PCrop(models.Model):
                 actual_perennial = rec.actual_perennial_line_ids.filtered(lambda l: l.sync_id == prod_line.sync_id)
                 actual_biennial = rec.actual_biennial_line_ids.filtered(lambda l: l.sync_id == prod_line.sync_id)
                 actual_line = (actual_annual or actual_perennial or actual_biennial)
-                if actual_line:
-                    actual = actual_line[0]
-                    if actual.actual_yield != prod_line.qty_harvested:
-                        actual.actual_yield = prod_line.qty_harvested
+                # NOTE: Do NOT push qty_harvested back to actual_yield here.
+                # actual_yield is always driven from crop_expected (planning → cultivation).
 
             # Cleanup orphaned production details when actual is deleted
             valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.biennial_line_ids if l.sync_id] + [l.sync_id for l in rec.biennial_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual] + [l.sync_id for l in rec.actual_biennial_line_ids if l.sync_id and l.is_manual] + [l.sync_id for l in rec.actual_biennial_line_ids if l.sync_id and l.is_manual]
             orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
             if orphaned_prod:
                 rec.production_detail_ids -= orphaned_prod
-
-class G2PPerennialLine(models.Model):
-    _name = "g2p.perennial.line"
-    _description = "Perennial Crop Planned Line"
-
-    crop_registry_id = fields.Many2one("g2p.crop.registry", string="Crop Registry", ondelete="cascade")
-    sync_id = fields.Char(string="Sync ID", default=lambda self: str(uuid.uuid4()))
-    land_info_id = fields.Many2one('g2p.land.information', string="Land ID")
-    region_name_id = fields.Many2one('g2p.region', string='Region')
-    zone_name_id = fields.Many2one('g2p.zone', string='Zone')
-    woreda_name_id = fields.Many2one('g2p.woreda', string='Woreda')
-    kebele_id = fields.Many2one('g2p.kebele', string='Kebele')
-    gps = fields.Char(string='GPS Coordinates')
-
-    ownership_type = fields.Selection([('owner', 'Owner'), ('tenant', 'Tenant'), ('crop_share', 'Crop Sharing'), ('family_gift', 'Family Gift')], string="Ownership Type")
-    land_area = fields.Float(string="Total Land Area (ha)")
-    land_category = fields.Selection([('annual', 'Annual Crop'), ('perennial', 'Perennial Crop'), ('biennial', 'Biennial Crop')], string="Plot Category")
-    soil_fertility = fields.Char(string="Soil Fertility")
-    season_id = fields.Many2one('g2p.season', string="Season", required=True)
-    start_gc = fields.Date(string="Start GC")
-    start_month = fields.Integer(string="Start Month", compute="_compute_start_date", store=True)
-    start_day = fields.Integer(string="Start Day", compute="_compute_start_date", store=True)
-    end_gc = fields.Date(string="End GC")
-    end_month = fields.Integer(string="End Month", compute="_compute_end_date", store=True)
-    end_day = fields.Integer(string="End Day", compute="_compute_end_date", store=True)
-
-    crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
-    collected_gc = fields.Date(string="Planned Date (GC)")
-    collected_ec = fields.Char(string="Planned Date (EC)")
-    crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
-    crop_variety_id = fields.Many2one("g2p.crop.variety", string="Crop Variety")
-
-    crop_planned_area = fields.Float(string="Planned Crop Area (ha)")
-
-    @api.onchange('land_info_id')
-    def _onchange_land_info_id(self):
-        if self.land_info_id:
-            self.land_area = self.land_info_id.total_land_area
-            self.ownership_type = self.land_info_id.ownership_type
-            if hasattr(self.land_info_id, 'soil_fertility') and self.land_info_id.soil_fertility:
-                self.soil_fertility = self.land_info_id.soil_fertility.lower()
-            if self.land_info_id.land_kebele:
-                self.kebele_id = self.land_info_id.land_kebele.id
-                if self.land_info_id.land_kebele.woreda:
-                    self.woreda_name_id = self.land_info_id.land_kebele.woreda.id
-                    if self.land_info_id.land_kebele.woreda.zone:
-                        self.zone_name_id = self.land_info_id.land_kebele.woreda.zone.id
-                        if self.land_info_id.land_kebele.woreda.zone.region:
-                            self.region_name_id = self.land_info_id.land_kebele.woreda.zone.region.id
-                        else:
-                            self.region_name_id = False
-                    else:
-                        self.zone_name_id = False
-                        self.region_name_id = False
-                else:
-                    self.woreda_name_id = False
-                    self.zone_name_id = False
-                    self.region_name_id = False
-            else:
-                self.kebele_id = False
-                self.woreda_name_id = False
-                self.zone_name_id = False
-                self.region_name_id = False
-
-            if hasattr(self.land_info_id, 'polygon_data') and self.land_info_id.polygon_data:
-                self.gps = self.land_info_id.polygon_data
-            else:
-                self.gps = False
-    crop_growth_duration = fields.Float(string="Average Growth Duration (days)")
-    crop_expected = fields.Float(string="Expected Yield (quintals)")
-
-    seed_planned = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
-    seed_planned_qty = fields.Float(string="Planned Seed Quantity (kg)")
-    seed_planned_fertilizer_type = fields.Selection([
-        ('organic', 'Organic'),
-        ('inorganic', 'Inorganic'),
-        ('biofertilizer', 'Bio Fertilizer')
-    ], string="Planned Fertilizer Type")
-
-    seed_planned_fertilizer_qty = fields.Float(string="Planned Fertilizer Quantity (kg)")
-    seed_planned_fertilizer_sack = fields.Float(string="Planned Fertilizer Sacks Count", compute="_compute_planned_fertilizer_sacks", store=True)
-    water_resource_line_ids = fields.One2many('g2p.water.resource.line', 'perennial_line_id', string="Water Resources")
-
-    # Actual Inputs Fields
-    actual_season_id = fields.Many2one('g2p.season', string="Actual Season")
-    actual_start_gc = fields.Date(string="Actual Start GC")
-    actual_start_month = fields.Integer(string="Actual Start Month")
-    actual_start_day = fields.Integer(string="Actual Start Day")
-    actual_end_gc = fields.Date(string="Actual End GC")
-    actual_end_month = fields.Integer(string="Actual End Month")
-    actual_end_day = fields.Integer(string="Actual End Day")
-
-    actual_crop_name_id = fields.Many2one("g2p.crop", string="Actual Crop")
-    actual_collected_gc = fields.Date(string="Actual Date (GC)")
-    actual_collected_ec = fields.Char(string="Actual Date (EC)")
-    actual_crop_category_id = fields.Many2one("g2p.crop.category", string="Actual Crop Category", compute="_compute_actual_crop_category", store=True)
-    actual_crop_variety_id = fields.Many2one("g2p.crop.variety", string="Actual Crop Variety")
-
-    actual_crop_area = fields.Float(string="Actual Crop Area (ha)")
-    actual_growth_duration = fields.Float(string="Actual Growth Duration (days)")
-
-    actual_seed_class = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
-    actual_seed_qty = fields.Float(string="Actual Seed Quantity (kg)")
-    actual_fertilizer_type = fields.Selection([
-        ('organic', 'Organic'),
-        ('inorganic', 'Inorganic'),
-        ('biofertilizer', 'Bio Fertilizer')
-    ], string="Actual Fertilizer Type")
-
-    actual_fertilizer_qty = fields.Float(string="Actual Fertilizer Quantity (kg)")
-    actual_fertilizer_sack = fields.Float(string="Actual Fertilizer Sacks Count", compute="_compute_actual_fertilizer_sacks", store=True)
-
-    pest_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Pest Occurrence")
-    pest_line_ids = fields.One2many('g2p.crop.pest.line', 'perennial_line_id', string="Pest Details")
-
-    weed_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Weed Occurrence")
-    weed_line_ids = fields.One2many('g2p.crop.weed.line', 'perennial_line_id', string="Weed Details")
-
-    actual_yield = fields.Float(string="Actual Yield (quintal)")
-    cultivated_by = fields.Selection([
-        ('tractor', 'Tractor'),
-        ('other', 'Other'),
-    ], string="Cultivation Type")
-
-
-
-
-    planned_labor = fields.Integer(string="Planned Labor")
-    has_cluster_farming = fields.Selection([
-        ('yes', 'Yes'),
-        ('no', 'No')
-    ], string="Have you done any cluster farming or related activities earlier?")
-    cluster_plan = fields.Float(string="Cluster Plan")
-    cluster_collected_land = fields.Float(string="Cluster Collected Land")
-    cluster_collected_quintal = fields.Float(string="Cluster Collected Quintal")
-    cluster_participant_farmers = fields.Integer(string="Cluster Participant Farmers")
-    collected_land = fields.Float(string="Collected Land")
-    collected_land_quintal = fields.Float(string="Collected Land Quintal")
-    collected_by_combiner = fields.Float(string="Collected by Combiner")
-
-
-    @api.depends('seed_planned_fertilizer_qty')
-    def _compute_planned_fertilizer_sacks(self):
-        for rec in self:
-            if rec.seed_planned_fertilizer_qty:
-                rec.seed_planned_fertilizer_sack = rec.seed_planned_fertilizer_qty / 50.0
-            else:
-                rec.seed_planned_fertilizer_sack = 0.0
-
-    @api.onchange('seed_planned_fertilizer_qty')
-    def _onchange_fertilizer_qty(self):
-        for rec in self:
-            if rec.seed_planned_fertilizer_qty:
-                rec.seed_planned_fertilizer_sack = rec.seed_planned_fertilizer_qty / 50.0
-            else:
-                rec.seed_planned_fertilizer_sack = 0.0
-
-    @api.depends('actual_fertilizer_qty')
-    def _compute_actual_fertilizer_sacks(self):
-        for rec in self:
-            if rec.actual_fertilizer_qty:
-                rec.actual_fertilizer_sack = rec.actual_fertilizer_qty / 50.0
-            else:
-                rec.actual_fertilizer_sack = 0.0
-
-    @api.onchange('crop_planned_area')
-    def _onchange_crop_planned_area(self):
-        if self.crop_registry_id and self.crop_planned_area and self.land_info_id:
-            same_land_lines = self.crop_registry_id.perennial_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
-            total_planned = sum(same_land_lines.mapped('crop_planned_area'))
-            max_area = self.land_info_id.total_land_area
-            if total_planned > max_area:
-                attempted_area = self.crop_planned_area
-                allocated_area = total_planned - attempted_area
-                remaining_area = max_area - allocated_area
-
-                # If they already messed up other lines, don't let it go negative in the message
-                if remaining_area < 0:
-                    remaining_area = 0.0
-
-                self.crop_planned_area = 0.0
-                return {
-                    'warning': {
-                        'title': "Area Exceeded",
-                        'message': "You entered %.2f ha, but only %.2f ha is remaining out of the total %.2f ha (%.2f ha is already allocated to other crops)." % (attempted_area, remaining_area, max_area, allocated_area)
-                    }
-                }
-
-
-    @api.onchange('season_id')
-    def _onchange_season_id(self):
-        if self.season_id:
-            self.start_gc = self.season_id.start_gc
-            self.end_gc = self.season_id.end_gc
-
-    @api.depends("start_gc")
-    def _compute_start_date(self):
-        for record in self:
-            if record.start_gc:
-                record.start_month = record.start_gc.month
-                record.start_day = record.start_gc.day
-            else:
-                record.start_month = record.start_day = 0
-
-    @api.depends("end_gc")
-    def _compute_end_date(self):
-        for record in self:
-            if record.end_gc:
-                record.end_month = record.end_gc.month
-                record.end_day = record.end_gc.day
-            else:
-                record.end_month = record.end_day = 0
-
-    @api.depends("crop_name_id")
-    def _compute_crop_category(self):
-        for rec in self:
-            if rec.crop_name_id:
-                rec.crop_category_id = rec.crop_name_id.category.id
-            else:
-                rec.crop_category_id = False
-
-    @api.depends("actual_crop_name_id")
-    def _compute_actual_crop_category(self):
-        for rec in self:
-            if rec.actual_crop_name_id:
-                rec.actual_crop_category_id = rec.actual_crop_name_id.category.id
-            else:
-                rec.actual_crop_category_id = False
-
-    @api.onchange("crop_name_id")
-    def _onchange_crop(self):
-        self.crop_variety_id = False
-        return {
-            "domain": {
-                "crop_variety_id": [
-                    ("crop_id", "=", self.crop_name_id.id)
-                ]
-            }
-        }
-
-    @api.onchange("collected_gc", "start_gc", "end_gc")
-    def _onchange_collected_gc(self):
-        if self.collected_gc:
-            if self.start_gc and self.end_gc:
-                # Check if the date is within the season's start and end months/dates
-                if self.collected_gc < self.start_gc or self.collected_gc > self.end_gc:
-                    self.collected_gc = False
-                    self.collected_ec = False
-                    return {
-                        'warning': {
-                            'title': 'Invalid Planned Date',
-                            'message': 'Planned Date (GC) must be within the Season Details (Start GC and End GC).'
-                        }
-                    }
-
-            cdate = date(
-                self.collected_gc.year,
-                self.collected_gc.month,
-                self.collected_gc.day,
-            )
-            ethiopian_date = eth_date.to_ethiopian(
-                cdate.year, cdate.month, cdate.day
-            )
-            self.collected_ec = eth_date.convert_tuple_to_string_with_separator(
-                ethiopian_date
-            )
-
-    @api.onchange("collected_ec")
-    def _onchange_collected_ec(self):
-        if self.collected_ec:
-            eth_date.check_ethipian_date_str(self.collected_ec, future_date=True)
-            date_list = re.split("[-/,]", self.collected_ec)
-            gc_date = eth_date.to_gregorian(
-                int(date_list[2]), int(date_list[1]), int(date_list[0])
-            )
-            self.collected_gc = gc_date
-
-
-class G2PLandPrepMethod(models.Model):
-    _name = "g2p.land.prep.method"
-    _description = "Land Preparation Method"
-
-    name = fields.Char(string="Method Name", required=True)
-
-
-class G2PPerennialActualLine(models.Model):
-    _name = "g2p.perennial.actual.line"
-    _description = "Perennial Crop Actual Line"
-    @api.constrains('actual_yield')
-    def _check_actual_yield(self):
-        for rec in self:
-            if rec.actual_yield > 0 and rec.crop_registry_id:
-                planned_line = rec.crop_registry_id.perennial_line_ids.filtered(lambda l: l.sync_id == rec.sync_id)
-                if planned_line and rec.actual_yield > planned_line[0].crop_expected:
-                    raise ValidationError(f"Actual yield ({rec.actual_yield}) cannot be greater than expected yield ({planned_line[0].crop_expected}).")
-
-    @api.onchange('actual_yield')
-    def _onchange_actual_yield(self):
-        if self.actual_yield > 0 and self.crop_registry_id:
-            planned_line = self.crop_registry_id.perennial_line_ids.filtered(lambda l: l.sync_id == self.sync_id)
-            if planned_line and self.actual_yield > planned_line[0].crop_expected:
-                self.actual_yield = 0.0
-                return {
-                    'warning': {
-                        'title': 'Invalid Yield',
-                        'message': f"Actual Yield cannot be greater than Expected Yield ({planned_line[0].crop_expected})."
-                    }
-                }
-
-    crop_registry_id = fields.Many2one("g2p.crop.registry", string="Crop Registry", ondelete="cascade")
-    sync_id = fields.Char(string="Sync ID", default=lambda self: str(uuid.uuid4()))
-    is_manual = fields.Boolean(string="Is Manual", default=True)
-    is_planning = fields.Boolean(string="Is Planning", default=False)
-    land_info_id = fields.Many2one('g2p.land.information', string="Land ID")
-    region_name_id = fields.Many2one('g2p.region', string='Region')
-    zone_name_id = fields.Many2one('g2p.zone', string='Zone')
-    woreda_name_id = fields.Many2one('g2p.woreda', string='Woreda')
-    kebele_id = fields.Many2one('g2p.kebele', string='Kebele')
-    gps = fields.Char(string='GPS Coordinates')
-
-    ownership_type = fields.Selection([('owner', 'Owner'), ('tenant', 'Tenant'), ('crop_share', 'Crop Sharing'), ('family_gift', 'Family Gift')], string="Ownership Type")
-    land_area = fields.Float(string="Total Land Area (ha)")
-    land_category = fields.Selection([('annual', 'Annual Crop'), ('perennial', 'Perennial Crop'), ('biennial', 'Biennial Crop')], string="Plot Category")
-    soil_fertility = fields.Char(string="Soil Fertility")
-
-    @api.onchange('land_info_id')
-    def _onchange_land_info_id(self):
-        if self.land_info_id:
-            self.land_area = self.land_info_id.total_land_area
-            self.ownership_type = self.land_info_id.ownership_type
-            if hasattr(self.land_info_id, 'soil_fertility') and self.land_info_id.soil_fertility:
-                self.soil_fertility = self.land_info_id.soil_fertility.lower()
-            if self.land_info_id.land_kebele:
-                self.kebele_id = self.land_info_id.land_kebele.id
-                if self.land_info_id.land_kebele.woreda:
-                    self.woreda_name_id = self.land_info_id.land_kebele.woreda.id
-                    if self.land_info_id.land_kebele.woreda.zone:
-                        self.zone_name_id = self.land_info_id.land_kebele.woreda.zone.id
-                        if self.land_info_id.land_kebele.woreda.zone.region:
-                            self.region_name_id = self.land_info_id.land_kebele.woreda.zone.region.id
-                        else:
-                            self.region_name_id = False
-                    else:
-                        self.zone_name_id = False
-                        self.region_name_id = False
-                else:
-                    self.woreda_name_id = False
-                    self.zone_name_id = False
-                    self.region_name_id = False
-            else:
-                self.kebele_id = False
-                self.woreda_name_id = False
-                self.zone_name_id = False
-                self.region_name_id = False
-
-            if hasattr(self.land_info_id, 'polygon_data') and self.land_info_id.polygon_data:
-                self.gps = self.land_info_id.polygon_data
-            else:
-                self.gps = False
-
-            if self.crop_registry_id:
-                planned_line = self.crop_registry_id.perennial_line_ids.filtered(
-                    lambda l: l.land_info_id.id == self.land_info_id.id
-                )
-                if planned_line:
-                    planned_line = planned_line[0]
-                    water_resources = []
-                    for w in planned_line.water_resource_line_ids:
-                        water_resources.append((0, 0, {
-                            'water_resource_id': w.water_resource_id.id,
-                            'method_id': w.method_id,
-                            'frequency': w.frequency,
-                            'crop_registry_id': self.crop_registry_id.id,
-                        }))
-                    if water_resources:
-                        self.water_resource_line_ids = [(5, 0, 0)] + water_resources
-    season_id = fields.Many2one('g2p.season', string="Season", required=True)
-    crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
-    collected_gc = fields.Date(string="Actual Planted Date (GC)")
-    collected_ec = fields.Char(string="Actual Planted Date (EC)")
-    crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
-    crop_variety_id = fields.Many2one("g2p.crop.variety", string="Crop Variety")
-    remark = fields.Char(string="Remark")
-    actual_crop_area = fields.Float(string="Actual Crop Area (ha)")
-    actual_growth_duration = fields.Float(string="Actual Growth Duration (days)")
-
-    actual_seed_class = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
-    actual_seed_qty = fields.Float(string="Actual Seed Quantity (kg)")
-    actual_fertilizer_type = fields.Selection([
-        ('organic', 'Organic'),
-        ('inorganic', 'Inorganic'),
-        ('biofertilizer', 'Bio Fertilizer')
-    ], string="Actual Fertilizer Type")
-
-    actual_fertilizer_qty = fields.Float(string="Actual Fertilizer Quantity (kg)")
-    actual_fertilizer_sack = fields.Float(string="Actual Fertilizer Sacks Count", compute="_compute_actual_fertilizer_sacks", store=True)
-
-    has_cluster_farming = fields.Selection([
-        ('yes', 'Yes'),
-        ('no', 'No')
-    ], string="Have you done any cluster farming or related activities earlier?")
-    actual_cluster_plan = fields.Float(string="Actual Cluster Plan")
-    actual_cluster_collected_land = fields.Float(string="Actual Cluster Collected Land")
-    actual_cluster_collected_quintal = fields.Float(string="Actual Cluster Collected Quintal")
-    actual_cluster_participant_farmers = fields.Integer(string="Actual Cluster Participant Farmers")
-    actual_collected_land = fields.Float(string="Actual Collected Land")
-    actual_collected_land_quintal = fields.Float(string="Actual Collected Land Quintal")
-    actual_collected_by_combiner = fields.Float(string="Actual Collected by Combiner")
-
-    pest_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Pest Occurrence")
-    pest_line_ids = fields.One2many('g2p.crop.pest.line', 'actual_perennial_line_id', string="Pest Details")
-
-    weed_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Weed Occurrence")
-    weed_line_ids = fields.One2many('g2p.crop.weed.line', 'actual_perennial_line_id', string="Weed Details")
-
-    actual_yield = fields.Float(string="Actual Yield (quintal)")
-    cultivated_by = fields.Selection([
-        ('tractor', 'Tractor'),
-        ('other', 'Other'),
-    ], string="Cultivation Type")
-    land_prep_method_ids = fields.Many2many("g2p.land.prep.method", string="Land Prep Methods")
-
-    water_resource_line_ids = fields.One2many(
-        "g2p.actual.water.resource.line",
-        "actual_perennial_line_id",
-        string="Water Resources",
-    )
-
-    start_gc = fields.Date(string="Start GC")
-    start_month = fields.Integer(string="Start Month", compute="_compute_start_date", store=True)
-    start_day = fields.Integer(string="Start Day", compute="_compute_start_date", store=True)
-    end_gc = fields.Date(string="End GC")
-    end_month = fields.Integer(string="End Month", compute="_compute_end_date", store=True)
-    end_day = fields.Integer(string="End Day", compute="_compute_end_date", store=True)
-
-    is_mismatch = fields.Boolean(string="Mismatch", compute="_compute_is_mismatch", store=True)
-
-    @api.onchange('actual_crop_area')
-    def _onchange_actual_crop_area(self):
-        if self.crop_registry_id and self.actual_crop_area and self.land_info_id:
-            same_land_lines = self.crop_registry_id.actual_perennial_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
-            total_actual = sum(same_land_lines.mapped('actual_crop_area'))
-            max_area = self.land_info_id.total_land_area
-            if total_actual > max_area:
-                attempted_area = self.actual_crop_area
-                allocated_area = total_actual - attempted_area
-                remaining_area = max_area - allocated_area
-
-                if remaining_area < 0:
-                    remaining_area = 0.0
-
-                self.actual_crop_area = 0.0
-                return {
-                    'warning': {
-                        'title': "Area Exceeded",
-                        'message': "You entered %.2f ha, but only %.2f ha is remaining out of the total %.2f ha (%.2f ha is already allocated to other actual crops)." % (attempted_area, remaining_area, max_area, allocated_area)
-                    }
-                }
-
-    @api.depends('actual_fertilizer_qty')
-    def _compute_actual_fertilizer_sacks(self):
-        for rec in self:
-            if rec.actual_fertilizer_qty:
-                rec.actual_fertilizer_sack = rec.actual_fertilizer_qty / 50.0
-            else:
-                rec.actual_fertilizer_sack = 0.0
-
-    @api.onchange('actual_fertilizer_qty')
-    def _onchange_fertilizer_qty(self):
-        for rec in self:
-            if rec.actual_fertilizer_qty:
-                rec.actual_fertilizer_sack = rec.actual_fertilizer_qty / 50.0
-            else:
-                rec.actual_fertilizer_sack = 0.0
-
-    @api.onchange('season_id')
-    def _onchange_season_id(self):
-        if self.season_id:
-            self.start_gc = self.season_id.start_gc
-            self.end_gc = self.season_id.end_gc
-            if self.season_id.start_gc:
-                self.start_month = self.season_id.start_gc.month
-                self.start_day = self.season_id.start_gc.day
-            if self.season_id.end_gc:
-                self.end_month = self.season_id.end_gc.month
-                self.end_day = self.season_id.end_gc.day
-
-    @api.depends("start_gc")
-    def _compute_start_date(self):
-        for record in self:
-            if record.start_gc:
-                record.start_month = record.start_gc.month
-                record.start_day = record.start_gc.day
-            else:
-                record.start_month = record.start_day = 0
-
-    @api.depends("end_gc")
-    def _compute_end_date(self):
-        for record in self:
-            if record.end_gc:
-                record.end_month = record.end_gc.month
-                record.end_day = record.end_gc.day
-            else:
-                record.end_month = record.end_day = 0
-
-    @api.depends("crop_name_id")
-    def _compute_crop_category(self):
-        for rec in self:
-            if rec.crop_name_id:
-                rec.crop_category_id = rec.crop_name_id.category.id
-            else:
-                rec.crop_category_id = False
-
-    @api.depends("crop_name_id", "crop_variety_id", "collected_gc", "season_id",
-                 "crop_registry_id.perennial_line_ids",
-                 "crop_registry_id.perennial_line_ids.crop_name_id",
-                 "crop_registry_id.perennial_line_ids.crop_variety_id",
-                 "crop_registry_id.perennial_line_ids.collected_gc",
-                 "crop_registry_id.perennial_line_ids.season_id")
-    def _compute_is_mismatch(self):
-        for rec in self:
-            if not rec.crop_registry_id or not rec.crop_name_id:
-                rec.is_mismatch = False
-                continue
-            planned_lines = rec.crop_registry_id.perennial_line_ids
-            matched = False
-            for planned in planned_lines:
-                if (planned.crop_name_id.id == rec.crop_name_id.id
-                        and planned.crop_variety_id.id == rec.crop_variety_id.id
-                        and planned.season_id.id == rec.season_id.id
-                        and planned.collected_gc == rec.collected_gc):
-                    matched = True
-                    break
-            rec.is_mismatch = not matched
-
-    @api.depends("crop_name_id")
-    def _compute_crop_category(self):
-        for rec in self:
-            rec.crop_category_id = (
-                rec.crop_name_id.category.id
-                if rec.crop_name_id
-                else False
-            )
-
-    @api.onchange("crop_name_id")
-    def _onchange_crop(self):
-        self.crop_variety_id = False
-        return {
-            "domain": {
-                "crop_variety_id": [
-                    ("crop_id", "=", self.crop_name_id.id)
-                ]
-            }
-        }
-
-    @api.onchange("collected_gc")
-    def _onchange_collected_gc(self):
-        if self.collected_gc:
-            if self.collected_gc > fields.Date.today():
-                self.collected_gc = False
-                return {
-                    'warning': {
-                        'title': 'Invalid Date',
-                        'message': 'Actual Planted Date (GC) cannot be a future date.'
-                    }
-                }
-            cdate = date(
-                self.collected_gc.year,
-                self.collected_gc.month,
-                self.collected_gc.day,
-            )
-            ethiopian_date = eth_date.to_ethiopian(
-                cdate.year, cdate.month, cdate.day
-            )
-            self.collected_ec = eth_date.convert_tuple_to_string_with_separator(
-                ethiopian_date
-            )
-
-    @api.onchange("collected_ec")
-    def _onchange_collected_ec(self):
-        if self.collected_ec:
-            eth_date.check_ethipian_date_str(self.collected_ec, future_date=True)
-            date_list = re.split("[-/,]", self.collected_ec)
-            gc_date = eth_date.to_gregorian(
-                int(date_list[2]), int(date_list[1]), int(date_list[0])
-            )
-            self.collected_gc = gc_date
-
-class G2PWaterResourceLine(models.Model):
-    _name = "g2p.water.resource.line"
-    _description = "Water Resource Details"
-    _rec_name = "water_resource_id"
-
-    crop_registry_id = fields.Many2one('g2p.crop.registry', ondelete="cascade")
-    annual_line_id = fields.Many2one('g2p.annual.line', ondelete="cascade")
-    perennial_line_id = fields.Many2one('g2p.perennial.line', ondelete="cascade")
-    biennial_line_id = fields.Many2one('g2p.biennial.line', ondelete="cascade")
-    crop_information_id = fields.Many2one('g2p.crop.information', ondelete="cascade")
-    water_resource_id = fields.Many2one('g2p.water.source', string="Water Resource", required=True)
-    method_id = fields.Char(string="Method")
-    frequency = fields.Char(string="Frequency")
-
-class G2PActualWaterResourceLine(models.Model):
-    _name = "g2p.actual.water.resource.line"
-    _description = "Actual Water Resource Details"
-
-    crop_registry_id = fields.Many2one('g2p.crop.registry', ondelete="cascade")
-    actual_annual_line_id = fields.Many2one('g2p.annual.actual.line', ondelete="cascade")
-    annual_line_id = fields.Many2one('g2p.annual.line', ondelete="cascade")
-    actual_perennial_line_id = fields.Many2one('g2p.perennial.actual.line', ondelete="cascade")
-    actual_biennial_line_id = fields.Many2one('g2p.biennial.actual.line', ondelete="cascade")
-    perennial_line_id = fields.Many2one('g2p.perennial.line', ondelete="cascade")
-    biennial_line_id = fields.Many2one('g2p.biennial.line', ondelete="cascade")
-    water_resource_id = fields.Many2one('g2p.water.source', string="Water Resource", required=True)
-    method_id = fields.Char(string="Method")
-    frequency = fields.Char(string="Frequency")
-
-class G2PAnnualLine(models.Model):
-    _name = "g2p.annual.line"
-    _description = "Annual Planned Line"
-
-    crop_registry_id = fields.Many2one("g2p.crop.registry", string="Crop Registry", ondelete="cascade")
-    sync_id = fields.Char(string="Sync ID", default=lambda self: str(uuid.uuid4()))
-    land_info_id = fields.Many2one('g2p.land.information', string="Land ID")
-    region_name_id = fields.Many2one('g2p.region', string='Region')
-    zone_name_id = fields.Many2one('g2p.zone', string='Zone')
-    woreda_name_id = fields.Many2one('g2p.woreda', string='Woreda')
-    kebele_id = fields.Many2one('g2p.kebele', string='Kebele')
-    gps = fields.Char(string='GPS Coordinates')
-
-    ownership_type = fields.Selection([('owner', 'Owner'), ('tenant', 'Tenant'), ('crop_share', 'Crop Sharing'), ('family_gift', 'Family Gift')], string="Ownership Type")
-    land_area = fields.Float(string="Total Land Area (ha)")
-    land_category = fields.Selection([('annual', 'Annual Crop'), ('perennial', 'Perennial Crop'), ('biennial', 'Biennial Crop')], string="Plot Category")
-    soil_fertility = fields.Char(string="Soil Fertility")
-    season_id = fields.Many2one('g2p.season', string="Season", required=True)
-    start_gc = fields.Date(string="Start GC")
-    start_month = fields.Integer(string="Start Month", compute="_compute_start_date", store=True)
-    start_day = fields.Integer(string="Start Day", compute="_compute_start_date", store=True)
-    end_gc = fields.Date(string="End GC")
-    end_month = fields.Integer(string="End Month", compute="_compute_end_date", store=True)
-    end_day = fields.Integer(string="End Day", compute="_compute_end_date", store=True)
-
-    crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
-    collected_gc = fields.Date(string="Planned Date (GC)")
-    collected_ec = fields.Char(string="Planned Date (EC)")
-    crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
-    crop_variety_id = fields.Many2one("g2p.crop.variety", string="Crop Variety")
-
-    @api.onchange('land_info_id')
-    def _onchange_land_info_id(self):
-        if self.land_info_id:
-            self.land_area = self.land_info_id.total_land_area
-            self.ownership_type = self.land_info_id.ownership_type
-            if hasattr(self.land_info_id, 'soil_fertility') and self.land_info_id.soil_fertility:
-                self.soil_fertility = self.land_info_id.soil_fertility.lower()
-            if self.land_info_id.land_kebele:
-                self.kebele_id = self.land_info_id.land_kebele.id
-                if self.land_info_id.land_kebele.woreda:
-                    self.woreda_name_id = self.land_info_id.land_kebele.woreda.id
-                    if self.land_info_id.land_kebele.woreda.zone:
-                        self.zone_name_id = self.land_info_id.land_kebele.woreda.zone.id
-                        if self.land_info_id.land_kebele.woreda.zone.region:
-                            self.region_name_id = self.land_info_id.land_kebele.woreda.zone.region.id
-                        else:
-                            self.region_name_id = False
-                    else:
-                        self.zone_name_id = False
-                        self.region_name_id = False
-                else:
-                    self.woreda_name_id = False
-                    self.zone_name_id = False
-                    self.region_name_id = False
-            else:
-                self.kebele_id = False
-                self.woreda_name_id = False
-                self.zone_name_id = False
-                self.region_name_id = False
-
-            if hasattr(self.land_info_id, 'polygon_data') and self.land_info_id.polygon_data:
-                self.gps = self.land_info_id.polygon_data
-            else:
-                self.gps = False
-
-    crop_planned_area = fields.Float(string="Planned Crop Area (ha)")
-    crop_growth_duration = fields.Float(string="Average Growth Duration (days)")
-    crop_expected = fields.Float(string="Expected Yield (quintals)")
-
-    seed_planned = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
-    seed_planned_qty = fields.Float(string="Planned Seed Quantity (kg)")
-    seed_planned_fertilizer_type = fields.Selection([
-        ('organic', 'Organic'),
-        ('inorganic', 'Inorganic'),
-        ('biofertilizer', 'Bio Fertilizer')
-    ], string="Planned Fertilizer Type")
-
-    seed_planned_fertilizer_qty = fields.Float(string="Planned Fertilizer Quantity (kg)")
-    seed_planned_fertilizer_sack = fields.Float(string="Planned Fertilizer Sacks Count", compute="_compute_planned_fertilizer_sacks", store=True)
-    water_resource_line_ids = fields.One2many('g2p.water.resource.line', 'annual_line_id', string="Water Resources")
-
-    # Actual Inputs Fields
-    actual_season_id = fields.Many2one('g2p.season', string="Actual Season")
-    actual_start_gc = fields.Date(string="Actual Start GC")
-    actual_start_month = fields.Integer(string="Actual Start Month")
-    actual_start_day = fields.Integer(string="Actual Start Day")
-    actual_end_gc = fields.Date(string="Actual End GC")
-    actual_end_month = fields.Integer(string="Actual End Month")
-    actual_end_day = fields.Integer(string="Actual End Day")
-
-    actual_crop_name_id = fields.Many2one("g2p.crop", string="Actual Crop")
-    actual_collected_gc = fields.Date(string="Actual Date (GC)")
-    actual_collected_ec = fields.Char(string="Actual Date (EC)")
-    actual_crop_category_id = fields.Many2one("g2p.crop.category", string="Actual Crop Category", compute="_compute_actual_crop_category", store=True)
-    actual_crop_variety_id = fields.Many2one("g2p.crop.variety", string="Actual Crop Variety")
-
-    actual_crop_area = fields.Float(string="Actual Crop Area (ha)")
-    actual_growth_duration = fields.Float(string="Actual Growth Duration (days)")
-
-    actual_seed_class = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
-    actual_seed_qty = fields.Float(string="Actual Seed Quantity (kg)")
-    actual_fertilizer_type = fields.Selection([
-        ('organic', 'Organic'),
-        ('inorganic', 'Inorganic'),
-        ('biofertilizer', 'Bio Fertilizer')
-    ], string="Actual Fertilizer Type")
-
-    actual_fertilizer_qty = fields.Float(string="Actual Fertilizer Quantity (kg)")
-    actual_fertilizer_sack = fields.Float(string="Actual Fertilizer Sacks Count", compute="_compute_actual_fertilizer_sacks", store=True)
-
-    pest_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Pest Occurrence")
-    pest_line_ids = fields.One2many('g2p.crop.pest.line', 'annual_line_id', string="Pest Details")
-
-    weed_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Weed Occurrence")
-    weed_line_ids = fields.One2many('g2p.crop.weed.line', 'annual_line_id', string="Weed Details")
-
-    actual_yield = fields.Float(string="Actual Yield (quintal)")
-    cultivated_by = fields.Selection([
-        ('tractor', 'Tractor'),
-        ('other', 'Other'),
-    ], string="Cultivation Type")
-
-
-
-
-    planned_labor = fields.Integer(string="Planned Labor")
-    has_cluster_farming = fields.Selection([
-        ('yes', 'Yes'),
-        ('no', 'No')
-    ], string="Have you done any cluster farming or related activities earlier?")
-    cluster_plan = fields.Float(string="Cluster Plan")
-    cluster_collected_land = fields.Float(string="Cluster Collected Land")
-    cluster_collected_quintal = fields.Float(string="Cluster Collected Quintal")
-    cluster_participant_farmers = fields.Integer(string="Cluster Participant Farmers")
-    collected_land = fields.Float(string="Collected Land")
-    collected_land_quintal = fields.Float(string="Collected Land Quintal")
-    collected_by_combiner = fields.Float(string="Collected by Combiner")
-
-
-    @api.depends('seed_planned_fertilizer_qty')
-    def _compute_planned_fertilizer_sacks(self):
-        for rec in self:
-            if rec.seed_planned_fertilizer_qty:
-                rec.seed_planned_fertilizer_sack = rec.seed_planned_fertilizer_qty / 50.0
-            else:
-                rec.seed_planned_fertilizer_sack = 0.0
-
-    @api.onchange('seed_planned_fertilizer_qty')
-    def _onchange_fertilizer_qty(self):
-        for rec in self:
-            if rec.seed_planned_fertilizer_qty:
-                rec.seed_planned_fertilizer_sack = rec.seed_planned_fertilizer_qty / 50.0
-            else:
-                rec.seed_planned_fertilizer_sack = 0.0
-
-    @api.depends('actual_fertilizer_qty')
-    def _compute_actual_fertilizer_sacks(self):
-        for rec in self:
-            if rec.actual_fertilizer_qty:
-                rec.actual_fertilizer_sack = rec.actual_fertilizer_qty / 50.0
-            else:
-                rec.actual_fertilizer_sack = 0.0
-
-    @api.onchange('crop_planned_area')
-    def _onchange_crop_planned_area(self):
-        if self.crop_registry_id and self.crop_planned_area and self.land_info_id:
-            same_land_lines = self.crop_registry_id.annual_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
-            total_planned = sum(same_land_lines.mapped('crop_planned_area'))
-            max_area = self.land_info_id.total_land_area
-            if total_planned > max_area:
-                attempted_area = self.crop_planned_area
-                allocated_area = total_planned - attempted_area
-                remaining_area = max_area - allocated_area
-
-                # If they already messed up other lines, don't let it go negative in the message
-                if remaining_area < 0:
-                    remaining_area = 0.0
-
-                self.crop_planned_area = 0.0
-                return {
-                    'warning': {
-                        'title': "Area Exceeded",
-                        'message': "You entered %.2f ha, but only %.2f ha is remaining out of the total %.2f ha (%.2f ha is already allocated to other crops)." % (attempted_area, remaining_area, max_area, allocated_area)
-                    }
-                }
-
-
-    @api.onchange('season_id')
-    def _onchange_season_id(self):
-        if self.season_id:
-            self.start_gc = self.season_id.start_gc
-            self.end_gc = self.season_id.end_gc
-            if self.season_id.start_gc:
-                self.start_month = self.season_id.start_gc.month
-                self.start_day = self.season_id.start_gc.day
-            if self.season_id.end_gc:
-                self.end_month = self.season_id.end_gc.month
-                self.end_day = self.season_id.end_gc.day
-
-    @api.depends("start_gc")
-    def _compute_start_date(self):
-        for record in self:
-            if record.start_gc:
-                record.start_month = record.start_gc.month
-                record.start_day = record.start_gc.day
-            else:
-                record.start_month = record.start_day = 0
-
-    @api.depends("end_gc")
-    def _compute_end_date(self):
-        for record in self:
-            if record.end_gc:
-                record.end_month = record.end_gc.month
-                record.end_day = record.end_gc.day
-            else:
-                record.end_month = record.end_day = 0
-
-    @api.depends("crop_name_id")
-    def _compute_crop_category(self):
-        for rec in self:
-            if rec.crop_name_id:
-                rec.crop_category_id = rec.crop_name_id.category.id
-            else:
-                rec.crop_category_id = False
-
-    @api.depends("actual_crop_name_id")
-    def _compute_actual_crop_category(self):
-        for rec in self:
-            if rec.actual_crop_name_id:
-                rec.actual_crop_category_id = rec.actual_crop_name_id.category.id
-            else:
-                rec.actual_crop_category_id = False
-
-    @api.onchange("crop_name_id")
-    def _onchange_crop(self):
-        self.crop_variety_id = False
-        return {
-            "domain": {
-                "crop_variety_id": [
-                    ("crop_id", "=", self.crop_name_id.id)
-                ]
-            }
-        }
-
-    @api.onchange("collected_gc", "start_gc", "end_gc")
-    def _onchange_collected_gc(self):
-        if self.collected_gc:
-            if self.start_gc and self.end_gc:
-                # Check if the date is within the season's start and end months/dates
-                if self.collected_gc < self.start_gc or self.collected_gc > self.end_gc:
-                    self.collected_gc = False
-                    self.collected_ec = False
-                    return {
-                        'warning': {
-                            'title': 'Invalid Planned Date',
-                            'message': 'Planned Date (GC) must be within the Season Details (Start GC and End GC).'
-                        }
-                    }
-
-            cdate = date(
-                self.collected_gc.year,
-                self.collected_gc.month,
-                self.collected_gc.day,
-            )
-            ethiopian_date = eth_date.to_ethiopian(
-                cdate.year, cdate.month, cdate.day
-            )
-            self.collected_ec = eth_date.convert_tuple_to_string_with_separator(
-                ethiopian_date
-            )
-
-    @api.onchange("collected_ec")
-    def _onchange_collected_ec(self):
-        if self.collected_ec:
-            eth_date.check_ethipian_date_str(self.collected_ec, future_date=True)
-            date_list = re.split("[-/,]", self.collected_ec)
-            gc_date = eth_date.to_gregorian(
-                int(date_list[2]), int(date_list[1]), int(date_list[0])
-            )
-            self.collected_gc = gc_date
-
-
-
-
-class G2PAnnualActualLine(models.Model):
-    _name = "g2p.annual.actual.line"
-    _description = "Annual Actual Line"
-    @api.constrains('actual_yield')
-    def _check_actual_yield(self):
-        for rec in self:
-            if rec.actual_yield > 0 and rec.crop_registry_id:
-                planned_line = rec.crop_registry_id.annual_line_ids.filtered(lambda l: l.sync_id == rec.sync_id)
-                if planned_line and rec.actual_yield > planned_line[0].crop_expected:
-                    raise ValidationError(f"Actual yield ({rec.actual_yield}) cannot be greater than expected yield ({planned_line[0].crop_expected}).")
-
-    @api.onchange('actual_yield')
-    def _onchange_actual_yield(self):
-        if self.actual_yield > 0 and self.crop_registry_id:
-            planned_line = self.crop_registry_id.annual_line_ids.filtered(lambda l: l.sync_id == self.sync_id)
-            if planned_line and self.actual_yield > planned_line[0].crop_expected:
-                self.actual_yield = 0.0
-                return {
-                    'warning': {
-                        'title': 'Invalid Yield',
-                        'message': f"Actual Yield cannot be greater than Expected Yield ({planned_line[0].crop_expected})."
-                    }
-                }
-    crop_registry_id = fields.Many2one("g2p.crop.registry", string="Crop Registry", ondelete="cascade")
-    sync_id = fields.Char(string="Sync ID", default=lambda self: str(uuid.uuid4()))
-    is_manual = fields.Boolean(string="Is Manual", default=True)
-    is_planning = fields.Boolean(string="Is Planning", default=False)
-    land_info_id = fields.Many2one('g2p.land.information', string="Land ID")
-    region_name_id = fields.Many2one('g2p.region', string='Region')
-    zone_name_id = fields.Many2one('g2p.zone', string='Zone')
-    woreda_name_id = fields.Many2one('g2p.woreda', string='Woreda')
-    kebele_id = fields.Many2one('g2p.kebele', string='Kebele')
-    gps = fields.Char(string='GPS Coordinates')
-
-    ownership_type = fields.Selection([('owner', 'Owner'), ('tenant', 'Tenant'), ('crop_share', 'Crop Sharing'), ('family_gift', 'Family Gift')], string="Ownership Type")
-    land_area = fields.Float(string="Total Land Area (ha)")
-    land_category = fields.Selection([('annual', 'Annual Crop'), ('perennial', 'Perennial Crop'), ('biennial', 'Biennial Crop')], string="Plot Category")
-    soil_fertility = fields.Char(string="Soil Fertility")
-    season_id = fields.Many2one('g2p.season', string="Season", required=True)
-
-    @api.onchange('land_info_id')
-    def _onchange_land_info_id(self):
-        if self.land_info_id:
-            self.land_area = self.land_info_id.total_land_area
-            self.ownership_type = self.land_info_id.ownership_type
-            if hasattr(self.land_info_id, 'soil_fertility') and self.land_info_id.soil_fertility:
-                self.soil_fertility = self.land_info_id.soil_fertility.lower()
-            if self.land_info_id.land_kebele:
-                self.kebele_id = self.land_info_id.land_kebele.id
-                if self.land_info_id.land_kebele.woreda:
-                    self.woreda_name_id = self.land_info_id.land_kebele.woreda.id
-                    if self.land_info_id.land_kebele.woreda.zone:
-                        self.zone_name_id = self.land_info_id.land_kebele.woreda.zone.id
-                        if self.land_info_id.land_kebele.woreda.zone.region:
-                            self.region_name_id = self.land_info_id.land_kebele.woreda.zone.region.id
-                        else:
-                            self.region_name_id = False
-                    else:
-                        self.zone_name_id = False
-                        self.region_name_id = False
-                else:
-                    self.woreda_name_id = False
-                    self.zone_name_id = False
-                    self.region_name_id = False
-            else:
-                self.kebele_id = False
-                self.woreda_name_id = False
-                self.zone_name_id = False
-                self.region_name_id = False
-
-            if hasattr(self.land_info_id, 'polygon_data') and self.land_info_id.polygon_data:
-                self.gps = self.land_info_id.polygon_data
-            else:
-                self.gps = False
-
-            if self.crop_registry_id:
-                planned_line = self.crop_registry_id.annual_line_ids.filtered(
-                    lambda l: l.land_info_id.id == self.land_info_id.id
-                )
-                if planned_line:
-                    planned_line = planned_line[0]
-                    water_resources = []
-                    for w in planned_line.water_resource_line_ids:
-                        water_resources.append((0, 0, {
-                            'water_resource_id': w.water_resource_id.id,
-                            'method_id': w.method_id,
-                            'frequency': w.frequency,
-                            'crop_registry_id': self.crop_registry_id.id,
-                        }))
-                    if water_resources:
-                        self.water_resource_line_ids = [(5, 0, 0)] + water_resources
-    crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
-    collected_gc = fields.Date(string="Actual Planted Date (GC)")
-    collected_ec = fields.Char(string="Actual Planted Date (EC)")
-    crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
-    crop_variety_id = fields.Many2one("g2p.crop.variety", string="Crop Variety")
-    remark = fields.Char(string="Remark")
-    actual_crop_area = fields.Float(string="Actual Crop Area (ha)")
-    actual_growth_duration = fields.Float(string="Actual Growth Duration (days)")
-
-    actual_seed_class = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
-    actual_seed_qty = fields.Float(string="Actual Seed Quantity (kg)")
-    actual_fertilizer_type = fields.Selection([
-        ('organic', 'Organic'),
-        ('inorganic', 'Inorganic'),
-        ('biofertilizer', 'Bio Fertilizer')
-    ], string="Actual Fertilizer Type")
-
-    actual_fertilizer_qty = fields.Float(string="Actual Fertilizer Quantity (kg)")
-    actual_fertilizer_sack = fields.Float(string="Actual Fertilizer Sacks Count", compute="_compute_actual_fertilizer_sacks", store=True)
-
-    has_cluster_farming = fields.Selection([
-        ('yes', 'Yes'),
-        ('no', 'No')
-    ], string="Have you done any cluster farming or related activities earlier?")
-    actual_cluster_plan = fields.Float(string="Actual Cluster Plan")
-    actual_cluster_collected_land = fields.Float(string="Actual Cluster Collected Land")
-    actual_cluster_collected_quintal = fields.Float(string="Actual Cluster Collected Quintal")
-    actual_cluster_participant_farmers = fields.Integer(string="Actual Cluster Participant Farmers")
-    actual_collected_land = fields.Float(string="Actual Collected Land")
-    actual_collected_land_quintal = fields.Float(string="Actual Collected Land Quintal")
-    actual_collected_by_combiner = fields.Float(string="Actual Collected by Combiner")
-
-    pest_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Pest Occurrence")
-    pest_line_ids = fields.One2many('g2p.crop.pest.line', 'actual_annual_line_id', string="Pest Details")
-
-    weed_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Weed Occurrence")
-    weed_line_ids = fields.One2many('g2p.crop.weed.line', 'actual_annual_line_id', string="Weed Details")
-
-    actual_yield = fields.Float(string="Actual Yield (quintal)")
-    cultivated_by = fields.Selection([
-        ('tractor', 'Tractor'),
-        ('other', 'Other'),
-    ], string="Cultivation Type")
-    land_prep_method_ids = fields.Many2many("g2p.land.prep.method", string="Land Prep Methods")
-
-    water_resource_line_ids = fields.One2many(
-        "g2p.actual.water.resource.line",
-        "actual_annual_line_id",
-        string="Water Resources",
-    )
-
-    start_gc = fields.Date(string="Start GC")
-    start_month = fields.Integer(string="Start Month", compute="_compute_start_date", store=True)
-    start_day = fields.Integer(string="Start Day", compute="_compute_start_date", store=True)
-    end_gc = fields.Date(string="End GC")
-    end_month = fields.Integer(string="End Month", compute="_compute_end_date", store=True)
-    end_day = fields.Integer(string="End Day", compute="_compute_end_date", store=True)
-
-    is_mismatch = fields.Boolean(string="Mismatch", compute="_compute_is_mismatch", store=True)
-
-    @api.onchange('actual_crop_area')
-    def _onchange_actual_crop_area(self):
-        if self.crop_registry_id and self.actual_crop_area and self.land_info_id:
-            same_land_lines = self.crop_registry_id.actual_annual_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
-            total_actual = sum(same_land_lines.mapped('actual_crop_area'))
-            max_area = self.land_info_id.total_land_area
-            if total_actual > max_area:
-                attempted_area = self.actual_crop_area
-                allocated_area = total_actual - attempted_area
-                remaining_area = max_area - allocated_area
-
-                if remaining_area < 0:
-                    remaining_area = 0.0
-
-                self.actual_crop_area = 0.0
-                return {
-                    'warning': {
-                        'title': "Area Exceeded",
-                        'message': "You entered %.2f ha, but only %.2f ha is remaining out of the total %.2f ha (%.2f ha is already allocated to other actual crops)." % (attempted_area, remaining_area, max_area, allocated_area)
-                    }
-                }
-
-    @api.depends('actual_fertilizer_qty')
-    def _compute_actual_fertilizer_sacks(self):
-        for rec in self:
-            if rec.actual_fertilizer_qty:
-                rec.actual_fertilizer_sack = rec.actual_fertilizer_qty / 50.0
-            else:
-                rec.actual_fertilizer_sack = 0.0
-
-    @api.onchange('actual_fertilizer_qty')
-    def _onchange_fertilizer_qty(self):
-        for rec in self:
-            if rec.actual_fertilizer_qty:
-                rec.actual_fertilizer_sack = rec.actual_fertilizer_qty / 50.0
-            else:
-                rec.actual_fertilizer_sack = 0.0
-
-    @api.onchange('season_id')
-    def _onchange_season_id(self):
-        if self.season_id:
-            self.start_gc = self.season_id.start_gc
-            self.end_gc = self.season_id.end_gc
-            if self.season_id.start_gc:
-                self.start_month = self.season_id.start_gc.month
-                self.start_day = self.season_id.start_gc.day
-            if self.season_id.end_gc:
-                self.end_month = self.season_id.end_gc.month
-                self.end_day = self.season_id.end_gc.day
-            # Clear the actual planted date so user enters fresh date for new season
-            self.collected_gc = False
-            self.collected_ec = False
-
-    @api.depends("start_gc")
-    def _compute_start_date(self):
-        for record in self:
-            if record.start_gc:
-                record.start_month = record.start_gc.month
-                record.start_day = record.start_gc.day
-            else:
-                record.start_month = record.start_day = 0
-
-    @api.depends("end_gc")
-    def _compute_end_date(self):
-        for record in self:
-            if record.end_gc:
-                record.end_month = record.end_gc.month
-                record.end_day = record.end_gc.day
-            else:
-                record.end_month = record.end_day = 0
-
-    @api.depends("crop_name_id")
-    def _compute_crop_category(self):
-        for rec in self:
-            if rec.crop_name_id:
-                rec.crop_category_id = rec.crop_name_id.category.id
-            else:
-                rec.crop_category_id = False
-
-    @api.depends("crop_name_id", "crop_variety_id", "collected_gc", "season_id",
-                 "crop_registry_id.annual_line_ids",
-                 "crop_registry_id.annual_line_ids.crop_name_id",
-                 "crop_registry_id.annual_line_ids.crop_variety_id",
-                 "crop_registry_id.annual_line_ids.collected_gc",
-                 "crop_registry_id.annual_line_ids.season_id")
-    def _compute_is_mismatch(self):
-        for rec in self:
-            if not rec.crop_registry_id or not rec.crop_name_id:
-                rec.is_mismatch = False
-                continue
-            planned_lines = rec.crop_registry_id.annual_line_ids
-            matched = False
-            for planned in planned_lines:
-                if (planned.crop_name_id.id == rec.crop_name_id.id
-                        and planned.crop_variety_id.id == rec.crop_variety_id.id
-                        and planned.season_id.id == rec.season_id.id
-                        and planned.collected_gc == rec.collected_gc):
-                    matched = True
-                    break
-            rec.is_mismatch = not matched
-
-    @api.depends("crop_name_id")
-    def _compute_crop_category(self):
-        for rec in self:
-            rec.crop_category_id = (
-                rec.crop_name_id.category.id
-                if rec.crop_name_id
-                else False
-            )
-
-    @api.onchange("crop_name_id")
-    def _onchange_crop(self):
-        self.crop_variety_id = False
-        return {
-            "domain": {
-                "crop_variety_id": [
-                    ("crop_id", "=", self.crop_name_id.id)
-                ]
-            }
-        }
-
-    @api.onchange("collected_gc")
-    def _onchange_collected_gc(self):
-        if self.collected_gc:
-            if self.collected_gc > fields.Date.today():
-                self.collected_gc = False
-                return {
-                    'warning': {
-                        'title': 'Invalid Date',
-                        'message': 'Actual Planted Date (GC) cannot be a future date.'
-                    }
-                }
-            cdate = date(
-                self.collected_gc.year,
-                self.collected_gc.month,
-                self.collected_gc.day,
-            )
-            ethiopian_date = eth_date.to_ethiopian(
-                cdate.year, cdate.month, cdate.day
-            )
-            self.collected_ec = eth_date.convert_tuple_to_string_with_separator(
-                ethiopian_date
-            )
-
-    @api.onchange("collected_ec")
-    def _onchange_collected_ec(self):
-        if self.collected_ec:
-            eth_date.check_ethipian_date_str(self.collected_ec, future_date=True)
-            date_list = re.split("[-/,]", self.collected_ec)
-            gc_date = eth_date.to_gregorian(
-                int(date_list[2]), int(date_list[1]), int(date_list[0])
-            )
-            self.collected_gc = gc_date
-
-class G2PPest(models.Model):
-    _name = "g2p.pest"
-    _description = "Pest Name"
-    name = fields.Char("Name", required=True)
-    code = fields.Char("Code")
-    pest_type = fields.Selection([
-        ('insect_pests', 'Insect Pests'),
-        ('rodent_pests', 'Rodent Pests'),
-        ('molluscan_pests', 'Molluscan Pests'),
-        ('disease_pests', 'Disease-causing Pests'),
-    ], string="Pest Type")
-
-class G2PPesticide(models.Model):
-    _name = "g2p.pesticide"
-    _description = "Pesticide Name"
-    name = fields.Char("Name", required=True)
-    code = fields.Char("Code")
-    pesticide_type = fields.Selection([
-        ('insecticide', 'Insecticide'),
-        ('fungicide', 'Fungicide'),
-        ('herbicide', 'Herbicide'),
-        ('rodenticide', 'Rodenticide'),
-        ('bactericide', 'Bactericide'),
-        ('nematicide', 'Nematicide'),
-        ('acaricide', 'Acaricide / Miticide'),
-        ('molluscicide', 'Molluscicide'),
-        ('termiticide', 'Termiticide'),
-        ('avicide', 'Avicide'),
-        ('piscicide', 'Piscicide'),
-        ('algicide', 'Algicide'),
-        ('virucide', 'Virucide'),
-    ], string="Type")
-
-class G2PCropPestLine(models.Model):
-    _name = "g2p.crop.pest.line"
-    _description = "Crop Pest Details"
-
-    crop_registry_id = fields.Many2one('g2p.crop.registry', string="Crop Registry", ondelete="cascade")
-    actual_annual_line_id = fields.Many2one("g2p.annual.actual.line", ondelete="cascade")
-    annual_line_id = fields.Many2one('g2p.annual.line', ondelete="cascade")
-    actual_perennial_line_id = fields.Many2one("g2p.perennial.actual.line", ondelete="cascade")
-    actual_biennial_line_id = fields.Many2one("g2p.biennial.actual.line", ondelete="cascade")
-    perennial_line_id = fields.Many2one('g2p.perennial.line', ondelete="cascade")
-    biennial_line_id = fields.Many2one('g2p.biennial.line', ondelete="cascade")
-
-    pest_type = fields.Selection([
-        ('insect_pests', 'Insect Pests'),
-        ('rodent_pests', 'Rodent Pests'),
-        ('molluscan_pests', 'Molluscan Pests'),
-        ('disease_pests', 'Disease-causing Pests'),
-    ], string="Pest Type")
-    pest_name_id = fields.Many2one('g2p.pest', string="Pest Name", domain="[('pest_type', '=', pest_type)]")
-
-    pesticides_type = fields.Selection([
-        ('insecticide', 'Insecticide'),
-        ('fungicide', 'Fungicide'),
-        ('herbicide', 'Herbicide'),
-        ('rodenticide', 'Rodenticide'),
-        ('bactericide', 'Bactericide'),
-        ('nematicide', 'Nematicide'),
-        ('acaricide', 'Acaricide / Miticide'),
-        ('molluscicide', 'Molluscicide'),
-        ('termiticide', 'Termiticide'),
-        ('avicide', 'Avicide'),
-        ('piscicide', 'Piscicide'),
-        ('algicide', 'Algicide'),
-        ('virucide', 'Virucide'),
-    ], string="Pesticides Type")
-    pesticide_name_id = fields.Many2one('g2p.pesticide', string="Pesticide Name", domain="[('pesticide_type', '=', pesticides_type)]")
-    pesticide_method = fields.Char(string="Method of Control")
-    pesticide_frequency = fields.Char(string="Frequency of Application")
-
-class G2PWeed(models.Model):
-    _name = "g2p.weed"
-    _description = "Weed Name"
-    name = fields.Char("Name", required=True)
-    code = fields.Char("Code")
-    weed_type = fields.Selection([
-        ('by_life_cycle', 'By Life Cycle'),
-        ('by_season', 'By Season'),
-        ('by_botanical_nature', 'By Botanical Nature'),
-        ('by_habitat', 'By Habitat'),
-        ('by_harmfulness', 'By Harmfulness'),
-        ('by_morphology', 'By Morphology'),
-    ], string="Weed Type")
-
-class G2PCropWeedLine(models.Model):
-    _name = "g2p.crop.weed.line"
-    _description = "Crop Weed Details"
-
-    crop_registry_id = fields.Many2one('g2p.crop.registry', string="Crop Registry", ondelete="cascade")
-    actual_annual_line_id = fields.Many2one("g2p.annual.actual.line", ondelete="cascade")
-    annual_line_id = fields.Many2one('g2p.annual.line', ondelete="cascade")
-    actual_perennial_line_id = fields.Many2one("g2p.perennial.actual.line", ondelete="cascade")
-    actual_biennial_line_id = fields.Many2one("g2p.biennial.actual.line", ondelete="cascade")
-    perennial_line_id = fields.Many2one('g2p.perennial.line', ondelete="cascade")
-    biennial_line_id = fields.Many2one('g2p.biennial.line', ondelete="cascade")
-
-    weed_type = fields.Selection([
-        ('by_life_cycle', 'By Life Cycle'),
-        ('by_season', 'By Season'),
-        ('by_botanical_nature', 'By Botanical Nature'),
-        ('by_habitat', 'By Habitat'),
-        ('by_harmfulness', 'By Harmfulness'),
-        ('by_morphology', 'By Morphology'),
-    ], string="Weed Type")
-    weed_name_id = fields.Many2one('g2p.weed', string="Weed Name", domain="[('weed_type', '=', weed_type)]")
-
-    weedicide_type = fields.Selection([
-        ('pre_emergent', 'Pre-emergent Herbicide'),
-        ('post_emergent', 'Post-emergent Herbicide'),
-        ('systemic', 'Systemic Herbicide'),
-        ('contact', 'Contact Herbicide'),
-        ('graminicide', 'Graminicide'),
-        ('broadleaf', 'Broadleaf Herbicide'),
-        ('sedge', 'Sedge Herbicide'),
-        ('aquatic', 'Aquatic Herbicide'),
-        ('foliar', 'Foliar Herbicide'),
-        ('soil', 'Soil Herbicide'),
-    ], string="Weedicides Type")
-    weedicide_name_id = fields.Many2one('g2p.weedicide', string="Weedicides Name", domain="[('weedicide_type', '=', weedicide_type)]")
-    pesticide_method = fields.Char(string="Method of Control")
-    pesticide_frequency = fields.Char(string="Frequency of Application")
-
-class G2PWeedicide(models.Model):
-    _name = "g2p.weedicide"
-    _description = "Weedicide Name"
-    name = fields.Char("Name", required=True)
-    code = fields.Char("Code")
-    weedicide_type = fields.Selection([
-        ('pre_emergent', 'Pre-emergent Herbicide'),
-        ('post_emergent', 'Post-emergent Herbicide'),
-        ('systemic', 'Systemic Herbicide'),
-        ('contact', 'Contact Herbicide'),
-        ('graminicide', 'Graminicide'),
-        ('broadleaf', 'Broadleaf Herbicide'),
-        ('sedge', 'Sedge Herbicide'),
-        ('aquatic', 'Aquatic Herbicide'),
-        ('foliar', 'Foliar Herbicide'),
-        ('soil', 'Soil Herbicide'),
-    ], string="Type")
-
-
-
-
-
-class G2PBiennialLine(models.Model):
-    _name = "g2p.biennial.line"
-    _description = "Biennial Crop Planned Line"
-
-    crop_registry_id = fields.Many2one("g2p.crop.registry", string="Crop Registry", ondelete="cascade")
-    sync_id = fields.Char(string="Sync ID", default=lambda self: str(uuid.uuid4()))
-    land_info_id = fields.Many2one('g2p.land.information', string="Land ID")
-    region_name_id = fields.Many2one('g2p.region', string='Region')
-    zone_name_id = fields.Many2one('g2p.zone', string='Zone')
-    woreda_name_id = fields.Many2one('g2p.woreda', string='Woreda')
-    kebele_id = fields.Many2one('g2p.kebele', string='Kebele')
-    gps = fields.Char(string='GPS Coordinates')
-
-    ownership_type = fields.Selection([('owner', 'Owner'), ('tenant', 'Tenant'), ('crop_share', 'Crop Sharing'), ('family_gift', 'Family Gift')], string="Ownership Type")
-    land_area = fields.Float(string="Total Land Area (ha)")
-    land_category = fields.Selection([('annual', 'Annual Crop'), ('biennial', 'Biennial Crop'), ('biennial', 'Biennial Crop')], string="Plot Category")
-    soil_fertility = fields.Char(string="Soil Fertility")
-    season_id = fields.Many2one('g2p.season', string="Season", required=True)
-    start_gc = fields.Date(string="Start GC")
-    start_month = fields.Integer(string="Start Month", compute="_compute_start_date", store=True)
-    start_day = fields.Integer(string="Start Day", compute="_compute_start_date", store=True)
-    end_gc = fields.Date(string="End GC")
-    end_month = fields.Integer(string="End Month", compute="_compute_end_date", store=True)
-    end_day = fields.Integer(string="End Day", compute="_compute_end_date", store=True)
-
-    crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
-    collected_gc = fields.Date(string="Planned Date (GC)")
-    collected_ec = fields.Char(string="Planned Date (EC)")
-    crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
-    crop_variety_id = fields.Many2one("g2p.crop.variety", string="Crop Variety")
-
-    crop_planned_area = fields.Float(string="Planned Crop Area (ha)")
-
-    @api.onchange('land_info_id')
-    def _onchange_land_info_id(self):
-        if self.land_info_id:
-            self.land_area = self.land_info_id.total_land_area
-            self.ownership_type = self.land_info_id.ownership_type
-            if hasattr(self.land_info_id, 'soil_fertility') and self.land_info_id.soil_fertility:
-                self.soil_fertility = self.land_info_id.soil_fertility.lower()
-            if self.land_info_id.land_kebele:
-                self.kebele_id = self.land_info_id.land_kebele.id
-                if self.land_info_id.land_kebele.woreda:
-                    self.woreda_name_id = self.land_info_id.land_kebele.woreda.id
-                    if self.land_info_id.land_kebele.woreda.zone:
-                        self.zone_name_id = self.land_info_id.land_kebele.woreda.zone.id
-                        if self.land_info_id.land_kebele.woreda.zone.region:
-                            self.region_name_id = self.land_info_id.land_kebele.woreda.zone.region.id
-                        else:
-                            self.region_name_id = False
-                    else:
-                        self.zone_name_id = False
-                        self.region_name_id = False
-                else:
-                    self.woreda_name_id = False
-                    self.zone_name_id = False
-                    self.region_name_id = False
-            else:
-                self.kebele_id = False
-                self.woreda_name_id = False
-                self.zone_name_id = False
-                self.region_name_id = False
-
-            if hasattr(self.land_info_id, 'polygon_data') and self.land_info_id.polygon_data:
-                self.gps = self.land_info_id.polygon_data
-            else:
-                self.gps = False
-    crop_growth_duration = fields.Float(string="Average Growth Duration (days)")
-    crop_expected = fields.Float(string="Expected Yield (quintals)")
-
-    seed_planned = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
-    seed_planned_qty = fields.Float(string="Planned Seed Quantity (kg)")
-    seed_planned_fertilizer_type = fields.Selection([
-        ('organic', 'Organic'),
-        ('inorganic', 'Inorganic'),
-        ('biofertilizer', 'Bio Fertilizer')
-    ], string="Planned Fertilizer Type")
-
-    seed_planned_fertilizer_qty = fields.Float(string="Planned Fertilizer Quantity (kg)")
-    seed_planned_fertilizer_sack = fields.Float(string="Planned Fertilizer Sacks Count", compute="_compute_planned_fertilizer_sacks", store=True)
-    water_resource_line_ids = fields.One2many('g2p.water.resource.line', 'biennial_line_id', string="Water Resources")
-
-    # Actual Inputs Fields
-    actual_season_id = fields.Many2one('g2p.season', string="Actual Season")
-    actual_start_gc = fields.Date(string="Actual Start GC")
-    actual_start_month = fields.Integer(string="Actual Start Month")
-    actual_start_day = fields.Integer(string="Actual Start Day")
-    actual_end_gc = fields.Date(string="Actual End GC")
-    actual_end_month = fields.Integer(string="Actual End Month")
-    actual_end_day = fields.Integer(string="Actual End Day")
-
-    actual_crop_name_id = fields.Many2one("g2p.crop", string="Actual Crop")
-    actual_collected_gc = fields.Date(string="Actual Date (GC)")
-    actual_collected_ec = fields.Char(string="Actual Date (EC)")
-    actual_crop_category_id = fields.Many2one("g2p.crop.category", string="Actual Crop Category", compute="_compute_actual_crop_category", store=True)
-    actual_crop_variety_id = fields.Many2one("g2p.crop.variety", string="Actual Crop Variety")
-
-    actual_crop_area = fields.Float(string="Actual Crop Area (ha)")
-    actual_growth_duration = fields.Float(string="Actual Growth Duration (days)")
-
-    actual_seed_class = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
-    actual_seed_qty = fields.Float(string="Actual Seed Quantity (kg)")
-    actual_fertilizer_type = fields.Selection([
-        ('organic', 'Organic'),
-        ('inorganic', 'Inorganic'),
-        ('biofertilizer', 'Bio Fertilizer')
-    ], string="Actual Fertilizer Type")
-
-    actual_fertilizer_qty = fields.Float(string="Actual Fertilizer Quantity (kg)")
-    actual_fertilizer_sack = fields.Float(string="Actual Fertilizer Sacks Count", compute="_compute_actual_fertilizer_sacks", store=True)
-
-    pest_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Pest Occurrence")
-    pest_line_ids = fields.One2many('g2p.crop.pest.line', 'biennial_line_id', string="Pest Details")
-
-    weed_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Weed Occurrence")
-    weed_line_ids = fields.One2many('g2p.crop.weed.line', 'biennial_line_id', string="Weed Details")
-
-    actual_yield = fields.Float(string="Actual Yield (quintal)")
-    cultivated_by = fields.Selection([
-        ('tractor', 'Tractor'),
-        ('other', 'Other'),
-    ], string="Cultivation Type")
-
-
-
-
-    planned_labor = fields.Integer(string="Planned Labor")
-    has_cluster_farming = fields.Selection([
-        ('yes', 'Yes'),
-        ('no', 'No')
-    ], string="Have you done any cluster farming or related activities earlier?")
-    cluster_plan = fields.Float(string="Cluster Plan")
-    cluster_collected_land = fields.Float(string="Cluster Collected Land")
-    cluster_collected_quintal = fields.Float(string="Cluster Collected Quintal")
-    cluster_participant_farmers = fields.Integer(string="Cluster Participant Farmers")
-    collected_land = fields.Float(string="Collected Land")
-    collected_land_quintal = fields.Float(string="Collected Land Quintal")
-    collected_by_combiner = fields.Float(string="Collected by Combiner")
-
-
-    @api.depends('seed_planned_fertilizer_qty')
-    def _compute_planned_fertilizer_sacks(self):
-        for rec in self:
-            if rec.seed_planned_fertilizer_qty:
-                rec.seed_planned_fertilizer_sack = rec.seed_planned_fertilizer_qty / 50.0
-            else:
-                rec.seed_planned_fertilizer_sack = 0.0
-
-    @api.onchange('seed_planned_fertilizer_qty')
-    def _onchange_fertilizer_qty(self):
-        for rec in self:
-            if rec.seed_planned_fertilizer_qty:
-                rec.seed_planned_fertilizer_sack = rec.seed_planned_fertilizer_qty / 50.0
-            else:
-                rec.seed_planned_fertilizer_sack = 0.0
-
-    @api.depends('actual_fertilizer_qty')
-    def _compute_actual_fertilizer_sacks(self):
-        for rec in self:
-            if rec.actual_fertilizer_qty:
-                rec.actual_fertilizer_sack = rec.actual_fertilizer_qty / 50.0
-            else:
-                rec.actual_fertilizer_sack = 0.0
-
-    @api.onchange('crop_planned_area')
-    def _onchange_crop_planned_area(self):
-        if self.crop_registry_id and self.crop_planned_area and self.land_info_id:
-            same_land_lines = self.crop_registry_id.biennial_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
-            total_planned = sum(same_land_lines.mapped('crop_planned_area'))
-            max_area = self.land_info_id.total_land_area
-            if total_planned > max_area:
-                attempted_area = self.crop_planned_area
-                allocated_area = total_planned - attempted_area
-                remaining_area = max_area - allocated_area
-
-                # If they already messed up other lines, don't let it go negative in the message
-                if remaining_area < 0:
-                    remaining_area = 0.0
-
-                self.crop_planned_area = 0.0
-                return {
-                    'warning': {
-                        'title': "Area Exceeded",
-                        'message': "You entered %.2f ha, but only %.2f ha is remaining out of the total %.2f ha (%.2f ha is already allocated to other crops)." % (attempted_area, remaining_area, max_area, allocated_area)
-                    }
-                }
-
-
-    @api.onchange('season_id')
-    def _onchange_season_id(self):
-        if self.season_id:
-            self.start_gc = self.season_id.start_gc
-            self.end_gc = self.season_id.end_gc
-
-    @api.depends("start_gc")
-    def _compute_start_date(self):
-        for record in self:
-            if record.start_gc:
-                record.start_month = record.start_gc.month
-                record.start_day = record.start_gc.day
-            else:
-                record.start_month = record.start_day = 0
-
-    @api.depends("end_gc")
-    def _compute_end_date(self):
-        for record in self:
-            if record.end_gc:
-                record.end_month = record.end_gc.month
-                record.end_day = record.end_gc.day
-            else:
-                record.end_month = record.end_day = 0
-
-    @api.depends("crop_name_id")
-    def _compute_crop_category(self):
-        for rec in self:
-            if rec.crop_name_id:
-                rec.crop_category_id = rec.crop_name_id.category.id
-            else:
-                rec.crop_category_id = False
-
-    @api.depends("actual_crop_name_id")
-    def _compute_actual_crop_category(self):
-        for rec in self:
-            if rec.actual_crop_name_id:
-                rec.actual_crop_category_id = rec.actual_crop_name_id.category.id
-            else:
-                rec.actual_crop_category_id = False
-
-    @api.onchange("crop_name_id")
-    def _onchange_crop(self):
-        self.crop_variety_id = False
-        return {
-            "domain": {
-                "crop_variety_id": [
-                    ("crop_id", "=", self.crop_name_id.id)
-                ]
-            }
-        }
-
-    @api.onchange("collected_gc", "start_gc", "end_gc")
-    def _onchange_collected_gc(self):
-        if self.collected_gc:
-            if self.start_gc and self.end_gc:
-                # Check if the date is within the season's start and end months/dates
-                if self.collected_gc < self.start_gc or self.collected_gc > self.end_gc:
-                    self.collected_gc = False
-                    self.collected_ec = False
-                    return {
-                        'warning': {
-                            'title': 'Invalid Planned Date',
-                            'message': 'Planned Date (GC) must be within the Season Details (Start GC and End GC).'
-                        }
-                    }
-
-            cdate = date(
-                self.collected_gc.year,
-                self.collected_gc.month,
-                self.collected_gc.day,
-            )
-            ethiopian_date = eth_date.to_ethiopian(
-                cdate.year, cdate.month, cdate.day
-            )
-            self.collected_ec = eth_date.convert_tuple_to_string_with_separator(
-                ethiopian_date
-            )
-
-    @api.onchange("collected_ec")
-    def _onchange_collected_ec(self):
-        if self.collected_ec:
-            eth_date.check_ethipian_date_str(self.collected_ec, future_date=True)
-            date_list = re.split("[-/,]", self.collected_ec)
-            gc_date = eth_date.to_gregorian(
-                int(date_list[2]), int(date_list[1]), int(date_list[0])
-            )
-            self.collected_gc = gc_date
-
-
-
-
-class G2PBiennialActualLine(models.Model):
-    _name = "g2p.biennial.actual.line"
-    _description = "Biennial Crop Actual Line"
-    @api.constrains('actual_yield')
-    def _check_actual_yield(self):
-        for rec in self:
-            if rec.actual_yield > 0 and rec.crop_registry_id:
-                planned_line = rec.crop_registry_id.biennial_line_ids.filtered(lambda l: l.sync_id == rec.sync_id)
-                if planned_line and rec.actual_yield > planned_line[0].crop_expected:
-                    raise ValidationError(f"Actual yield ({rec.actual_yield}) cannot be greater than expected yield ({planned_line[0].crop_expected}).")
-
-    @api.onchange('actual_yield')
-    def _onchange_actual_yield(self):
-        if self.actual_yield > 0 and self.crop_registry_id:
-            planned_line = self.crop_registry_id.biennial_line_ids.filtered(lambda l: l.sync_id == self.sync_id)
-            if planned_line and self.actual_yield > planned_line[0].crop_expected:
-                self.actual_yield = 0.0
-                return {
-                    'warning': {
-                        'title': 'Invalid Yield',
-                        'message': f"Actual Yield cannot be greater than Expected Yield ({planned_line[0].crop_expected})."
-                    }
-                }
-
-    crop_registry_id = fields.Many2one("g2p.crop.registry", string="Crop Registry", ondelete="cascade")
-    sync_id = fields.Char(string="Sync ID", default=lambda self: str(uuid.uuid4()))
-    is_manual = fields.Boolean(string="Is Manual", default=True)
-    is_planning = fields.Boolean(string="Is Planning", default=False)
-    land_info_id = fields.Many2one('g2p.land.information', string="Land ID")
-    region_name_id = fields.Many2one('g2p.region', string='Region')
-    zone_name_id = fields.Many2one('g2p.zone', string='Zone')
-    woreda_name_id = fields.Many2one('g2p.woreda', string='Woreda')
-    kebele_id = fields.Many2one('g2p.kebele', string='Kebele')
-    gps = fields.Char(string='GPS Coordinates')
-
-    ownership_type = fields.Selection([('owner', 'Owner'), ('tenant', 'Tenant'), ('crop_share', 'Crop Sharing'), ('family_gift', 'Family Gift')], string="Ownership Type")
-    land_area = fields.Float(string="Total Land Area (ha)")
-    land_category = fields.Selection([('annual', 'Annual Crop'), ('biennial', 'Biennial Crop'), ('biennial', 'Biennial Crop')], string="Plot Category")
-    soil_fertility = fields.Char(string="Soil Fertility")
-
-    @api.onchange('land_info_id')
-    def _onchange_land_info_id(self):
-        if self.land_info_id:
-            self.land_area = self.land_info_id.total_land_area
-            self.ownership_type = self.land_info_id.ownership_type
-            if hasattr(self.land_info_id, 'soil_fertility') and self.land_info_id.soil_fertility:
-                self.soil_fertility = self.land_info_id.soil_fertility.lower()
-            if self.land_info_id.land_kebele:
-                self.kebele_id = self.land_info_id.land_kebele.id
-                if self.land_info_id.land_kebele.woreda:
-                    self.woreda_name_id = self.land_info_id.land_kebele.woreda.id
-                    if self.land_info_id.land_kebele.woreda.zone:
-                        self.zone_name_id = self.land_info_id.land_kebele.woreda.zone.id
-                        if self.land_info_id.land_kebele.woreda.zone.region:
-                            self.region_name_id = self.land_info_id.land_kebele.woreda.zone.region.id
-                        else:
-                            self.region_name_id = False
-                    else:
-                        self.zone_name_id = False
-                        self.region_name_id = False
-                else:
-                    self.woreda_name_id = False
-                    self.zone_name_id = False
-                    self.region_name_id = False
-            else:
-                self.kebele_id = False
-                self.woreda_name_id = False
-                self.zone_name_id = False
-                self.region_name_id = False
-
-            if hasattr(self.land_info_id, 'polygon_data') and self.land_info_id.polygon_data:
-                self.gps = self.land_info_id.polygon_data
-            else:
-                self.gps = False
-
-            if self.crop_registry_id:
-                planned_line = self.crop_registry_id.biennial_line_ids.filtered(
-                    lambda l: l.land_info_id.id == self.land_info_id.id
-                )
-                if planned_line:
-                    planned_line = planned_line[0]
-                    water_resources = []
-                    for w in planned_line.water_resource_line_ids:
-                        water_resources.append((0, 0, {
-                            'water_resource_id': w.water_resource_id.id,
-                            'method_id': w.method_id,
-                            'frequency': w.frequency,
-                            'crop_registry_id': self.crop_registry_id.id,
-                        }))
-                    if water_resources:
-                        self.water_resource_line_ids = [(5, 0, 0)] + water_resources
-    season_id = fields.Many2one('g2p.season', string="Season", required=True)
-    crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
-    collected_gc = fields.Date(string="Actual Planted Date (GC)")
-    collected_ec = fields.Char(string="Actual Planted Date (EC)")
-    crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
-    crop_variety_id = fields.Many2one("g2p.crop.variety", string="Crop Variety")
-    remark = fields.Char(string="Remark")
-    actual_crop_area = fields.Float(string="Actual Crop Area (ha)")
-    actual_growth_duration = fields.Float(string="Actual Growth Duration (days)")
-
-    actual_seed_class = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
-    actual_seed_qty = fields.Float(string="Actual Seed Quantity (kg)")
-    actual_fertilizer_type = fields.Selection([
-        ('organic', 'Organic'),
-        ('inorganic', 'Inorganic'),
-        ('biofertilizer', 'Bio Fertilizer')
-    ], string="Actual Fertilizer Type")
-
-    actual_fertilizer_qty = fields.Float(string="Actual Fertilizer Quantity (kg)")
-    actual_fertilizer_sack = fields.Float(string="Actual Fertilizer Sacks Count", compute="_compute_actual_fertilizer_sacks", store=True)
-
-    has_cluster_farming = fields.Selection([
-        ('yes', 'Yes'),
-        ('no', 'No')
-    ], string="Have you done any cluster farming or related activities earlier?")
-    actual_cluster_plan = fields.Float(string="Actual Cluster Plan")
-    actual_cluster_collected_land = fields.Float(string="Actual Cluster Collected Land")
-    actual_cluster_collected_quintal = fields.Float(string="Actual Cluster Collected Quintal")
-    actual_cluster_participant_farmers = fields.Integer(string="Actual Cluster Participant Farmers")
-    actual_collected_land = fields.Float(string="Actual Collected Land")
-    actual_collected_land_quintal = fields.Float(string="Actual Collected Land Quintal")
-    actual_collected_by_combiner = fields.Float(string="Actual Collected by Combiner")
-
-    pest_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Pest Occurrence")
-    pest_line_ids = fields.One2many('g2p.crop.pest.line', 'actual_biennial_line_id', string="Pest Details")
-
-    weed_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Weed Occurrence")
-    weed_line_ids = fields.One2many('g2p.crop.weed.line', 'actual_biennial_line_id', string="Weed Details")
-
-    actual_yield = fields.Float(string="Actual Yield (quintal)")
-    cultivated_by = fields.Selection([
-        ('tractor', 'Tractor'),
-        ('other', 'Other'),
-    ], string="Cultivation Type")
-    land_prep_method_ids = fields.Many2many("g2p.land.prep.method", string="Land Prep Methods")
-
-    water_resource_line_ids = fields.One2many(
-        "g2p.actual.water.resource.line",
-        "actual_biennial_line_id",
-        string="Water Resources",
-    )
-
-    start_gc = fields.Date(string="Start GC")
-    start_month = fields.Integer(string="Start Month", compute="_compute_start_date", store=True)
-    start_day = fields.Integer(string="Start Day", compute="_compute_start_date", store=True)
-    end_gc = fields.Date(string="End GC")
-    end_month = fields.Integer(string="End Month", compute="_compute_end_date", store=True)
-    end_day = fields.Integer(string="End Day", compute="_compute_end_date", store=True)
-
-    is_mismatch = fields.Boolean(string="Mismatch", compute="_compute_is_mismatch", store=True)
-
-    @api.onchange('actual_crop_area')
-    def _onchange_actual_crop_area(self):
-        if self.crop_registry_id and self.actual_crop_area and self.land_info_id:
-            same_land_lines = self.crop_registry_id.actual_biennial_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
-            total_actual = sum(same_land_lines.mapped('actual_crop_area'))
-            max_area = self.land_info_id.total_land_area
-            if total_actual > max_area:
-                attempted_area = self.actual_crop_area
-                allocated_area = total_actual - attempted_area
-                remaining_area = max_area - allocated_area
-
-                if remaining_area < 0:
-                    remaining_area = 0.0
-
-                self.actual_crop_area = 0.0
-                return {
-                    'warning': {
-                        'title': "Area Exceeded",
-                        'message': "You entered %.2f ha, but only %.2f ha is remaining out of the total %.2f ha (%.2f ha is already allocated to other actual crops)." % (attempted_area, remaining_area, max_area, allocated_area)
-                    }
-                }
-
-    @api.depends('actual_fertilizer_qty')
-    def _compute_actual_fertilizer_sacks(self):
-        for rec in self:
-            if rec.actual_fertilizer_qty:
-                rec.actual_fertilizer_sack = rec.actual_fertilizer_qty / 50.0
-            else:
-                rec.actual_fertilizer_sack = 0.0
-
-    @api.onchange('actual_fertilizer_qty')
-    def _onchange_fertilizer_qty(self):
-        for rec in self:
-            if rec.actual_fertilizer_qty:
-                rec.actual_fertilizer_sack = rec.actual_fertilizer_qty / 50.0
-            else:
-                rec.actual_fertilizer_sack = 0.0
-
-    @api.onchange('season_id')
-    def _onchange_season_id(self):
-        if self.season_id:
-            self.start_gc = self.season_id.start_gc
-            self.end_gc = self.season_id.end_gc
-            if self.season_id.start_gc:
-                self.start_month = self.season_id.start_gc.month
-                self.start_day = self.season_id.start_gc.day
-            if self.season_id.end_gc:
-                self.end_month = self.season_id.end_gc.month
-                self.end_day = self.season_id.end_gc.day
-
-    @api.depends("start_gc")
-    def _compute_start_date(self):
-        for record in self:
-            if record.start_gc:
-                record.start_month = record.start_gc.month
-                record.start_day = record.start_gc.day
-            else:
-                record.start_month = record.start_day = 0
-
-    @api.depends("end_gc")
-    def _compute_end_date(self):
-        for record in self:
-            if record.end_gc:
-                record.end_month = record.end_gc.month
-                record.end_day = record.end_gc.day
-            else:
-                record.end_month = record.end_day = 0
-
-    @api.depends("crop_name_id")
-    def _compute_crop_category(self):
-        for rec in self:
-            if rec.crop_name_id:
-                rec.crop_category_id = rec.crop_name_id.category.id
-            else:
-                rec.crop_category_id = False
-
-    @api.depends("crop_name_id", "crop_variety_id", "collected_gc", "season_id",
-                 "crop_registry_id.biennial_line_ids",
-                 "crop_registry_id.biennial_line_ids.crop_name_id",
-                 "crop_registry_id.biennial_line_ids.crop_variety_id",
-                 "crop_registry_id.biennial_line_ids.collected_gc",
-                 "crop_registry_id.biennial_line_ids.season_id")
-    def _compute_is_mismatch(self):
-        for rec in self:
-            if not rec.crop_registry_id or not rec.crop_name_id:
-                rec.is_mismatch = False
-                continue
-            planned_lines = rec.crop_registry_id.biennial_line_ids
-            matched = False
-            for planned in planned_lines:
-                if (planned.crop_name_id.id == rec.crop_name_id.id
-                        and planned.crop_variety_id.id == rec.crop_variety_id.id
-                        and planned.season_id.id == rec.season_id.id
-                        and planned.collected_gc == rec.collected_gc):
-                    matched = True
-                    break
-            rec.is_mismatch = not matched
-
-    @api.depends("crop_name_id")
-    def _compute_crop_category(self):
-        for rec in self:
-            rec.crop_category_id = (
-                rec.crop_name_id.category.id
-                if rec.crop_name_id
-                else False
-            )
-
-    @api.onchange("crop_name_id")
-    def _onchange_crop(self):
-        self.crop_variety_id = False
-        return {
-            "domain": {
-                "crop_variety_id": [
-                    ("crop_id", "=", self.crop_name_id.id)
-                ]
-            }
-        }
-
-    @api.onchange("collected_gc")
-    def _onchange_collected_gc(self):
-        if self.collected_gc:
-            if self.collected_gc > fields.Date.today():
-                self.collected_gc = False
-                return {
-                    'warning': {
-                        'title': 'Invalid Date',
-                        'message': 'Actual Planted Date (GC) cannot be a future date.'
-                    }
-                }
-            cdate = date(
-                self.collected_gc.year,
-                self.collected_gc.month,
-                self.collected_gc.day,
-            )
-            ethiopian_date = eth_date.to_ethiopian(
-                cdate.year, cdate.month, cdate.day
-            )
-            self.collected_ec = eth_date.convert_tuple_to_string_with_separator(
-                ethiopian_date
-            )
-
-    @api.onchange("collected_ec")
-    def _onchange_collected_ec(self):
-        if self.collected_ec:
-            eth_date.check_ethipian_date_str(self.collected_ec, future_date=True)
-            date_list = re.split("[-/,]", self.collected_ec)
-            gc_date = eth_date.to_gregorian(
-                int(date_list[2]), int(date_list[1]), int(date_list[0])
-            )
-            self.collected_gc = gc_date
-
+        rec.harvest_detail_ids = rec.production_detail_ids
 
 class G2PCropInformationInherit(models.Model):
     _inherit = 'g2p.crop.information'

@@ -32,9 +32,52 @@ class G2PCropProduction(models.Model):
     
     land_info_id = fields.Many2one('g2p.land.information', string="Land ID")
 
+    # ── Land / Plot Detail relays ─────────────────────
+    land_total_area = fields.Float(
+        related="land_info_id.total_land_area",
+        string="Total Land Area (ha)",
+        readonly=True,
+    )
+    land_region_id = fields.Many2one(
+        "g2p.region",
+        string="Region",
+        compute="_compute_land_region",
+        store=True,
+        readonly=True,
+    )
+    land_gps_coordinates = fields.Text(
+        related="land_info_id.polygon_data",
+        string="GPS Coordinates",
+        readonly=True,
+    )
+    land_ownership_type = fields.Selection(
+        related="land_info_id.ownership_type",
+        string="Ownership Type",
+        readonly=True,
+    )
+
+    @api.depends('land_info_id', 'land_info_id.land_kebele',
+                 'land_info_id.land_kebele.woreda',
+                 'land_info_id.land_kebele.woreda.zone',
+                 'land_info_id.land_kebele.woreda.zone.region')
+    def _compute_land_region(self):
+        for rec in self:
+            region = False
+            if rec.land_info_id and rec.land_info_id.land_kebele:
+                kebele = rec.land_info_id.land_kebele
+                if kebele.woreda and kebele.woreda.zone and kebele.woreda.zone.region:
+                    region = kebele.woreda.zone.region.id
+            rec.land_region_id = region
+
     crop_name_id = fields.Many2one(
         "g2p.crop",
         string="Crop Name",
+    )
+    crop_category_id = fields.Many2one(
+        "g2p.crop.category",
+        related="crop_name_id.category",
+        string="Crop Category",
+        readonly=True,
     )
 
     sync_id = fields.Char(string="Sync ID")
@@ -68,7 +111,12 @@ class G2PCropProduction(models.Model):
         ('organic', 'Organic'),
         ('biofertilizer', 'Bio Fertilizer')
     ], string="Actual Fertilizer Type")
-    actual_fertilizer_qty = fields.Float(string="Actual Fertilizer Qty (kg)")
+    actual_fertilizer_qty = fields.Float(string="Actual Fertilizer Qty (kg)", default=0.0)
+    actual_seed_class = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
+    cultivated_by = fields.Selection([
+        ('tractor', 'Tractor'),
+        ('other', 'Other'),
+    ], string="Cultivated type")
     # ── Sowing ───────────────────────────────────────────────
     sowing_status = fields.Selection([
         ('sown', 'Sown'),
@@ -100,11 +148,11 @@ class G2PCropProduction(models.Model):
     qty_sold = fields.Float(string="Quantity Sold")
 
 
-    expected_yield = fields.Float(string="Expected Yield (Cached)", default=0.0)
-    planned_area = fields.Float(string="Planned Area (Cached)", default=0.0)
-    actual_crop_area = fields.Float(string="Actual Crop Area (Cached)", default=0.0)
-    actual_seed_qty = fields.Float(string="Actual Seed Qty (Cached)", default=0.0)
-    actual_fertilizer_qty = fields.Float(string="Actual Fertilizer Qty (Cached)", default=0.0)
+    expected_yield = fields.Float(string="Expected Yield", default=0.0)
+    planned_area = fields.Float(string="Planned Area", default=0.0)
+    actual_crop_area = fields.Float(string="Actual Crop Area", default=0.0)
+    actual_seed_qty = fields.Float(string="Actual Seed Qty", default=0.0)
+    actual_yield_cached = fields.Float(string="Actual Yield", default=0.0)
 
     # ── Production Result (computed) ─────────────────────────
     yield_per_ha = fields.Float(
@@ -132,23 +180,25 @@ class G2PCropProduction(models.Model):
         compute="_compute_production_results",
         store=True,
     )
-
-    @api.constrains('actual_sowing_date')
-    def _check_actual_sowing_date(self):
+    @api.constrains('harvest_date', 'actual_sowing_date')
+    def _check_harvest_date(self):
         for rec in self:
-            if rec.actual_sowing_date and rec.actual_sowing_date > fields.Date.today():
-                raise ValidationError("Actual Planting Date cannot be a future date.")
+            if rec.harvest_date and rec.actual_sowing_date:
+                if rec.harvest_date < rec.actual_sowing_date:
+                    raise ValidationError("Harvest date must be greater than or equal to the actual planted date.")
 
-    @api.onchange('actual_sowing_date')
-    def _onchange_actual_sowing_date(self):
-        if self.actual_sowing_date and self.actual_sowing_date > fields.Date.today():
-            self.actual_sowing_date = False
-            return {
-                'warning': {
-                    'title': 'Invalid Date',
-                    'message': 'Actual Planting Date cannot be a future date. Please select today or a past date.'
+    @api.onchange('harvest_date', 'actual_sowing_date')
+    def _onchange_harvest_date(self):
+        actual_date = self.actual_sowing_date or (self._origin.actual_sowing_date if getattr(self, '_origin', False) else False)
+        if self.harvest_date and actual_date:
+            if self.harvest_date < actual_date:
+                self.harvest_date = False
+                return {
+                    'warning': {
+                        'title': 'Invalid Harvest Date',
+                        'message': 'Harvest date must be greater than or equal to the actual planted date.'
+                    }
                 }
-            }
 
     @api.constrains('area_harvested', 'actual_crop_area')
     def _check_area_harvested(self):
@@ -174,8 +224,9 @@ class G2PCropProduction(models.Model):
 
     @api.depends(
         'qty_harvested', 'area_harvested',
-        'expected_yield', 'planned_area', 
-        'actual_seed_qty', 'actual_fertilizer_qty'
+        'expected_yield', 'planned_area',
+        'actual_seed_qty', 'actual_fertilizer_qty',
+        'actual_yield_cached'
     )
     def _compute_production_results(self):
         for rec in self:
@@ -185,9 +236,9 @@ class G2PCropProduction(models.Model):
                 if rec.area_harvested else 0.0
             )
 
-            # Yield Performance % = (Actual Yield ÷ Expected Yield) × 100
+            # Yield Performance % = (Actual Yield from Cultivation ÷ Expected Yield) × 100
             expected = rec.expected_yield
-            actual = rec.qty_harvested
+            actual = rec.actual_yield_cached
             rec.yield_performance_pct = (
                 (actual / expected * 100)
                 if expected else 0.0

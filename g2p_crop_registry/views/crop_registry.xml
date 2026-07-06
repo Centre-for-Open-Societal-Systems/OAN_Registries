@@ -25,12 +25,8 @@
             <field name="arch" type="xml">
                 <form string="Crop Sown Registry">
                     <sheet>
-                        <div class="oe_title" invisible="1">
-                            <label for="name" string="Registry ID"/>
-                            <h1>
-                                <field name="name" readonly="1"/>
-                            </h1>
-                        </div>
+                        <field name="actual_crop_area_exceeded" invisible="1"/>
+                        <field name="actual_crop_area_warning" invisible="1"/>
                         <group string="Farmer Identity">
                             <group>
                                 <field name="partner_id"
@@ -99,11 +95,11 @@
                                                     </group>
                                                     <group>
                                                         <field name="start_gc" readonly="1" force_save="1"/>
-                                                        <field name="start_month" readonly="1" force_save="1"/>
-                                                        <field name="start_day" readonly="1" force_save="1"/>
-                                                        <field name="end_gc" readonly="1" force_save="1"/>
-                                                        <field name="end_month" readonly="1" force_save="1"/>
-                                                        <field name="end_day" readonly="1" force_save="1"/>
+<field name="end_gc" readonly="1" force_save="1"/>
+<field name="start_month" readonly="1" force_save="1"/>
+<field name="start_day" readonly="1" force_save="1"/>
+<field name="end_month" readonly="1" force_save="1"/>
+<field name="end_day" readonly="1" force_save="1"/>
                                                     </group>
                                                 </group>
                                                 <group string="Crop Details" invisible="not land_category">
@@ -145,10 +141,10 @@
                                                         </tree>
                                                     </field>
                                                 </group>
-                                                <group invisible="1">
+                                                 <group>
                                                      <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}"/>
                                                  </group>
-                                                 <group string="Cluster Information" invisible="1">
+                                                 <group string="Cluster Information" invisible="has_cluster_farming != 'yes'">
                                                      <group>
                                                          <field name="cluster_plan"/>
                                                          <field name="cluster_collected_land"/>
@@ -162,6 +158,7 @@
                                                      </group>
                                                  </group>
                                             </sheet>
+
                                         </form>
                                     </field>
                                 </group>
@@ -207,11 +204,11 @@
                                                     </group>
                                                     <group>
                                                         <field name="start_gc" readonly="1" force_save="1"/>
-                                                        <field name="start_month" readonly="1" force_save="1"/>
-                                                        <field name="start_day" readonly="1" force_save="1"/>
-                                                        <field name="end_gc" readonly="1" force_save="1"/>
-                                                        <field name="end_month" readonly="1" force_save="1"/>
-                                                        <field name="end_day" readonly="1" force_save="1"/>
+<field name="end_gc" readonly="1" force_save="1"/>
+<field name="start_month" readonly="1" force_save="1"/>
+<field name="start_day" readonly="1" force_save="1"/>
+<field name="end_month" readonly="1" force_save="1"/>
+<field name="end_day" readonly="1" force_save="1"/>
                                                     </group>
                                                 </group>
                                                 <group string="Crop Details">
@@ -253,10 +250,10 @@
                                                         </tree>
                                                     </field>
                                                 </group>
-                                                <group invisible="1">
+                                                <group>
                                                     <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}"/>
                                                 </group>
-                                                <group string="Cluster Information" invisible="1">
+                                                <group string="Cluster Information" invisible="has_cluster_farming != 'yes'">
                                                     <group>
                                                         <field name="cluster_plan"/>
                                                         <field name="cluster_collected_land"/>
@@ -272,6 +269,7 @@
 
 
                                             </sheet>
+
                                         </form>
                                     </field>
                                 </group>
@@ -316,11 +314,11 @@
                                                     </group>
                                                     <group>
                                                         <field name="start_gc" readonly="1" force_save="1"/>
-                                                        <field name="start_month" readonly="1" force_save="1"/>
-                                                        <field name="start_day" readonly="1" force_save="1"/>
-                                                        <field name="end_gc" readonly="1" force_save="1"/>
-                                                        <field name="end_month" readonly="1" force_save="1"/>
-                                                        <field name="end_day" readonly="1" force_save="1"/>
+<field name="end_gc" readonly="1" force_save="1"/>
+<field name="start_month" readonly="1" force_save="1"/>
+<field name="start_day" readonly="1" force_save="1"/>
+<field name="end_month" readonly="1" force_save="1"/>
+<field name="end_day" readonly="1" force_save="1"/>
                                                     </group>
                                                 </group>
                                                 <group string="Crop Details">
@@ -362,10 +360,10 @@
                                                         </tree>
                                                     </field>
                                                 </group>
-                                                <group invisible="1">
+                                                <group>
                                                     <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}"/>
                                                 </group>
-                                                <group string="Cluster Information" invisible="1">
+                                                <group string="Cluster Information" invisible="has_cluster_farming != 'yes'">
                                                     <group>
                                                         <field name="cluster_plan"/>
                                                         <field name="cluster_collected_land"/>
@@ -381,6 +379,7 @@
 
 
                                             </sheet>
+
                                         </form>
                                     </field>
                                 </group>
@@ -390,10 +389,14 @@
                                 <div class="alert alert-warning" role="alert" invisible="not has_no_planning_data" style="margin-bottom: 10px;">
                                     There is no data in the Planning section. You are creating a cultivation record directly here.
                                 </div>
+                                <div class="alert alert-danger" role="alert" invisible="not actual_crop_area_exceeded" style="margin-bottom: 10px; white-space: pre-wrap; font-weight: bold;">
+                                    <field name="actual_crop_area_warning" readonly="1"/>
+                                </div>
                                 <group string="Actual Crops">
                                     <field name="actual_annual_line_ids" nolabel="1" colspan="2">
-                                        <tree decoration-danger="is_mismatch" decoration-success="not is_mismatch and crop_name_id">
+                                        <tree decoration-danger="is_mismatch and not is_manual" decoration-success="not is_mismatch and not is_manual and crop_name_id">
                                             <field name="sync_id" column_invisible="1" force_save="1"/>
+                                            <field name="is_manual" column_invisible="1"/>
                                             <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
                                             <field name="land_category" width="16%" class="text-start"/>
                                             <field name="season_id" width="16%" class="text-start"/>
@@ -439,11 +442,11 @@
                                                     </group>
                                                     <group>
                                                         <field name="start_gc" readonly="1" force_save="1"/>
-                                                        <field name="start_month" readonly="1" force_save="1"/>
-                                                        <field name="start_day" readonly="1" force_save="1"/>
-                                                        <field name="end_gc" readonly="1" force_save="1"/>
-                                                        <field name="end_month" readonly="1" force_save="1"/>
-                                                        <field name="end_day" readonly="1" force_save="1"/>
+<field name="end_gc" readonly="1" force_save="1"/>
+<field name="start_month" readonly="1" force_save="1"/>
+<field name="start_day" readonly="1" force_save="1"/>
+<field name="end_month" readonly="1" force_save="1"/>
+<field name="end_day" readonly="1" force_save="1"/>
                                                     </group>
                                                 </group>
                                                 <group string="Crop Details" invisible="not land_category">
@@ -525,13 +528,15 @@
                                                     </group>
                                                 </group>
                                             </sheet>
+
                                         </form>
                                     </field>
                                 </group>
                                 <group string="Perennial Crops" invisible="1">
                                     <field name="actual_perennial_line_ids" nolabel="1" colspan="2">
-                                        <tree decoration-danger="is_mismatch" decoration-success="not is_mismatch and crop_name_id">
+                                        <tree decoration-danger="is_mismatch and not is_manual" decoration-success="not is_mismatch and not is_manual and crop_name_id">
                                             <field name="sync_id" column_invisible="1" force_save="1"/>
+                                            <field name="is_manual" column_invisible="1"/>
                                             <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
                                             <field name="season_id" width="11%" class="text-start"/>
                                             <field name="crop_name_id" width="11%" class="text-start"/>
@@ -576,11 +581,11 @@
                                                     </group>
                                                     <group>
                                                         <field name="start_gc" readonly="1" force_save="1"/>
-                                                        <field name="start_month" readonly="1" force_save="1"/>
-                                                        <field name="start_day" readonly="1" force_save="1"/>
-                                                        <field name="end_gc" readonly="1" force_save="1"/>
-                                                        <field name="end_month" readonly="1" force_save="1"/>
-                                                        <field name="end_day" readonly="1" force_save="1"/>
+<field name="end_gc" readonly="1" force_save="1"/>
+<field name="start_month" readonly="1" force_save="1"/>
+<field name="start_day" readonly="1" force_save="1"/>
+<field name="end_month" readonly="1" force_save="1"/>
+<field name="end_day" readonly="1" force_save="1"/>
                                                     </group>
                                                 </group>
                                                 <group string="Crop Details">
@@ -662,6 +667,7 @@
                                                     </group>
                                                 </group>
                                             </sheet>
+
                                         </form>
                                     </field>
                                 </group>
@@ -691,6 +697,7 @@
                                                 </group>
                                             </group>
                                             </sheet>
+
                                         </form>
                                     <tree>
                                         <field name="sync_id" column_invisible="1" force_save="1"/>
@@ -707,14 +714,15 @@
 
                             <page string="Harvesting">
                                 <group string="Harvesting Crops">
-                                <field name="production_detail_ids" nolabel="1" colspan="2">
-                                    <form>
+                                <field name="harvest_detail_ids" nolabel="1" colspan="2" string="Harvesting Details">
+                                    <form string="Harvesting Details">
                                         <sheet>
                                             <field name="sync_id" invisible="1" force_save="1"/>
                                             <group>
                                             </group>
                                             <group string="Harvest">
                                                 <group>
+                                                    <field name="actual_sowing_date" readonly="1" force_save="1"/>
                                                     <field name="land_info_id" readonly="1" force_save="1"/>
                                                     <field name="crop_maturity_status"
                                                            decoration-success="crop_maturity_status == 'green'"
@@ -741,6 +749,7 @@
                                                 </group>
                                             </group>
                                             </sheet>
+
                                         </form>
                                     <tree>
                                         <field name="sync_id" column_invisible="1" force_save="1"/>
@@ -770,8 +779,9 @@
                                 </group>
                                                                 <group string="Biennial Crops" invisible="1">
                                     <field name="actual_biennial_line_ids" nolabel="1" colspan="2">
-                                        <tree decoration-danger="is_mismatch" decoration-success="not is_mismatch and crop_name_id">
+                                        <tree decoration-danger="is_mismatch and not is_manual" decoration-success="not is_mismatch and not is_manual and crop_name_id">
                                             <field name="sync_id" column_invisible="1" force_save="1"/>
+                                            <field name="is_manual" column_invisible="1"/>
                                             <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
                                             <field name="season_id" width="11%" class="text-start"/>
                                             <field name="crop_name_id" width="11%" class="text-start"/>
@@ -816,11 +826,11 @@
                                                     </group>
                                                     <group>
                                                         <field name="start_gc" readonly="1" force_save="1"/>
-                                                        <field name="start_month" readonly="1" force_save="1"/>
-                                                        <field name="start_day" readonly="1" force_save="1"/>
-                                                        <field name="end_gc" readonly="1" force_save="1"/>
-                                                        <field name="end_month" readonly="1" force_save="1"/>
-                                                        <field name="end_day" readonly="1" force_save="1"/>
+<field name="end_gc" readonly="1" force_save="1"/>
+<field name="start_month" readonly="1" force_save="1"/>
+<field name="start_day" readonly="1" force_save="1"/>
+<field name="end_month" readonly="1" force_save="1"/>
+<field name="end_day" readonly="1" force_save="1"/>
                                                     </group>
                                                 </group>
                                                 <group string="Crop Details">
@@ -902,6 +912,7 @@
                                                     </group>
                                                 </group>
                                             </sheet>
+
                                         </form>
                                     </field>
                                 </group>
@@ -1041,14 +1052,5 @@
         </record>
     </data>
 
-    <record id="view_res_partner_crop_info_water_inherit" model="ir.ui.view">
-        <field name="name">res.partner.crop.info.water.inherit</field>
-        <field name="model">res.partner</field>
-        <field name="inherit_id" ref="g2p_ati.g2p_registry_individual_form_view_inherit" />
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='crop_information_ids']/tree/field[@name='season']" position="after">
-                <field name="water_resource_line_ids" widget="many2many_tags" />
-            </xpath>
-        </field>
-    </record>
+
 </odoo>

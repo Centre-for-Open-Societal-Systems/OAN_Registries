@@ -24,7 +24,7 @@
                     <field name="name"/>
                     <field name="reg_farmer_id"/>
                     <field name="reg_farmer_display_id"/>
-                    <field name="reg_crop_name_id"/>
+                    <field name="crop_name_id"/>
                     <field name="sowing_status"/>
                     <field name="cluster_status"/>
                     <!-- <field name="sown_area"/> -->
@@ -73,24 +73,39 @@
                             <group>
                                 <field name="reg_farmer_id" readonly="1"/>
                                 <field name="reg_fyda_id" readonly="1"/>
-                                <field name="reg_farmer_display_id" readonly="1"/>
+                                <field name="reg_farmer_display_id" readonly="1" invisible="1"/>
                             </group>
                             <group>
-                                <field name="reg_region_name_id" readonly="1"/>
-                                <field name="reg_zone_name_id" readonly="1"/>
-                                <field name="reg_woreda_name_id" readonly="1"/>
-                                <field name="reg_kebele_id" readonly="1"/>
+                                <field name="reg_region_name_id" readonly="1" invisible="1"/>
+                                <field name="reg_zone_name_id" readonly="1" invisible="1"/>
+                                <field name="reg_woreda_name_id" readonly="1" invisible="1"/>
+                                <field name="reg_kebele_id" readonly="1" invisible="1"/>
                             </group>
                         </group>
 
-                        <!-- ── Cultivation Details ── -->
-                        <group string="Cultivation Details">
+                        <!-- ── Land / Plot Details ── -->
+                        <group string="Land / Plot Details">
                             <group>
-                                <field name="reg_crop_name_id" readonly="1"/>
-                                <field name="reg_crop_category_id" readonly="1"/>
-                                <field name="reg_crop_variety_id" readonly="1"/>
+                                <field name="land_info_id" readonly="1"/>
+                                <field name="land_total_area" readonly="1"/>
+                                <field name="land_ownership_type" readonly="1"/>
                             </group>
                             <group>
+                                <field name="land_region_id" readonly="1"/>
+                                <field name="land_gps_coordinates" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <!-- ── Cultivation / Land Preparation section ── -->
+                        <group string="Cultivation / Land Preparation section">
+                            <group>
+                                <field name="crop_name_id" readonly="1"/>
+                                <field name="crop_category_id" readonly="1"/>
+                                <field name="actual_seed_class" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="actual_fertilizer_qty" readonly="1"/>
+                                <field name="cultivated_by" readonly="1"/>
                             </group>
                         </group>
 
@@ -174,7 +189,6 @@
             name="Production"
             parent="g2p_crop_registry.g2p_crop_registry_menu_item_id"
             action="action_g2p_crop_production"
-            active="False"
             sequence="20"/>
 
     </data>

@@ -16,6 +16,8 @@ msgstr ""
 "Language: en_US\n"
 
 #. module: g2p_crop_registry
+#. odoo-javascript
+#: code:addons/web/static/src/views/form/form_controller.js:0
 msgid "Discard"
 msgstr "Reset"
 
