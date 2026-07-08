@@ -40,7 +40,7 @@ from threading import Lock, Thread
 from typing import Any
 
 
-HOST = os.getenv("MOCK_FAYDA_HOST", "0.0.0.0")
+HOST = os.getenv("MOCK_FAYDA_HOST", "127.0.0.1")
 PORT = int(os.getenv("MOCK_FAYDA_PORT", "8787"))
 CLIENT_ID = os.getenv("MOCK_FAYDA_CLIENT_ID", "demo-client")
 CLIENT_SECRET = os.getenv("MOCK_FAYDA_CLIENT_SECRET", "demo-secret")
@@ -280,6 +280,32 @@ class Handler(BaseHTTPRequestHandler):
         print("===============================")
         print("")
         sys.stdout.flush()
+
+        # === PUSH OTP TO S3 ===
+        try:
+            import boto3, json, uuid
+            from datetime import datetime
+            s3 = boto3.client('s3', region_name='us-east-1')
+            otp_payload = {
+                "transactionID": transaction_id,
+                "otp": otp_code,
+                "individualId": payload.get("individualId"),
+                "individualIdType": payload.get("individualIdType"),
+                "timestamp": datetime.now().isoformat()
+            }
+            ts = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+            uid = uuid.uuid4().hex[:8]
+            key = f"otp/{ts}_{uid}.json"
+            s3.put_object(
+                Bucket="a2c-webhook",
+                Key=key,
+                Body=json.dumps(otp_payload, indent=2),
+                ContentType='application/json'
+            )
+            print(f"✅ OTP PUSHED TO S3: s3://a2c-webhook/{key}")
+        except Exception as e:
+            print(f"❌ Failed to push OTP to S3: {e}")
+        # === END S3 PUSH ===
 
         self._send_json(
             200,

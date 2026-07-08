@@ -19,6 +19,7 @@ _logger = logging.getLogger(__name__)
 
 
 class G2PATIConsentController(http.Controller):
+    SYNCHRONOUS_CONSENT = "SYNCHRONOUS_CONSENT"
     _MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024  # 10MB
     _REQUESTS_PAGE_SIZE = 10
     _TABLE_FETCH_SIZE = 10
@@ -61,8 +62,7 @@ class G2PATIConsentController(http.Controller):
 
     def _approved_farmer_domain(self):
         """Eligible farmers for consent flows."""
-        return [("is_registrant", "=", True), ("is_group", "=", False), ("state", "=", "approved"),
-                ("is_farmer", "=", "yes")]
+        return [("is_registrant", "=", True), ("is_group", "=", False), ("state", "=", "approved")]
 
     def _get_consent_partner(self):
         """Return the consent parent partner for the current portal user, or None."""
@@ -175,6 +175,9 @@ class G2PATIConsentController(http.Controller):
             return default
         return str(value).strip().lower() in ("1", "true", "yes", "on")
 
+    def _is_synchronous_consent_enabled(self):
+        return self._env_flag_enabled(os.getenv(self.SYNCHRONOUS_CONSENT))
+
     def _get_farmer_primary_phone(self, farmer):
         if not farmer:
             return ""
@@ -189,18 +192,18 @@ class G2PATIConsentController(http.Controller):
     def _get_fayda_otp_config(self):
         mock_host = (os.getenv("MOCK_FAYDA_HOST") or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_host"]).strip()
         mock_port = (os.getenv("MOCK_FAYDA_PORT") or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_port"]).strip()
-        mock_base_url = "http://%s:%s" % (mock_host or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_host"],
-                                          mock_port or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_port"])
+        mock_base_url = "http://%s:%s" % (mock_host or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_host"], 
+                                                    mock_port or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_port"])
 
         client_id = (
-                os.getenv("G2P_FAYDA_OTP_CLIENT_ID")
-                or os.getenv("MOCK_FAYDA_CLIENT_ID")
-                or self._FAYDA_OTP_LOCAL_DEFAULTS["client_id"]
+            os.getenv("G2P_FAYDA_OTP_CLIENT_ID")
+            or os.getenv("MOCK_FAYDA_CLIENT_ID")
+            or self._FAYDA_OTP_LOCAL_DEFAULTS["client_id"]
         ).strip()
         client_secret = (
-                os.getenv("G2P_FAYDA_OTP_CLIENT_SECRET")
-                or os.getenv("MOCK_FAYDA_CLIENT_SECRET")
-                or self._FAYDA_OTP_LOCAL_DEFAULTS["client_secret"]
+            os.getenv("G2P_FAYDA_OTP_CLIENT_SECRET")
+            or os.getenv("MOCK_FAYDA_CLIENT_SECRET")
+            or self._FAYDA_OTP_LOCAL_DEFAULTS["client_secret"]
         ).strip()
 
         try:
@@ -213,15 +216,10 @@ class G2PATIConsentController(http.Controller):
             "client_id": client_id,
             "client_secret": client_secret,
             "version": (os.getenv("G2P_FAYDA_OTP_VERSION") or "1.0").strip() or "1.0",
-            "env": (os.getenv("G2P_FAYDA_OTP_ENV") or os.getenv("MOCK_FAYDA_ENV") or self._FAYDA_OTP_LOCAL_DEFAULTS[
-                "env"]).strip() or self._FAYDA_OTP_LOCAL_DEFAULTS["env"],
-            "domain_uri": (os.getenv("G2P_FAYDA_OTP_DOMAIN_URI") or os.getenv("MOCK_FAYDA_DOMAIN_URI") or
-                           self._FAYDA_OTP_LOCAL_DEFAULTS["domain_uri"]).strip() or self._FAYDA_OTP_LOCAL_DEFAULTS[
-                              "domain_uri"],
-            "channel": (os.getenv("G2P_FAYDA_OTP_CHANNEL") or self._FAYDA_OTP_LOCAL_DEFAULTS["channel"]).strip() or
-                       self._FAYDA_OTP_LOCAL_DEFAULTS["channel"],
-            "identifier_type": (os.getenv("G2P_FAYDA_OTP_ID_TYPE") or self._FAYDA_OTP_LOCAL_DEFAULTS[
-                "identifier_type"]).strip().upper() or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"],
+            "env": (os.getenv("G2P_FAYDA_OTP_ENV") or os.getenv("MOCK_FAYDA_ENV") or self._FAYDA_OTP_LOCAL_DEFAULTS["env"]).strip() or self._FAYDA_OTP_LOCAL_DEFAULTS["env"],
+            "domain_uri": (os.getenv("G2P_FAYDA_OTP_DOMAIN_URI") or os.getenv("MOCK_FAYDA_DOMAIN_URI") or self._FAYDA_OTP_LOCAL_DEFAULTS["domain_uri"]).strip() or self._FAYDA_OTP_LOCAL_DEFAULTS["domain_uri"],
+            "channel": (os.getenv("G2P_FAYDA_OTP_CHANNEL") or self._FAYDA_OTP_LOCAL_DEFAULTS["channel"]).strip() or self._FAYDA_OTP_LOCAL_DEFAULTS["channel"],
+            "identifier_type": (os.getenv("G2P_FAYDA_OTP_ID_TYPE") or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"]).strip().upper() or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"],
             "preferred_reg_id_type": self._get_fayda_otp_reg_id_type_name(),
             "thumbprint": (os.getenv("G2P_FAYDA_OTP_THUMBPRINT") or "").strip(),
             "request_session_key": (os.getenv("G2P_FAYDA_OTP_REQUEST_SESSION_KEY") or "").strip(),
@@ -239,9 +237,9 @@ class G2PATIConsentController(http.Controller):
             return explicit_reg_id_type
 
         identifier_type = (
-                                  os.getenv("G2P_FAYDA_OTP_ID_TYPE")
-                                  or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"]
-                          ).strip().upper() or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"]
+            os.getenv("G2P_FAYDA_OTP_ID_TYPE")
+            or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"]
+        ).strip().upper() or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"]
         identifier_map = {
             "FIN": "UID",
             "RID": "RID",
@@ -250,23 +248,20 @@ class G2PATIConsentController(http.Controller):
 
     def _get_fayda_otp_session_store(self):
         store = request.session.get(self._FAYDA_OTP_SESSION_KEY)
-        print('store', store, request.session)
         if not isinstance(store, dict):
-            store = {}
-            request.session[self._FAYDA_OTP_SESSION_KEY] = store
+            request.session[self._FAYDA_OTP_SESSION_KEY] = {}
+            store = request.session.get(self._FAYDA_OTP_SESSION_KEY) or {}
         return store
 
     def _get_liveness_config(self):
         try:
-            ttl_seconds = int(
-                (os.getenv("G2P_LIVENESS_TTL_SECONDS") or "").strip() or self._LIVENESS_LOCAL_DEFAULTS["ttl_seconds"])
+            ttl_seconds = int((os.getenv("G2P_LIVENESS_TTL_SECONDS") or "").strip() or self._LIVENESS_LOCAL_DEFAULTS["ttl_seconds"])
         except (TypeError, ValueError):
             ttl_seconds = self._LIVENESS_LOCAL_DEFAULTS["ttl_seconds"]
         ttl_seconds = max(20, min(ttl_seconds, 300))
 
         try:
-            prompt_count = int(
-                (os.getenv("G2P_LIVENESS_PROMPT_COUNT") or "").strip() or self._LIVENESS_LOCAL_DEFAULTS["prompt_count"])
+            prompt_count = int((os.getenv("G2P_LIVENESS_PROMPT_COUNT") or "").strip() or self._LIVENESS_LOCAL_DEFAULTS["prompt_count"])
         except (TypeError, ValueError):
             prompt_count = self._LIVENESS_LOCAL_DEFAULTS["prompt_count"]
         prompt_count = max(1, min(prompt_count, 3))
@@ -297,8 +292,8 @@ class G2PATIConsentController(http.Controller):
             "verify_timeout": verify_timeout,
             "verify_url": (os.getenv("G2P_LIVENESS_VERIFY_URL") or self._LIVENESS_LOCAL_DEFAULTS["verify_url"]).strip(),
             "signing_secret": (
-                    os.getenv("G2P_LIVENESS_SIGNING_SECRET")
-                    or self._LIVENESS_LOCAL_DEFAULTS["signing_secret"]
+                os.getenv("G2P_LIVENESS_SIGNING_SECRET")
+                or self._LIVENESS_LOCAL_DEFAULTS["signing_secret"]
             ).strip(),
             "allow_local_provider": self._env_flag_enabled(
                 os.getenv("G2P_LIVENESS_ALLOW_LOCAL_PROVIDER"),
@@ -310,8 +305,8 @@ class G2PATIConsentController(http.Controller):
     def _get_liveness_session_store(self):
         store = request.session.get(self._LIVENESS_SESSION_KEY)
         if not isinstance(store, dict):
-            store = {}
-            request.session[self._LIVENESS_SESSION_KEY] = store
+            request.session[self._LIVENESS_SESSION_KEY] = {}
+            store = request.session.get(self._LIVENESS_SESSION_KEY) or {}
         return store
 
     def _parse_session_datetime(self, value):
@@ -348,7 +343,7 @@ class G2PATIConsentController(http.Controller):
         return store
 
     def _mark_session_modified(self):
-        if not getattr(request, "session", None):
+        if getattr(request, "session", None) is None:
             return
         if hasattr(request.session, "is_dirty"):
             request.session.is_dirty = True
@@ -535,9 +530,9 @@ class G2PATIConsentController(http.Controller):
                 provider_message = ""
                 if isinstance(provider_response, dict):
                     provider_message = (
-                            provider_response.get("message")
-                            or provider_response.get("error")
-                            or ""
+                        provider_response.get("message")
+                        or provider_response.get("error")
+                        or ""
                     )
                 provider_message = (provider_message or "").strip()
                 if not provider_message:
@@ -549,6 +544,7 @@ class G2PATIConsentController(http.Controller):
             raise ValueError("Liveness provider URL is not configured.")
 
         return self._verify_provider_signed_payload(provider_response, signing_secret)
+
 
     def _make_fayda_transaction_id(self):
         return uuid4().hex.upper()
@@ -616,8 +612,7 @@ class G2PATIConsentController(http.Controller):
 
         return {
             "identifier": identifier,
-            "identifier_type": (os.getenv("G2P_FAYDA_OTP_ID_TYPE") or self._FAYDA_OTP_LOCAL_DEFAULTS[
-                "identifier_type"]).strip().upper() or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"],
+            "identifier_type": (os.getenv("G2P_FAYDA_OTP_ID_TYPE") or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"]).strip().upper() or self._FAYDA_OTP_LOCAL_DEFAULTS["identifier_type"],
             "identifier_source": source,
             "available": bool(identifier),
         }
@@ -669,6 +664,8 @@ class G2PATIConsentController(http.Controller):
 
         return values, status == "verified", transaction_id
 
+
+
     def _extract_liveness_values(self, post, farmer, partner, has_camera_capture):
         challenge_id = (post.get("liveness_challenge_id") or "").strip()
         verification_token = (post.get("liveness_verification_token") or "").strip()
@@ -691,8 +688,8 @@ class G2PATIConsentController(http.Controller):
             return values, False, challenge_id
 
         if (
-                session_entry.get("partner_id") != partner.id
-                or session_entry.get("farmer_id") != farmer.id
+            session_entry.get("partner_id") != partner.id
+            or session_entry.get("farmer_id") != farmer.id
         ):
             values["face_match_status"] = "error"
             values["face_match_message"] = "Liveness verification does not match the selected farmer."
@@ -771,6 +768,17 @@ class G2PATIConsentController(http.Controller):
             "review_url": "/consent/management/review/%s?view=table" % req.id,
         }
 
+    def _build_api_consent_response_data(self, consent, include_response_data=False):
+        data = {
+            "id": consent.id,
+            "consent_creation_request_id": consent.consent_creation_request_id,
+            "status": consent.status,
+        }
+        if include_response_data:
+            payload = consent.sudo()._build_consent_websub_payload()
+            data["response_data"] = payload.get("selected_data") or {}
+        return data
+
     def _find_farmer(self, payload):
         """Find farmer by farmer_db_id, farmer_id, or national_id/UID.
 
@@ -804,12 +812,12 @@ class G2PATIConsentController(http.Controller):
         if national_id:
             search_value = str(national_id).strip()
             partner_ids = set()
-
+            
             # Search by unique_id
             farmers = partner_obj.search(base_domain + [("unique_id", "=", search_value)], limit=1)
             if farmers:
                 return farmers[0]
-
+            
             # Search by reg_ids.value (any ID type)
             reg_ids = reg_id_obj.search([("value", "=", search_value)], limit=100)
             if reg_ids:
@@ -820,19 +828,7 @@ class G2PATIConsentController(http.Controller):
                 if farmers:
                     return farmers[0]
 
-            # Search by land_id
-            land_info_obj = request.env["g2p.land.information"].sudo()
-            land_infos = land_info_obj.search([("land_id", "=", search_value)], limit=100)
-            if land_infos:
-                partner_ids.update(land_infos.mapped("partner_id").ids)
-                farmers = partner_obj.search(
-                    base_domain + [("id", "in", list(partner_ids))], limit=1
-                )
-                if farmers:
-                    return farmers[0]
-
         return partner_obj.browse()
-
     # -------------------------------------------------------------------------
     # Portal: consent management page and farmer search
     # -------------------------------------------------------------------------
@@ -1391,7 +1387,6 @@ class G2PATIConsentController(http.Controller):
             "message": "OTP requested successfully.",
             "requested_at": fields.Datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
-        # request.session[self._FAYDA_OTP_SESSION_KEY] = session_store
         self._mark_session_modified()
 
         message = "OTP sent successfully."
@@ -1438,9 +1433,7 @@ class G2PATIConsentController(http.Controller):
             return self._error("Enter the OTP code.")
 
         session_store = self._get_fayda_otp_session_store()
-        print('transaction_id', transaction_id, session_store)
         session_entry = session_store.get(transaction_id)
-        print('session_entry', session_entry)
         if not isinstance(session_entry, dict):
             return self._error("OTP session expired or was not found.")
         if session_entry.get("partner_id") != partner.id or session_entry.get("farmer_id") != farmer.id:
@@ -1582,15 +1575,15 @@ class G2PATIConsentController(http.Controller):
 
     @http.route("/consent/liveness/verify_challenge", type="json", auth="user")
     def consent_liveness_verify_challenge(
-            self,
-            farmer_id=None,
-            challenge_id=None,
-            capture_image=None,
-            captured_at=None,
-            face_match_passed=None,
-            face_match_distance=None,
-            face_match_threshold=None,
-            **kw
+        self,
+        farmer_id=None,
+        challenge_id=None,
+        capture_image=None,
+        captured_at=None,
+        face_match_passed=None,
+        face_match_distance=None,
+        face_match_threshold=None,
+        **kw
     ):
         partner = self._get_consent_partner()
         if not partner:
@@ -1630,8 +1623,8 @@ class G2PATIConsentController(http.Controller):
             return self._error("Liveness challenge was not found or expired.")
 
         if (
-                session_entry.get("partner_id") != partner.id
-                or session_entry.get("farmer_id") != farmer.id
+            session_entry.get("partner_id") != partner.id
+            or session_entry.get("farmer_id") != farmer.id
         ):
             return self._error("Liveness challenge does not match the selected farmer.", code=403)
 
@@ -1647,9 +1640,9 @@ class G2PATIConsentController(http.Controller):
 
         existing_token = (session_entry.get("verification_token") or "").strip()
         if (
-                session_entry.get("status") == "verified"
-                and existing_token
-                and session_entry.get("face_match_passed")
+            session_entry.get("status") == "verified"
+            and existing_token
+            and session_entry.get("face_match_passed")
         ):
             return self._success(
                 data={
@@ -1738,9 +1731,9 @@ class G2PATIConsentController(http.Controller):
         if provider_face_match_distance is not None and provider_face_match_distance < 0:
             provider_face_match_distance = None
         if (
-                provider_face_match_passed
-                and provider_face_match_distance is not None
-                and provider_face_match_distance > provider_face_match_threshold
+            provider_face_match_passed
+            and provider_face_match_distance is not None
+            and provider_face_match_distance > provider_face_match_threshold
         ):
             provider_face_match_passed = False
 
@@ -1796,6 +1789,7 @@ class G2PATIConsentController(http.Controller):
             message=provider_message,
         )
 
+
     def _check_submit_access(self, post):
         partner = self._get_consent_partner()
         if not partner:
@@ -1832,7 +1826,7 @@ class G2PATIConsentController(http.Controller):
             )
             if not consent_reason:
                 return {"error": "invalid_consent_reason"}
-
+        
         consent_reason_str = (post.get("purpose") or "").strip()
         if not consent_reason and not consent_reason_str:
             return {"error": "missing_purpose"}
@@ -1845,7 +1839,7 @@ class G2PATIConsentController(http.Controller):
                 return {"error": "invalid_purpose"}
 
         purpose = consent_reason.name if consent_reason else consent_reason_str
-
+        
         validity_months = post.get("validity_months")
         try:
             validity_months = int(validity_months) if validity_months else 12
@@ -1865,7 +1859,7 @@ class G2PATIConsentController(http.Controller):
         if not allowed_data_field_ids and post.get("allowed_data_field_ids"):
             val = post.get("allowed_data_field_ids")
             allowed_data_field_ids = val if isinstance(val, list) else [val]
-
+        
         allowed_ids = []
         for fid in allowed_data_field_ids:
             try:
@@ -1966,8 +1960,7 @@ class G2PATIConsentController(http.Controller):
             "otp_transaction_id": otp_transaction_id,
         }
 
-    def _create_and_approve_consent(self, vals, auto_approve_requested, auto_approve_method, otp_transaction_id,
-                                    liveness_challenge_id, is_api=True):
+    def _create_and_approve_consent(self, vals, auto_approve_requested, auto_approve_method, otp_transaction_id, liveness_challenge_id, is_api=True):
         ConsentRequest = request.env["g2p.consent.request"].sudo()
         consent = ConsentRequest.create(vals)
 
@@ -1975,7 +1968,10 @@ class G2PATIConsentController(http.Controller):
         auto_approval_failed = False
         if auto_approve_requested:
             try:
-                consent.action_approve()
+                approval_record = consent
+                if self._is_synchronous_consent_enabled():
+                    approval_record = consent.with_context(skip_consent_websub_publish=True)
+                approval_record.action_approve()
                 approval_flag_field = (
                     "auto_approved_via_otp"
                     if auto_approve_method == "otp"
@@ -2017,15 +2013,15 @@ class G2PATIConsentController(http.Controller):
         farm_res = self._process_farmer(post)
         if "error" in farm_res:
             return farm_res
-
+        
         rsn_res = self._process_consent_reason(post)
         if "error" in rsn_res:
             return rsn_res
-
+        
         fld_res = self._process_allowed_fields(post, partner, is_api)
         if "error" in fld_res:
             return fld_res
-
+        
         now = fields.Datetime.now()
         validity_from = now
         validity_to = now + timedelta(days=rsn_res["validity_months"] * 30)
@@ -2044,7 +2040,7 @@ class G2PATIConsentController(http.Controller):
         }
         if fld_res["allowed_ids"]:
             vals["allowed_data_field_ids"] = [(6, 0, fld_res["allowed_ids"])]
-
+            
         return {"vals": vals, "farmer": farm_res["farmer"], "allowed_ids": fld_res["allowed_ids"]}
 
     @http.route("/consent/request/submit", type="http", auth="user", methods=["POST"], csrf=True)
@@ -2089,7 +2085,7 @@ class G2PATIConsentController(http.Controller):
             otp_transaction_id = None
             liveness_challenge_id = None
             attachment_ids = []
-
+            
             try:
                 files = request.httprequest.files or {}
                 upload = files.get("attachment")
@@ -2117,10 +2113,9 @@ class G2PATIConsentController(http.Controller):
                 return _reject("server_error")
 
             liveness_challenge_id = post.get("liveness_challenge_id")
-
+            
             app_res = self._create_and_approve_consent(
-                vals, auto_approve_requested, auto_approve_method, otp_transaction_id, liveness_challenge_id,
-                is_api=False
+                vals, auto_approve_requested, auto_approve_method, otp_transaction_id, liveness_challenge_id, is_api=False
             )
             consent = app_res["consent"]
             auto_approved = app_res["auto_approved"]
@@ -2146,7 +2141,7 @@ class G2PATIConsentController(http.Controller):
                 redirect_url += "&auto_approved=1&auto_approved_method=%s" % (auto_approve_method or "manual")
             elif auto_approval_failed:
                 redirect_url += "&auto_approval_failed=1&auto_approval_failed_method=%s" % (
-                        auto_approve_method or "manual"
+                    auto_approve_method or "manual"
                 )
             return request.redirect(redirect_url)
         except Exception as e:
@@ -2161,7 +2156,7 @@ class G2PATIConsentController(http.Controller):
             acc_res = self._check_submit_access(post)
             if "error" in acc_res:
                 return self._error(acc_res["error"], code=403 if acc_res["error"] == "access_denied" else 400)
-
+            
             partner = acc_res["partner"]
             user_id = acc_res.get("user_id", False)
             posted_farmer = acc_res.get("posted_farmer", "")
@@ -2180,7 +2175,7 @@ class G2PATIConsentController(http.Controller):
                 )
                 code = 404 if err == "farmer_not_found" else 400
                 return self._error(err, code=code)
-
+            
             vals = build_res["vals"]
             farmer = build_res["farmer"]
             allowed_ids = build_res["allowed_ids"]
@@ -2210,8 +2205,7 @@ class G2PATIConsentController(http.Controller):
                 return self._error(f"server_error: {str(e)}", code=500)
 
             app_res = self._create_and_approve_consent(
-                vals, auto_approve_requested, auto_approve_method, otp_transaction_id, liveness_challenge_id=None,
-                is_api=True
+                vals, auto_approve_requested, auto_approve_method, otp_transaction_id, liveness_challenge_id=None, is_api=True
             )
             consent = app_res["consent"]
             auto_approved = app_res["auto_approved"]
@@ -2224,14 +2218,21 @@ class G2PATIConsentController(http.Controller):
                 auto_approved, auto_approve_method or "none"
             )
 
-            return self._success({
+            response_data = {
                 "consent_id": consent.id,
                 "status": consent.status,
                 "auto_approved": auto_approved,
                 "auto_approval_failed": auto_approval_failed,
                 "auto_approve_method": auto_approve_method or None,
-                "error_details": consent.face_match_message if auto_approval_failed else None
-            })
+                "error_details": consent.face_match_message if auto_approval_failed else None,
+            }
+            if self._is_synchronous_consent_enabled() and consent.status == "approved":
+                response_data["response_data"] = self._build_api_consent_response_data(
+                    consent,
+                    include_response_data=True,
+                ).get("response_data") or {}
+
+            return self._success(response_data)
 
         except Exception as e:
             _logger.error("Error in submit_consent API: %s", e, exc_info=True)
@@ -2239,8 +2240,7 @@ class G2PATIConsentController(http.Controller):
 
     @http.route("/api/consent/request/create", type="json", auth="user", methods=["POST"], csrf=False)
     def create_consent_request(self, **kwargs):
-        # payload = request.jsonrequest or {}
-        payload = dict(request.params)
+        payload = request.jsonrequest or {}
         partner_record_id = payload.get("partner_record_id") or payload.get("partner_id")
         partner = self._get_consent_partner()
         if not partner:
@@ -2282,7 +2282,7 @@ class G2PATIConsentController(http.Controller):
         if consent_reason:
             purpose = consent_reason.name
         if not purpose:
-            return self._error("purpose is required")
+            return self._error("consent_reason_id is required")
 
         vals = {
             "partner_record_id": partner_record.id,
@@ -2340,19 +2340,13 @@ class G2PATIConsentController(http.Controller):
         )
 
         return self._success(
-            {
-                "id": consent.id,
-                "consent_creation_request_id": consent.consent_creation_request_id,
-                "status": consent.status,
-
-            },
+            self._build_api_consent_response_data(consent),
             message="Consent request created",
         )
 
     @http.route("/api/consent/request/approve", type="json", auth="user", methods=["POST"], csrf=False)
     def approve_consent_request(self, **kwargs):
-        # payload = request.jsonrequest or {}
-        payload = dict(request.params)
+        payload = request.jsonrequest or {}
         consent_id = payload.get("consent_id")
         consent_request_id = payload.get("consent_creation_request_id")
 
@@ -2372,20 +2366,23 @@ class G2PATIConsentController(http.Controller):
         if not consent:
             return self._error("Consent request not found", code=404)
 
-        consent.action_approve()
+        synchronous_consent = self._is_synchronous_consent_enabled()
+        if synchronous_consent:
+            consent.with_context(skip_consent_websub_publish=True).action_approve()
+        else:
+            consent.action_approve()
+
         return self._success(
-            {
-                "id": consent.id,
-                "consent_creation_request_id": consent.consent_creation_request_id,
-                "status": consent.status,
-            },
+            self._build_api_consent_response_data(
+                consent,
+                include_response_data=True,
+            ),
             message="Consent request approved",
         )
 
     @http.route("/api/consent/request/reject", type="json", auth="user", methods=["POST"], csrf=False)
     def reject_consent_request(self, **kwargs):
-        # payload = request.jsonrequest or {}
-        payload = dict(request.params)
+        payload = request.jsonrequest or {}
         consent_id = payload.get("consent_id")
         consent_request_id = payload.get("consent_creation_request_id")
 
@@ -2421,8 +2418,7 @@ class G2PATIConsentController(http.Controller):
 
     @http.route("/api/consent/request/revoke", type="json", auth="user", methods=["POST"], csrf=False)
     def revoke_consent_request(self, **kwargs):
-        # payload = request.jsonrequest or {}
-        payload = dict(request.params)
+        payload = request.jsonrequest or {}
         consent_id = payload.get("consent_id")
         consent_request_id = payload.get("consent_creation_request_id")
 
@@ -2454,8 +2450,7 @@ class G2PATIConsentController(http.Controller):
 
     @http.route("/api/consent/request/pending", type="json", auth="user", methods=["POST"], csrf=False)
     def list_pending_consent_requests(self, **kwargs):
-        # payload = request.jsonrequest or {}
-        payload = dict(request.params)
+        payload = request.jsonrequest or {}
         limit = int(payload.get("limit", 80))
         partner = self._get_consent_partner()
         if not partner:
@@ -2482,6 +2477,8 @@ class G2PATIConsentController(http.Controller):
                 ],
             }
         )
+
+
 
     def _handle_attachment(self, source, filename="consent_form.pdf"):
         """
@@ -2546,7 +2543,7 @@ class G2PATIConsentController(http.Controller):
         """Fetch allowed data fields for a consent partner."""
         payload = kwargs
         partner_id = payload.get("partner_id") or payload.get("partner_record_id")
-
+        
         if not partner_id:
             partner = self._get_consent_partner()
             if not partner:
@@ -2555,7 +2552,7 @@ class G2PATIConsentController(http.Controller):
             partner = request.env["res.partner"].sudo().browse(int(partner_id))
             if not partner.exists() or not partner.is_consent_parent:
                 return self._error("Consent partner not found", code=404)
-
+        
         fields = partner.allowed_data_field_ids
         data = [{"id": f.id, "name": f.name, "code": f.code} for f in fields]
         return self._success(data)

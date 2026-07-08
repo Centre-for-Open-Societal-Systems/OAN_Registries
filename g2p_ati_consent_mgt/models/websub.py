@@ -87,13 +87,16 @@ class G2PConsentRequestWebsub(models.Model):
                 )
 
     def action_approve(self):
-        self._ensure_websub_configuration_before_approval()
+        skip_websub_publish = bool(self.env.context.get("skip_consent_websub_publish"))
+        if not skip_websub_publish:
+            self._ensure_websub_configuration_before_approval()
         old_statuses = {record.id: record.status for record in self}
         result = super().action_approve()
         approved_now = self.filtered(
             lambda rec: old_statuses.get(rec.id) != "approved" and rec.status == "approved"
         )
-        approved_now._publish_consent_approved_websub()
+        if not skip_websub_publish:
+            approved_now._publish_consent_approved_websub()
         return result
 
     def _publish_consent_approved_websub(self):
@@ -120,9 +123,11 @@ class G2PConsentRequestWebsub(models.Model):
         farmer = self.farmer_id.sudo()
         partner = self.partner_record_id.sudo()
         config = partner.consent_websub_config_id.sudo()
+        datashare_obj = self.env["g2p.datashare.config.websub"].sudo()
 
         published_fields = config._get_consent_shared_data_fields(self) if config else self.allowed_data_field_ids
-        selected_data = config._build_data_field_payload(farmer, published_fields) if config else {}
+        payload_builder = config if config else datashare_obj
+        selected_data = payload_builder._build_data_field_payload(farmer, published_fields)
 
         now = fields.Datetime.now()
         return {
@@ -145,8 +150,8 @@ class G2PConsentRequestWebsub(models.Model):
                 "id": partner.id,
                 "name": partner.display_name,
                 "ref": partner.ref,
-                "websub_config_id": config.id,
-                "websub_config_name": config.display_name,
+                "websub_config_id": config.id if config else False,
+                "websub_config_name": config.display_name if config else False,
             },
             "farmer": {
                 "id": farmer.id,
