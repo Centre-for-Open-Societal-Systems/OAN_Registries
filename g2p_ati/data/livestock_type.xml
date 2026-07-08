@@ -1,35 +1,47 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<odoo noupdate="1">
+<odoo>
     <record id="livestock_type_cattle" model="g2p.livestock.type">
         <field name="name">Cattle</field>
-        <field name="code">cattle</field>
+        <field name="species_code">Cattle</field>
+        <field name="description">A vital livestock species in Ethiopia, including zebu cattle known for resilience to harsh climates and a crucial role in agriculture and livelihoods.</field>
+        <field name="icon_url">https://lis.moa.gov.et/wp/wp-content/uploads/2025/05/cattle-population.svg</field>
+        <field name="dataset_id">61</field>
     </record>
     <record id="livestock_type_camel" model="g2p.livestock.type">
         <field name="name">Camel</field>
-        <field name="code">camel</field>
+        <field name="species_code">Camel</field>
+        <field name="description">Arid-zone livestock species tracked in Ethiopia's national population dashboard.</field>
+        <field name="icon_url">https://lis.moa.gov.et/wp/wp-content/uploads/2025/05/camel-population.svg</field>
+        <field name="dataset_id">61</field>
     </record>
     <record id="livestock_type_sheep" model="g2p.livestock.type">
         <field name="name">Sheep</field>
-        <field name="code">sheep</field>
+        <field name="species_code">Sheep</field>
+        <field name="description">Major small ruminant livestock species tracked in Ethiopia's national population dashboard.</field>
+        <field name="icon_url">https://lis.moa.gov.et/wp/wp-content/uploads/2025/05/sheep-population.svg</field>
+        <field name="dataset_id">61</field>
     </record>
     <record id="livestock_type_goat" model="g2p.livestock.type">
         <field name="name">Goat</field>
-        <field name="code">goat</field>
+        <field name="species_code">Goat</field>
+        <field name="description">Major small ruminant livestock species tracked in Ethiopia's national population dashboard.</field>
+        <field name="icon_url">https://lis.moa.gov.et/wp/wp-content/uploads/2025/05/goat-population.svg</field>
+        <field name="dataset_id">61</field>
     </record>
     <record id="livestock_type_chicken" model="g2p.livestock.type">
         <field name="name">Chicken</field>
-        <field name="code">chicken</field>
+        <field name="species_code">chicken</field>
     </record>
     <record id="livestock_type_donkey" model="g2p.livestock.type">
         <field name="name">Donkey</field>
-        <field name="code">donkey</field>
+        <field name="species_code">donkey</field>
     </record>
     <record id="livestock_type_horse" model="g2p.livestock.type">
         <field name="name">Horse</field>
-        <field name="code">horse</field>
+        <field name="species_code">horse</field>
     </record>
     <record id="livestock_type_mule" model="g2p.livestock.type">
         <field name="name">Mule</field>
-        <field name="code">mule</field>
+        <field name="species_code">mule</field>
     </record>
 </odoo>

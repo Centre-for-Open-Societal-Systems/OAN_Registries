@@ -27,7 +27,8 @@ class G2PLandInformation(models.Model):
         try:
             api_parameters = self.env["narlis.integration"].sudo().search([], limit=1)
             if not api_parameters:
-                raise UserError(_("API configuration is missing. Please configure it in settings."))
+                _logger.warning(_("API configuration is missing. Please configure it in settings."))
+                return
 
             domain = ["|", ("integration_status", "=", False), ("integration_status", "=", "invalid")]
 

@@ -5,7 +5,7 @@
         <field name="model">g2p.kebele</field>
         <field name="priority">1</field>
         <field name="arch" type="xml">
-         <tree create="true" delete="true" edit="true" editable="bottom">
+         <tree create="true" delete="true" edit="true">
                 <field name="woreda" required="1" />
                 <field name="code" required="1" />
                 <field name="name" required="1" />
@@ -13,10 +13,28 @@
         </field>
     </record>
 
+    <record id="view_g2p_kebele_form" model="ir.ui.view">
+        <field name="name">view_g2p_kebele_form</field>
+        <field name="model">g2p.kebele</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="woreda" required="1" />
+                            <field name="code" required="1" />
+                            <field name="name" required="1" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="g2p_kebele_view_tree_action" model="ir.actions.act_window">
         <field name="name">kebeles</field>
         <field name="res_model">g2p.kebele</field>
-        <field name="view_mode">tree</field>
+        <field name="view_mode">tree,form</field>
         <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
                     Add an Farming Type!
@@ -30,7 +48,7 @@
         id="g2p_kebele_menu"
         action="g2p_kebele_view_tree_action"
         name="Kebeles"
-        sequence="500"
-        parent="g2p_registry_base.g2p_configuration_menu_root"
+        sequence="40"
+        parent="menu_g2p_location_root"
     />
 </odoo>

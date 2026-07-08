@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_g2p_region_tree" model="ir.ui.view">
+        <field name="name">view_g2p_region_tree</field>
+        <field name="model">g2p.region</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <tree create="true" delete="true" edit="true">
+                <field name="code" required="1" />
+                <field name="name" required="1" />
+                <field name="admin0_name" />
+                <field name="admin0_pcod" />
+                <field name="admin1_pcod" />
+                <field name="admin1_refn" />
+                <field name="admin1_altn" />
+                <field name="admin1_al_1" />
+                <field name="shape_length" />
+                <field name="shape_area" />
+                <field name="date" />
+                <field name="valid_on" />
+                <field name="valid_to" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_region_form" model="ir.ui.view">
+        <field name="name">view_g2p_region_form</field>
+        <field name="model">g2p.region</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code" required="1" />
+                            <field name="name" required="1" />
+                            <field name="admin0_name" />
+                            <field name="admin0_pcod" />
+                            <field name="admin1_pcod" />
+                            <field name="admin1_refn" />
+                        </group>
+                        <group>
+                            <field name="admin1_altn" />
+                            <field name="admin1_al_1" />
+                            <field name="shape_length" />
+                            <field name="shape_area" />
+                            <field name="date" />
+                            <field name="valid_on" />
+                            <field name="valid_to" />
+                        </group>
+                    </group>
+                    <group>
+                        <field name="geom" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="g2p_region_view_tree_action" model="ir.actions.act_window">
+        <field name="name">Regions</field>
+        <field name="res_model">g2p.region</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Add a Region!
+                </p><p>
+                    Click the create button to enter a new Region.
+                </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="g2p_region_menu"
+        action="g2p_region_view_tree_action"
+        name="Regions"
+        sequence="10"
+        parent="menu_g2p_location_root"
+    />
+</odoo>

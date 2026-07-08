@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- By Life Cycle -->
+        <record id="weed_life_cycle_annual" model="g2p.weed">
+            <field name="name">Annual</field>
+            <field name="code">annual</field>
+            <field name="weed_type">by_life_cycle</field>
+        </record>
+        <record id="weed_life_cycle_biennial" model="g2p.weed">
+            <field name="name">Biennial</field>
+            <field name="code">biennial</field>
+            <field name="weed_type">by_life_cycle</field>
+        </record>
+        <record id="weed_life_cycle_perennial" model="g2p.weed">
+            <field name="name">Perennial</field>
+            <field name="code">perennial</field>
+            <field name="weed_type">by_life_cycle</field>
+        </record>
+
+        <!-- By Season -->
+        <record id="weed_season_kharif" model="g2p.weed">
+            <field name="name">Kharif / Summer</field>
+            <field name="code">kharif_summer</field>
+            <field name="weed_type">by_season</field>
+        </record>
+        <record id="weed_season_rabi" model="g2p.weed">
+            <field name="name">Rabi / Winter</field>
+            <field name="code">rabi_winter</field>
+            <field name="weed_type">by_season</field>
+        </record>
+        <record id="weed_season_year_round" model="g2p.weed">
+            <field name="name">Year-round</field>
+            <field name="code">year_round</field>
+            <field name="weed_type">by_season</field>
+        </record>
+
+        <!-- By Botanical Nature -->
+        <record id="weed_botanical_grassy" model="g2p.weed">
+            <field name="name">Grassy</field>
+            <field name="code">grassy</field>
+            <field name="weed_type">by_botanical_nature</field>
+        </record>
+        <record id="weed_botanical_sedge" model="g2p.weed">
+            <field name="name">Sedge</field>
+            <field name="code">sedge</field>
+            <field name="weed_type">by_botanical_nature</field>
+        </record>
+        <record id="weed_botanical_broadleaf" model="g2p.weed">
+            <field name="name">Broadleaf</field>
+            <field name="code">broadleaf</field>
+            <field name="weed_type">by_botanical_nature</field>
+        </record>
+
+        <!-- By Habitat -->
+        <record id="weed_habitat_aquatic" model="g2p.weed">
+            <field name="name">Aquatic</field>
+            <field name="code">aquatic</field>
+            <field name="weed_type">by_habitat</field>
+        </record>
+        <record id="weed_habitat_terrestrial" model="g2p.weed">
+            <field name="name">Terrestrial</field>
+            <field name="code">terrestrial</field>
+            <field name="weed_type">by_habitat</field>
+        </record>
+        <record id="weed_habitat_parasitic" model="g2p.weed">
+            <field name="name">Parasitic</field>
+            <field name="code">parasitic</field>
+            <field name="weed_type">by_habitat</field>
+        </record>
+        <record id="weed_habitat_epiphytic" model="g2p.weed">
+            <field name="name">Epiphytic</field>
+            <field name="code">epiphytic</field>
+            <field name="weed_type">by_habitat</field>
+        </record>
+
+        <!-- By Harmfulness -->
+        <record id="weed_harmfulness_noxious" model="g2p.weed">
+            <field name="name">Noxious</field>
+            <field name="code">noxious</field>
+            <field name="weed_type">by_harmfulness</field>
+        </record>
+        <record id="weed_harmfulness_poisonous" model="g2p.weed">
+            <field name="name">Poisonous</field>
+            <field name="code">poisonous</field>
+            <field name="weed_type">by_harmfulness</field>
+        </record>
+        <record id="weed_harmfulness_allelopathic" model="g2p.weed">
+            <field name="name">Allelopathic</field>
+            <field name="code">allelopathic</field>
+            <field name="weed_type">by_harmfulness</field>
+        </record>
+        <record id="weed_harmfulness_invasive" model="g2p.weed">
+            <field name="name">Invasive</field>
+            <field name="code">invasive</field>
+            <field name="weed_type">by_harmfulness</field>
+        </record>
+
+        <!-- By Morphology -->
+        <record id="weed_morphology_climbing" model="g2p.weed">
+            <field name="name">Climbing</field>
+            <field name="code">climbing</field>
+            <field name="weed_type">by_morphology</field>
+        </record>
+        <record id="weed_morphology_rosette" model="g2p.weed">
+            <field name="name">Rosette</field>
+            <field name="code">rosette</field>
+            <field name="weed_type">by_morphology</field>
+        </record>
+        <record id="weed_morphology_creeping" model="g2p.weed">
+            <field name="name">Creeping</field>
+            <field name="code">creeping</field>
+            <field name="weed_type">by_morphology</field>
+        </record>
+        <record id="weed_morphology_erect" model="g2p.weed">
+            <field name="name">Erect</field>
+            <field name="code">erect</field>
+            <field name="weed_type">by_morphology</field>
+        </record>
+    </data>
+</odoo>
