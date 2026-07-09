@@ -34,7 +34,6 @@
                                        options="{'no_create': True}"/>
                                 <field name="fyda_id" readonly="1" force_save="1"/>
                                 <field name="farmer_display_id" readonly="1" force_save="1"/>
-<!--                                <field name="owner_name"/>-->
                                 <field name="region_id" readonly="1" force_save="1"/>
                             </group>
                             <group>
@@ -44,20 +43,12 @@
                                 <field name="gps" readonly="1" force_save="1"/>
                             </group>
                         <notebook>
-<!--                            <page string="Land Details">-->
-<!--                                <group>-->
-<!--&lt;!&ndash;                                    <field name="land_plan"/>&ndash;&gt;-->
-<!--                                    -->
-<!--&lt;!&ndash;                                    <field name="current_land_use"/>&ndash;&gt;-->
-<!--&lt;!&ndash;                                    <field name="irrigation_type"/>&ndash;&gt;-->
-<!--                                </group>-->
-<!--                            </page>-->
                             <page string="Planning">
                                 <group string="Planned Crops">
                                     <field name="annual_line_ids" nolabel="1" colspan="2">
                                         <tree>
                                             <field name="sync_id" column_invisible="1" force_save="1"/>
-                                            <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                            <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start"/>
                                             <field name="land_category" width="16%" class="text-start"/>
                                             <field name="season_id" width="16%" class="text-start"/>
                                             <field name="crop_name_id" width="16%" class="text-start"/>
@@ -75,7 +66,7 @@
 
                                                 <group string="Land / Plot Details">
                                                     <group>
-                                                        <field name="land_info_id" domain="[('partner_id', '=', parent.partner_id)]"/>
+                                                        <field name="land_info_id" context="{'show_land_id': True}" domain="[('partner_id', '=', parent.partner_id)]"/>
                                                         <field name="land_category"/>
                                                     </group>
                                                     <group>
@@ -130,7 +121,6 @@
                                                     <group>
 
                                                         <field name="seed_planned_fertilizer_qty"/>
-                                                        <!-- <field name="seed_planned_fertilizer_sack"/> -->
                                                         <field name="planned_labor"/>
                                                     </group>
                                                     <field name="water_resource_line_ids" colspan="2">
@@ -141,7 +131,7 @@
                                                         </tree>
                                                     </field>
                                                 </group>
-                                                 <group>
+                                                 <group invisible="not land_category">
                                                      <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}"/>
                                                  </group>
                                                  <group string="Cluster Information" invisible="has_cluster_farming != 'yes'">
@@ -157,6 +147,13 @@
                                                          <field name="collected_by_combiner"/>
                                                      </group>
                                                  </group>
+                                            <group string="Survey Personnel">
+                                                <field name="surveyor_name"/>
+                                                <field name="surveyor_mobile_number"/>
+                                                <field name="supervisor_name"/>
+                                                <field name="supervisor_mobile_number"/>
+                                                <field name="first_approvel_status"/>
+                                            </group>
                                             </sheet>
 
                                         </form>
@@ -166,7 +163,7 @@
                                         <field name="perennial_line_ids" nolabel="1" colspan="2">
                                         <tree>
                                             <field name="sync_id" column_invisible="1" force_save="1"/>
-                                            <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                            <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start"/>
                                             <field name="season_id" width="11%" class="text-start"/>
                                             <field name="crop_name_id" width="11%" class="text-start"/>
                                             <field name="crop_category_id" width="11%" class="text-start"/>
@@ -183,7 +180,7 @@
 
                                                 <group string="Land / Plot Details">
                                                     <group>
-                                                        <field name="land_info_id" domain="[('partner_id', '=', parent.partner_id)]"/>
+                                                        <field name="land_info_id" context="{'show_land_id': True}" domain="[('partner_id', '=', parent.partner_id)]"/>
                                                         <field name="land_category"/>
                                                     </group>
 
@@ -239,7 +236,6 @@
                                                     <group>
 
                                                         <field name="seed_planned_fertilizer_qty"/>
-                                                        <!-- <field name="seed_planned_fertilizer_sack"/> -->
                                                         <field name="planned_labor"/>
                                                     </group>
                                                     <field name="water_resource_line_ids" colspan="2">
@@ -250,7 +246,7 @@
                                                         </tree>
                                                     </field>
                                                 </group>
-                                                <group>
+                                                <group invisible="not land_category">
                                                     <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}"/>
                                                 </group>
                                                 <group string="Cluster Information" invisible="has_cluster_farming != 'yes'">
@@ -268,6 +264,13 @@
                                                 </group>
 
 
+                                            <group string="Survey Personnel">
+                                                <field name="surveyor_name"/>
+                                                <field name="surveyor_mobile_number"/>
+                                                <field name="supervisor_name"/>
+                                                <field name="supervisor_mobile_number"/>
+                                                <field name="first_approvel_status"/>
+                                            </group>
                                             </sheet>
 
                                         </form>
@@ -277,7 +280,7 @@
                                         <field name="biennial_line_ids" nolabel="1" colspan="2">
                                         <tree>
                                             <field name="sync_id" column_invisible="1" force_save="1"/>
-                                            <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                            <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start"/>
                                             <field name="season_id" width="11%" class="text-start"/>
                                             <field name="crop_name_id" width="11%" class="text-start"/>
                                             <field name="crop_category_id" width="11%" class="text-start"/>
@@ -294,7 +297,7 @@
 
                                                 <group string="Land / Plot Details">
                                                     <group>
-                                                        <field name="land_info_id" domain="[('partner_id', '=', parent.partner_id)]"/>
+                                                        <field name="land_info_id" context="{'show_land_id': True}" domain="[('partner_id', '=', parent.partner_id)]"/>
                                                         <field name="land_category"/>
                                                     </group>
                                                     <group>
@@ -349,7 +352,6 @@
                                                     <group>
 
                                                         <field name="seed_planned_fertilizer_qty"/>
-                                                        <!-- <field name="seed_planned_fertilizer_sack"/> -->
                                                         <field name="planned_labor"/>
                                                     </group>
                                                     <field name="water_resource_line_ids" colspan="2">
@@ -360,7 +362,7 @@
                                                         </tree>
                                                     </field>
                                                 </group>
-                                                <group>
+                                                <group invisible="not land_category">
                                                     <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}"/>
                                                 </group>
                                                 <group string="Cluster Information" invisible="has_cluster_farming != 'yes'">
@@ -378,11 +380,19 @@
                                                 </group>
 
 
+                                            <group string="Survey Personnel">
+                                                <field name="surveyor_name"/>
+                                                <field name="surveyor_mobile_number"/>
+                                                <field name="supervisor_name"/>
+                                                <field name="supervisor_mobile_number"/>
+                                                <field name="first_approvel_status"/>
+                                            </group>
                                             </sheet>
 
                                         </form>
                                     </field>
                                 </group>
+
                             </page>
                             <page string="Cultivation / Land Preparation">
                                 <field name="has_no_planning_data" invisible="1"/>
@@ -397,7 +407,7 @@
                                         <tree decoration-danger="is_mismatch and not is_manual" decoration-success="not is_mismatch and not is_manual and crop_name_id">
                                             <field name="sync_id" column_invisible="1" force_save="1"/>
                                             <field name="is_manual" column_invisible="1"/>
-                                            <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                            <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start"/>
                                             <field name="land_category" width="16%" class="text-start"/>
                                             <field name="season_id" width="16%" class="text-start"/>
                                             <field name="crop_name_id" width="16%" class="text-start"/>
@@ -422,7 +432,7 @@
                                                 </div>
                                                 <group string="Land / Plot Details">
                                                     <group>
-                                                        <field name="land_info_id" domain="[('partner_id', '=', parent.partner_id)]" readonly="not is_manual" force_save="1"/>
+                                                        <field name="land_info_id" context="{'show_land_id': True}" domain="[('partner_id', '=', parent.partner_id)]" readonly="not is_manual" force_save="1"/>
                                                         <field name="land_category" readonly="not is_manual" force_save="1" invisible="not is_manual"/>
                                                     </group>
                                                     <group invisible="not is_manual">
@@ -455,7 +465,8 @@
                                                         <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]"/>
                                                         <field name="collected_gc"/>
                                                         <field name="collected_ec"/>
-                                                        <field name="remark" placeholder="Reason for changing the crop"/>
+                                                        <field name="is_crop_changed" invisible="1"/>
+                                                        <field name="remark" placeholder="Reason for changing the crop" invisible="not is_crop_changed"/>
                                                     </group>
                                                     <group>
                                                         <field name="crop_category_id" readonly="1"/>
@@ -479,7 +490,6 @@
                                                     <group>
 
                                                         <field name="actual_fertilizer_qty"/>
-                                                        <!-- <field name="actual_fertilizer_sack"/> -->
                                                     </group>
                                                     <group>
                                                         <field name="pest_occurrence"/>
@@ -490,7 +500,7 @@
                                                             <field name="pest_type"/>
                                                             <field name="pest_name_id"/>
                                                             <field name="pesticide_method"/>
-                                                            <field name="pesticides_type"/>
+                                                            <field name="pesticide_type"/>
                                                             <field name="pesticide_name_id"/>
                                                             <field name="pesticide_frequency"/>
                                                         </tree>
@@ -527,6 +537,13 @@
                                                         <field name="actual_collected_by_combiner"/>
                                                     </group>
                                                 </group>
+                                            <group string="Survey Personnel">
+                                                <field name="surveyor_name"/>
+                                                <field name="surveyor_mobile_number"/>
+                                                <field name="supervisor_name"/>
+                                                <field name="supervisor_mobile_number"/>
+                                                <field name="first_approvel_status"/>
+                                            </group>
                                             </sheet>
 
                                         </form>
@@ -537,7 +554,7 @@
                                         <tree decoration-danger="is_mismatch and not is_manual" decoration-success="not is_mismatch and not is_manual and crop_name_id">
                                             <field name="sync_id" column_invisible="1" force_save="1"/>
                                             <field name="is_manual" column_invisible="1"/>
-                                            <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                            <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start"/>
                                             <field name="season_id" width="11%" class="text-start"/>
                                             <field name="crop_name_id" width="11%" class="text-start"/>
                                             <field name="crop_category_id" width="11%" class="text-start" readonly="1"/>
@@ -561,7 +578,7 @@
                                                 </div>
                                                 <group string="Land / Plot Details">
                                                     <group>
-                                                        <field name="land_info_id" domain="[('partner_id', '=', parent.partner_id)]" readonly="not is_manual" force_save="1"/>
+                                                        <field name="land_info_id" context="{'show_land_id': True}" domain="[('partner_id', '=', parent.partner_id)]" readonly="not is_manual" force_save="1"/>
                                                         <field name="land_category" readonly="not is_manual" force_save="1" invisible="not is_manual"/>
                                                     </group>
                                                     <group invisible="not is_manual">
@@ -594,7 +611,8 @@
                                                         <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]"/>
                                                         <field name="collected_gc"/>
                                                         <field name="collected_ec"/>
-                                                        <field name="remark" placeholder="Reason for changing the crop"/>
+                                                        <field name="is_crop_changed" invisible="1"/>
+                                                        <field name="remark" placeholder="Reason for changing the crop" invisible="not is_crop_changed"/>
                                                     </group>
                                                     <group>
                                                         <field name="crop_category_id" readonly="1"/>
@@ -618,7 +636,6 @@
                                                     <group>
 
                                                         <field name="actual_fertilizer_qty"/>
-                                                        <!-- <field name="actual_fertilizer_sack"/> -->
                                                     </group>
                                                     <group>
                                                         <field name="pest_occurrence"/>
@@ -629,7 +646,7 @@
                                                             <field name="pest_type"/>
                                                             <field name="pest_name_id"/>
                                                             <field name="pesticide_method"/>
-                                                            <field name="pesticides_type"/>
+                                                            <field name="pesticide_type"/>
                                                             <field name="pesticide_name_id"/>
                                                             <field name="pesticide_frequency"/>
                                                         </tree>
@@ -666,6 +683,13 @@
                                                         <field name="actual_collected_by_combiner"/>
                                                     </group>
                                                 </group>
+                                            <group string="Survey Personnel">
+                                                <field name="surveyor_name"/>
+                                                <field name="surveyor_mobile_number"/>
+                                                <field name="supervisor_name"/>
+                                                <field name="supervisor_mobile_number"/>
+                                                <field name="first_approvel_status"/>
+                                            </group>
                                             </sheet>
 
                                         </form>
@@ -682,7 +706,7 @@
                                             <field name="sync_id" invisible="1" force_save="1"/>
                                             <group string="Sowing">
                                                 <group>
-                                                    <field name="land_info_id" readonly="1" force_save="1"/>
+                                                    <field name="land_info_id" context="{'show_land_id': True}" readonly="1" force_save="1"/>
                                                     <field name="sowing_status"/>
                                                     <field name="cluster_status"/>
                                                 </group>
@@ -693,15 +717,22 @@
                                                     <field name="actual_fertilizer_type" readonly="1" force_save="1"/>
 
                                                     <field name="actual_fertilizer_qty" readonly="1" force_save="1"/>
-                                                    <field name="sown_by_tractor" invisible="1"/>
+
                                                 </group>
+                                            </group>
+                                            <group string="Survey Personnel">
+                                                <field name="surveyor_name"/>
+                                                <field name="surveyor_mobile_number"/>
+                                                <field name="supervisor_name"/>
+                                                <field name="supervisor_mobile_number"/>
+                                                <field name="first_approvel_status"/>
                                             </group>
                                             </sheet>
 
                                         </form>
                                     <tree>
                                         <field name="sync_id" column_invisible="1" force_save="1"/>
-                                        <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                        <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start"/>
                                         <field name="season_id"/>
                                         <field name="crop_name_id"/>
                                         <field name="sowing_status"/>
@@ -710,6 +741,7 @@
                                     </tree>
                                 </field>
                                 </group>
+
                             </page>
 
                             <page string="Harvesting">
@@ -722,8 +754,7 @@
                                             </group>
                                             <group string="Harvest">
                                                 <group>
-                                                    <field name="actual_sowing_date" readonly="1" force_save="1"/>
-                                                    <field name="land_info_id" readonly="1" force_save="1"/>
+                                                    <field name="land_info_id" context="{'show_land_id': True}" readonly="1" force_save="1"/>
                                                     <field name="crop_maturity_status"
                                                            decoration-success="crop_maturity_status == 'green'"
                                                            decoration-warning="crop_maturity_status == 'yellow'"/>
@@ -748,12 +779,19 @@
                                                     <field name="seed_productivity" readonly="1"/>
                                                 </group>
                                             </group>
+                                            <group string="Survey Personnel">
+                                                <field name="surveyor_name"/>
+                                                <field name="surveyor_mobile_number"/>
+                                                <field name="supervisor_name"/>
+                                                <field name="supervisor_mobile_number"/>
+                                                <field name="first_approvel_status"/>
+                                            </group>
                                             </sheet>
 
                                         </form>
                                     <tree>
                                         <field name="sync_id" column_invisible="1" force_save="1"/>
-                                        <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                        <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start"/>
                                         <field name="crop_maturity_status"
                                                decoration-success="crop_maturity_status == 'green'"
                                                decoration-warning="crop_maturity_status == 'yellow'"/>
@@ -767,22 +805,15 @@
                                     </tree>
                                 </field>
                                 </group>
-                            </page>
-<page string="Survey Personnel">
-                                <group>
-                                    <field name="surveyor_name"/>
-                                    <field name="surveyor_mobile_number"/>
-                                    <field name="supervisor_name"/>
-                                    <field name="supervisor_mobile_number"/>
-                                    <field name="first_approvel_status"/>
 
-                                </group>
-                                                                <group string="Biennial Crops" invisible="1">
+                            </page>
+<page string="Survey Personnel" invisible="1">
+                                <group string="Biennial Crops" invisible="1">
                                     <field name="actual_biennial_line_ids" nolabel="1" colspan="2">
                                         <tree decoration-danger="is_mismatch and not is_manual" decoration-success="not is_mismatch and not is_manual and crop_name_id">
                                             <field name="sync_id" column_invisible="1" force_save="1"/>
                                             <field name="is_manual" column_invisible="1"/>
-                                            <field name="land_info_id" string="Land ID" width="11%" class="text-start"/>
+                                            <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start"/>
                                             <field name="season_id" width="11%" class="text-start"/>
                                             <field name="crop_name_id" width="11%" class="text-start"/>
                                             <field name="crop_category_id" width="11%" class="text-start" readonly="1"/>
@@ -806,7 +837,7 @@
                                                 </div>
                                                 <group string="Land / Plot Details">
                                                     <group>
-                                                        <field name="land_info_id" domain="[('partner_id', '=', parent.partner_id)]" readonly="not is_manual" force_save="1"/>
+                                                        <field name="land_info_id" context="{'show_land_id': True}" domain="[('partner_id', '=', parent.partner_id)]" readonly="not is_manual" force_save="1"/>
                                                         <field name="land_category" readonly="not is_manual" force_save="1" invisible="not is_manual"/>
                                                     </group>
                                                     <group invisible="not is_manual">
@@ -839,7 +870,8 @@
                                                         <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]"/>
                                                         <field name="collected_gc"/>
                                                         <field name="collected_ec"/>
-                                                        <field name="remark" placeholder="Reason for changing the crop"/>
+                                                        <field name="is_crop_changed" invisible="1"/>
+                                                        <field name="remark" placeholder="Reason for changing the crop" invisible="not is_crop_changed"/>
                                                     </group>
                                                     <group>
                                                         <field name="crop_category_id" readonly="1"/>
@@ -863,7 +895,6 @@
                                                     <group>
 
                                                         <field name="actual_fertilizer_qty"/>
-                                                        <!-- <field name="actual_fertilizer_sack"/> -->
                                                     </group>
                                                     <group>
                                                         <field name="pest_occurrence"/>
@@ -874,7 +905,7 @@
                                                             <field name="pest_type"/>
                                                             <field name="pest_name_id"/>
                                                             <field name="pesticide_method"/>
-                                                            <field name="pesticides_type"/>
+                                                            <field name="pesticide_type"/>
                                                             <field name="pesticide_name_id"/>
                                                             <field name="pesticide_frequency"/>
                                                         </tree>
@@ -911,6 +942,13 @@
                                                         <field name="actual_collected_by_combiner"/>
                                                     </group>
                                                 </group>
+                                            <group string="Survey Personnel">
+                                                <field name="surveyor_name"/>
+                                                <field name="surveyor_mobile_number"/>
+                                                <field name="supervisor_name"/>
+                                                <field name="supervisor_mobile_number"/>
+                                                <field name="first_approvel_status"/>
+                                            </group>
                                             </sheet>
 
                                         </form>
@@ -920,13 +958,6 @@
                             </page>
 
 
-<!-- <page string="Farmers Required">
-                                <group>
-                                    <field name="male_farmers"/>
-                                    <field name="female_farmers"/>
-                                    <field name="total_farmers"/>
-                                </group>
-                            </page> -->
 
 
                         </notebook>
@@ -944,12 +975,10 @@
                 <search string="Search Crop Sown Registry">
 
                     <!-- Search Fields -->
-<!--                    <field name="farmer_display_id"/>-->
                     <field name="zone_id"/>
                     <field name="woreda_id"/>
                     <field name="kebele_id"/>
-                    <field name="land_info_id"/>
-<!--                    <field name="owner_name"/>-->
+                    <field name="land_info_id" context="{'show_land_id': True}"/>
                     <field name="crop_name_id"/>
 
                     <!-- Filters -->

@@ -1,11 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <record id="land_prep_method_tractor" model="g2p.land.prep.method">
-            <field name="name">Tractor</field>
+    <data noupdate="1">
+        <record id="land_prep_method_traditional_maresha" model="g2p.land.prep.method">
+            <field name="name">Traditional Maresha Ploughing</field>
         </record>
-        <record id="land_prep_method_manual" model="g2p.land.prep.method">
-            <field name="name">Manual</field>
+        <record id="land_prep_method_tractor_disc" model="g2p.land.prep.method">
+            <field name="name">Tractor Disc/Moldboard Ploughing</field>
+        </record>
+        <record id="land_prep_method_manual_digging" model="g2p.land.prep.method">
+            <field name="name">Manual Digging</field>
+        </record>
+        <record id="land_prep_method_shilshalo" model="g2p.land.prep.method">
+            <field name="name">Shilshalo</field>
+        </record>
+        <record id="land_prep_method_ridging_furrowing" model="g2p.land.prep.method">
+            <field name="name">Ridging / Furrowing</field>
+        </record>
+        <record id="land_prep_method_manual_leveling" model="g2p.land.prep.method">
+            <field name="name">Manual leveling</field>
+        </record>
+        <record id="land_prep_method_minimum_tillage" model="g2p.land.prep.method">
+            <field name="name">Minimum Tillage</field>
+        </record>
+        <record id="land_prep_method_soil_water_conservation" model="g2p.land.prep.method">
+            <field name="name">Soil &amp; Water Conservation Structures</field>
+        </record>
+        <record id="land_prep_method_biological_mulching" model="g2p.land.prep.method">
+            <field name="name">Biological Mulching</field>
         </record>
     </data>
 </odoo>

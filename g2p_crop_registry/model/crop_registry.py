@@ -147,7 +147,6 @@ class G2PCrop(models.Model):
     ], string="First approvel status")
 
     land_info_id = fields.Many2one('g2p.land.information', string="Land ID")
-    # owner_name = fields.Char(string="Owner Name")
     crop_name_id = fields.Many2one('g2p.crop', string="Crop Name", compute="_compute_primary_crop_details", store=True)
     crop_category_id = fields.Many2one('g2p.crop.category', string="Crop Category", compute="_compute_primary_crop_details",
                                        store=True, readonly=True)
@@ -468,7 +467,7 @@ class G2PCrop(models.Model):
                 crop_variety = first_line.crop_variety_id
 
             rec.crop_name_id = crop_name.id if crop_name else False
-            rec.crop_category_id = crop_name.category.id if crop_name and crop_name.category else False
+            rec.crop_category_id = crop_name.category_id.id if crop_name and crop_name.category_id else False
             rec.crop_variety_id = crop_variety.id if crop_variety else False
 
     @api.depends('crop_name_id', 'actual_crop_name_id',
@@ -561,6 +560,8 @@ class G2PCrop(models.Model):
                             actual.sync_id = planned_line.sync_id
                         if planned_line.crop_name_id and actual.crop_name_id != planned_line.crop_name_id:
                             actual.crop_name_id = planned_line.crop_name_id.id
+                        if actual.crop_variety_id != planned_line.crop_variety_id:
+                            actual.crop_variety_id = planned_line.crop_variety_id.id if planned_line.crop_variety_id else False
                         if planned_line.season_id and actual.season_id != planned_line.season_id:
                             actual.season_id = planned_line.season_id.id
                         if planned_line.land_info_id and actual.land_info_id != planned_line.land_info_id:
@@ -741,6 +742,8 @@ class G2PCrop(models.Model):
                             actual.sync_id = planned_line.sync_id
                         if planned_line.crop_name_id and actual.crop_name_id != planned_line.crop_name_id:
                             actual.crop_name_id = planned_line.crop_name_id.id
+                        if actual.crop_variety_id != planned_line.crop_variety_id:
+                            actual.crop_variety_id = planned_line.crop_variety_id.id if planned_line.crop_variety_id else False
                         if planned_line.seed_planned and actual.actual_seed_class != planned_line.seed_planned:
                             actual.actual_seed_class = planned_line.seed_planned
                         if planned_line.crop_planned_area and actual.actual_crop_area != planned_line.crop_planned_area:
@@ -910,6 +913,8 @@ class G2PCrop(models.Model):
                             actual.sync_id = planned_line.sync_id
                         if planned_line.crop_name_id and actual.crop_name_id != planned_line.crop_name_id:
                             actual.crop_name_id = planned_line.crop_name_id.id
+                        if actual.crop_variety_id != planned_line.crop_variety_id:
+                            actual.crop_variety_id = planned_line.crop_variety_id.id if planned_line.crop_variety_id else False
                         if planned_line.seed_planned and actual.actual_seed_class != planned_line.seed_planned:
                             actual.actual_seed_class = planned_line.seed_planned
                         if planned_line.crop_planned_area and actual.actual_crop_area != planned_line.crop_planned_area:
@@ -1195,3 +1200,42 @@ class G2PCropInformationInherit(models.Model):
     _inherit = 'g2p.crop.information'
 
     water_resource_line_ids = fields.One2many('g2p.water.resource.line', 'crop_information_id', string="Water Resources")
+
+
+class ResPartnerCropRegistryInherit(models.Model):
+    _inherit = 'res.partner'
+
+    @api.depends_context('show_farmer_id')
+    def _compute_display_name(self):
+        super()._compute_display_name()
+        if self.env.context.get('show_farmer_id'):
+            for record in self:
+                if record.is_farmer == 'yes' and record.farmer_id:
+                    record.display_name = record.farmer_id
+
+    @api.model
+    def name_search(self, name, args=None, operator='ilike', limit=100):
+        if self.env.context.get('show_farmer_id'):
+            args = args or []
+            domain = ['|', ('farmer_id', operator, name), ('name', operator, name)] + args
+            return self.search(domain, limit=limit).name_get()
+        return super().name_search(name, args=args, operator=operator, limit=limit)
+
+class G2PLandInformationInherit(models.Model):
+    _inherit = 'g2p.land.information'
+
+    @api.depends_context('show_land_id')
+    def _compute_display_name(self):
+        super()._compute_display_name()
+        if self.env.context.get('show_land_id'):
+            for record in self:
+                if record.land_id:
+                    record.display_name = record.land_id
+
+    @api.model
+    def name_search(self, name, args=None, operator='ilike', limit=100):
+        if self.env.context.get('show_land_id'):
+            args = args or []
+            domain = ['|', ('land_id', operator, name), ('partner_id.name', operator, name)] + args
+            return self.search(domain, limit=limit).name_get()
+        return super().name_search(name, args=args, operator=operator, limit=limit)

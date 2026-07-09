@@ -6,7 +6,7 @@
     "website": "https://openg2p.org",
     "license": "LGPL-3",
     "depends": [
-        'web','base','mail','g2p_ati','g2p_odk_importer',
+        'web','base','mail','g2p_odk_importer_ati', 'g2p_ati_integrations'
     ],
     "data": [
         'security/ir.model.access.csv',
@@ -15,6 +15,7 @@
         'data/weed_data.xml',
         'data/weedicide_data.xml',
         'data/land_prep_method_data.xml',
+        'data/machinery_data.xml',
         'data/ir_sequence_data.xml',
         'views/crop_registry.xml',
         'views/crop_production.xml',

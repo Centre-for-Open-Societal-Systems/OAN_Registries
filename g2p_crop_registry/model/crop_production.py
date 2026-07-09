@@ -18,6 +18,13 @@ class G2PCropProduction(models.Model):
         default="New",
     )
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('name', 'New') == 'New':
+                vals['name'] = self.env['ir.sequence'].next_by_code('g2p.crop.production') or 'New'
+        return super(G2PCropProduction, self).create(vals_list)
+
     crop_registry_id = fields.Many2one(
         "g2p.crop.registry",
         string="Crop Registry",
@@ -29,7 +36,7 @@ class G2PCropProduction(models.Model):
         "g2p.season",
         string="Season",
     )
-    
+
     land_info_id = fields.Many2one('g2p.land.information', string="Land ID")
 
     # ── Land / Plot Detail relays ─────────────────────
@@ -75,19 +82,12 @@ class G2PCropProduction(models.Model):
     )
     crop_category_id = fields.Many2one(
         "g2p.crop.category",
-        related="crop_name_id.category",
+        related="crop_name_id.category_id",
         string="Crop Category",
         readonly=True,
     )
 
     sync_id = fields.Char(string="Sync ID")
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            if vals.get('name', 'New') == 'New':
-                vals['name'] = self.env['ir.sequence'].next_by_code('g2p.crop.production') or 'New'
-        return super().create(vals_list)
 
 
     # ── Farmer & Plot Identity relays ────────────────────
@@ -113,10 +113,7 @@ class G2PCropProduction(models.Model):
     ], string="Actual Fertilizer Type")
     actual_fertilizer_qty = fields.Float(string="Actual Fertilizer Qty (kg)", default=0.0)
     actual_seed_class = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
-    cultivated_by = fields.Selection([
-        ('tractor', 'Tractor'),
-        ('other', 'Other'),
-    ], string="Cultivated type")
+    cultivated_by = fields.Many2one("g2p.machinery", string="Cultivation Type")
     # ── Sowing ───────────────────────────────────────────────
     sowing_status = fields.Selection([
         ('sown', 'Sown'),
@@ -128,8 +125,6 @@ class G2PCropProduction(models.Model):
         ('independent', 'Independent'),
     ], string="Cluster Status")
 
-    sown_area = fields.Float(string="Sown Area (ha)")
-    sown_by_tractor = fields.Float(string="Sown by Tractor (ha)")
     actual_sowing_date = fields.Date(string="Actual Planted Date")
 
 
@@ -153,6 +148,15 @@ class G2PCropProduction(models.Model):
     actual_crop_area = fields.Float(string="Actual Crop Area", default=0.0)
     actual_seed_qty = fields.Float(string="Actual Seed Qty", default=0.0)
     actual_yield_cached = fields.Float(string="Actual Yield", default=0.0)
+
+    # Survey Personnel
+    surveyor_name = fields.Char(string="Surveyor Name")
+    surveyor_mobile_number = fields.Char(string="Surveyor Mobile Number")
+    supervisor_name = fields.Char(string="Supervisor Name")
+    supervisor_mobile_number = fields.Char(string="Supervisor Mobile Number")
+    first_approvel_status = fields.Selection([
+        ('draft', 'Draft'),
+    ], string="First approvel status")
 
     # ── Production Result (computed) ─────────────────────────
     yield_per_ha = fields.Float(

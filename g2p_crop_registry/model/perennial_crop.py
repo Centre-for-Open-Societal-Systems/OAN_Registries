@@ -11,7 +11,7 @@ def is_date_in_season(test_date, start_date, end_date):
     start_m, start_d = start_date.month, start_date.day
     end_m, end_d = end_date.month, end_date.day
     test_m, test_d = test_date.month, test_date.day
-    
+
     if start_m < end_m or (start_m == end_m and start_d <= end_d):
         if test_m < start_m or test_m > end_m:
             return False
@@ -62,13 +62,13 @@ class G2PPerennialLine(models.Model):
     end_gc = fields.Date(string="End GC")
     end_month = fields.Integer(string="End Month", compute="_compute_end_date", store=True)
     end_day = fields.Integer(string="End Day", compute="_compute_end_date", store=True)
-    
+
     crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
     collected_gc = fields.Date(string="Planned Date (GC)")
     collected_ec = fields.Char(string="Planned Date (EC)")
     crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
     crop_variety_id = fields.Many2one("g2p.crop.variety", string="Crop Variety")
-    
+
     crop_planned_area = fields.Float(string="Planned Crop Area (ha)")
 
     @api.onchange('land_info_id')
@@ -107,7 +107,7 @@ class G2PPerennialLine(models.Model):
                 self.gps = False
     crop_growth_duration = fields.Float(string="Average Growth Duration (days)")
     crop_expected = fields.Float(string="Expected Yield (quintals)")
-    
+
     seed_planned = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
     seed_planned_qty = fields.Float(string="Planned Seed Quantity (kg)")
     seed_planned_fertilizer_type = fields.Selection([
@@ -119,10 +119,10 @@ class G2PPerennialLine(models.Model):
     seed_planned_fertilizer_qty = fields.Float(string="Planned Fertilizer Quantity (kg)")
     seed_planned_fertilizer_sack = fields.Float(string="Planned Fertilizer Sacks Count", compute="_compute_planned_fertilizer_sacks", store=True)
     water_resource_line_ids = fields.One2many('g2p.water.resource.line', 'perennial_line_id', string="Water Resources")
-    
 
 
-    
+
+
     planned_labor = fields.Integer(string="Planned Labor")
     has_cluster_farming = fields.Selection([
         ('yes', 'Yes'),
@@ -135,6 +135,15 @@ class G2PPerennialLine(models.Model):
     collected_land = fields.Float(string="Collected Land")
     collected_land_quintal = fields.Float(string="Collected Land Quintal")
     collected_by_combiner = fields.Float(string="Collected by Combiner")
+
+    # Survey Personnel
+    surveyor_name = fields.Char(string="Surveyor Name")
+    surveyor_mobile_number = fields.Char(string="Surveyor Mobile Number")
+    supervisor_name = fields.Char(string="Supervisor Name")
+    supervisor_mobile_number = fields.Char(string="Supervisor Mobile Number")
+    first_approvel_status = fields.Selection([
+        ('draft', 'Draft'),
+    ], string="First approvel status")
 
 
     @api.depends('seed_planned_fertilizer_qty')
@@ -164,11 +173,11 @@ class G2PPerennialLine(models.Model):
                 attempted_area = self.crop_planned_area
                 allocated_area = total_planned - attempted_area
                 remaining_area = max_area - allocated_area
-                
+
                 # If they already messed up other lines, don't let it go negative in the message
                 if remaining_area < 0:
                     remaining_area = 0.0
-                    
+
                 self.crop_planned_area = 0.0
                 return {
                     'warning': {
@@ -208,7 +217,7 @@ class G2PPerennialLine(models.Model):
     def _compute_crop_category(self):
         for rec in self:
             if rec.crop_name_id:
-                rec.crop_category_id = rec.crop_name_id.category.id
+                rec.crop_category_id = rec.crop_name_id.category_id.id
             else:
                 rec.crop_category_id = False
 
@@ -253,7 +262,7 @@ class G2PPerennialLine(models.Model):
     @api.constrains("collected_gc", "start_gc", "end_gc")
     def _check_collected_gc(self):
         print("collected_gc__________222222222222222222222222223", self.collected_gc)
-        
+
         for rec in self:
             if rec.collected_gc:
                 if rec.start_gc and rec.end_gc:
@@ -308,25 +317,25 @@ class G2PPerennialActualLine(models.Model):
     def _onchange_actual_crop_area(self):
         if self.crop_registry_id and self.actual_crop_area and self.land_info_id:
             total_actual = 0.0
-            
+
             same_land_annual = self.crop_registry_id.actual_annual_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
             total_actual += sum(same_land_annual.mapped('actual_crop_area'))
-            
+
             same_land_perennial = self.crop_registry_id.actual_perennial_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
             total_actual += sum(same_land_perennial.mapped('actual_crop_area'))
-            
+
             same_land_biennial = self.crop_registry_id.actual_biennial_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
             total_actual += sum(same_land_biennial.mapped('actual_crop_area'))
-            
+
             max_area = self.land_info_id.total_land_area
             if total_actual > max_area:
                 attempted_area = self.actual_crop_area
                 allocated_area = total_actual - attempted_area
                 remaining_area = max_area - allocated_area
-                
+
                 if remaining_area < 0:
                     remaining_area = 0.0
-                    
+
                 self.actual_crop_area = 0.0
                 return {
                     'warning': {
@@ -387,7 +396,7 @@ class G2PPerennialActualLine(models.Model):
                 self.gps = self.land_info_id.polygon_data
             else:
                 self.gps = False
-                
+
 
     season_id = fields.Many2one('g2p.season', string="Season", required=True)
     crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
@@ -396,9 +405,10 @@ class G2PPerennialActualLine(models.Model):
     crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
     crop_variety_id = fields.Many2one("g2p.crop.variety", string="Crop Variety")
     remark = fields.Char(string="Remark")
+    is_crop_changed = fields.Boolean(string="Crop Changed", compute="_compute_is_crop_changed")
     actual_crop_area = fields.Float(string="Actual Crop Area (ha)")
     actual_growth_duration = fields.Float(string="Actual Growth Duration (days)")
-    
+
     actual_seed_class = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
     actual_seed_qty = fields.Float(string="Actual Seed Quantity (kg)")
     actual_fertilizer_type = fields.Selection([
@@ -421,34 +431,52 @@ class G2PPerennialActualLine(models.Model):
     actual_collected_land = fields.Float(string="Actual Collected Land")
     actual_collected_land_quintal = fields.Float(string="Actual Collected Land Quintal")
     actual_collected_by_combiner = fields.Float(string="Actual Collected by Combiner")
-    
+
+    # Survey Personnel
+    surveyor_name = fields.Char(string="Surveyor Name")
+    surveyor_mobile_number = fields.Char(string="Surveyor Mobile Number")
+    supervisor_name = fields.Char(string="Supervisor Name")
+    supervisor_mobile_number = fields.Char(string="Supervisor Mobile Number")
+    first_approvel_status = fields.Selection([
+        ('draft', 'Draft'),
+    ], string="First approvel status")
+
     pest_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Pest Occurrence")
     pest_line_ids = fields.One2many('g2p.crop.pest.line', 'actual_perennial_line_id', string="Pest Details")
-    
+
     weed_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Weed Occurrence")
     weed_line_ids = fields.One2many('g2p.crop.weed.line', 'actual_perennial_line_id', string="Weed Details")
-    
+
     actual_yield = fields.Float(string="Actual Yield (quintal)")
-    cultivated_by = fields.Selection([
-        ('tractor', 'Tractor'),
-        ('other', 'Other'),
-    ], string="Cultivation Type")
-    land_prep_method_ids = fields.Many2many("g2p.land.prep.method", string="Land Prep Methods")
-    
+    cultivated_by = fields.Many2one("g2p.machinery", string="Cultivation Type")
+    land_prep_method_ids = fields.Many2many("g2p.land.prep.method", string="Land Preparation Method")
+
     water_resource_line_ids = fields.One2many(
         "g2p.actual.water.resource.line",
         "actual_perennial_line_id",
         string="Water Resources",
     )
-    
+
     start_gc = fields.Date(string="Start GC")
     start_month = fields.Integer(string="Start Month", compute="_compute_start_date", store=True)
     start_day = fields.Integer(string="Start Day", compute="_compute_start_date", store=True)
     end_gc = fields.Date(string="End GC")
     end_month = fields.Integer(string="End Month", compute="_compute_end_date", store=True)
     end_day = fields.Integer(string="End Day", compute="_compute_end_date", store=True)
-    
+
     is_mismatch = fields.Boolean(string="Mismatch", compute="_compute_is_mismatch", store=True)
+
+    @api.depends('crop_name_id', 'sync_id', 'crop_registry_id.perennial_line_ids.crop_name_id')
+    def _compute_is_crop_changed(self):
+        for rec in self:
+            if not rec.crop_registry_id or not rec.sync_id or not rec.crop_name_id:
+                rec.is_crop_changed = False
+                continue
+            planned = rec.crop_registry_id.perennial_line_ids.filtered(lambda l: l.sync_id == rec.sync_id)
+            if planned and planned[0].crop_name_id != rec.crop_name_id:
+                rec.is_crop_changed = True
+            else:
+                rec.is_crop_changed = False
 
     # Onchange validation for total actual crop area removed; validated on save
 
@@ -504,7 +532,7 @@ class G2PPerennialActualLine(models.Model):
     def _compute_crop_category(self):
         for rec in self:
             if rec.crop_name_id:
-                rec.crop_category_id = rec.crop_name_id.category.id
+                rec.crop_category_id = rec.crop_name_id.category_id.id
             else:
                 rec.crop_category_id = False
 
@@ -534,7 +562,7 @@ class G2PPerennialActualLine(models.Model):
     def _compute_crop_category(self):
         for rec in self:
             rec.crop_category_id = (
-                rec.crop_name_id.category.id
+                rec.crop_name_id.category_id.id
                 if rec.crop_name_id
                 else False
             )

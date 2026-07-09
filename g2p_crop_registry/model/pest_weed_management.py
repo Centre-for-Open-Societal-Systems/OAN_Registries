@@ -54,7 +54,7 @@ class G2PCropPestLine(models.Model):
     ], string="Pest Type")
     pest_name_id = fields.Many2one('g2p.pest', string="Pest Name", domain="[('pest_type', '=', pest_type)]")
     
-    pesticides_type = fields.Selection([
+    pesticide_type = fields.Selection([
         ('insecticide', 'Insecticide'),
         ('fungicide', 'Fungicide'),
         ('herbicide', 'Herbicide'),
@@ -68,8 +68,8 @@ class G2PCropPestLine(models.Model):
         ('piscicide', 'Piscicide'),
         ('algicide', 'Algicide'),
         ('virucide', 'Virucide'),
-    ], string="Pesticides Type")
-    pesticide_name_id = fields.Many2one('g2p.pesticide', string="Pesticide Name", domain="[('pesticide_type', '=', pesticides_type)]")
+    ], string="Pesticide Type")
+    pesticide_name_id = fields.Many2one('g2p.pesticide', string="Pesticide Name", domain="[('pesticide_type', '=', pesticide_type)]")
     pesticide_method = fields.Char(string="Method of Control")
     pesticide_frequency = fields.Char(string="Frequency of Application")
 

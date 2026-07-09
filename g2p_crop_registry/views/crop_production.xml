@@ -27,7 +27,7 @@
                     <field name="crop_name_id"/>
                     <field name="sowing_status"/>
                     <field name="cluster_status"/>
-                    <!-- <field name="sown_area"/> -->
+
                     <field name="actual_sowing_date"/>
                     <field name="harvest_date" optional="show"/>
                     <field name="qty_harvested" optional="show"/>
@@ -92,7 +92,7 @@
                             </group>
                             <group>
                                 <field name="land_region_id" readonly="1"/>
-                                <field name="land_gps_coordinates" readonly="1"/>
+<!--                                <field name="land_gps_coordinates" readonly="1"/>-->
                             </group>
                         </group>
 
@@ -120,9 +120,6 @@
                                         <field name="actual_sowing_date" readonly="1"/>
                                     </group>
                                     <group>
-                                        <!-- <field name="sown_area" readonly="1"/> -->
-                                        <field name="sown_by_tractor" readonly="1" invisible="1"/>
-                                        <!-- <field name="mechanization_rate_sowing" readonly="1"/> -->
                                     </group>
                                 </group>
                             </page>
@@ -145,10 +142,6 @@
                                         <field name="qty_sold" readonly="1"/>
                                     </group>
                                 </group>
-                                <!-- <group string="Harvest Method">
-                                    <field name="harvest_method" readonly="1"/>
-                                    <field name="harvest_method_area" invisible="not harvest_method" readonly="1"/>
-                                </group> -->
                             </page>
 
                             <!-- ── Production Result Tab ── -->
