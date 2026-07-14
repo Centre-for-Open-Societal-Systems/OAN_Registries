@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME     = "openg2p-at"
-        AWS_ACCOUNT_ID = credentials('aws_account_id')
+        AWS_ACCOUNT_ID = "${env.AWS_ACCOUNT_ID}"
         AWS_REGION     = "ap-south-1"
         ECR_REGISTRY   = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
