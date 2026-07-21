@@ -9,7 +9,7 @@ pipeline {
 
         OPENG2P_REGISTRY_REF        = "v1.3.0"
         OPENG2P_SOCIAL_REGISTRY_REF = "v1.3.0"
-        OPENG2P_COMMUNITY_REF       = "main"
+        OPENG2P_COMMUNITY_REF       = "v1.2.5"
     }
 
     
