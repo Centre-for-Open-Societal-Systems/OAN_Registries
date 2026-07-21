@@ -12,12 +12,20 @@ pipeline {
         OPENG2P_COMMUNITY_REF       = "main"
     }
 
+    
     stages {
         stage('Determine Environment') {
             steps {
                 script {
-                    env.DEPLOY_ENV      = "dev"
-                    env.IMAGE_TAG       = "dev"
+                    if (env.BRANCH_NAME == 'staging') {
+                        env.IMAGE_TAG       = 'staging'
+                        env.DEPLOY_ENV      = 'staging'
+                        env.DEPLOYMENT_NAME = 'oan-sr-odoo-staging'
+                    } else {
+                        env.IMAGE_TAG       = 'dev'
+                        env.DEPLOY_ENV      = 'dev'
+                        env.DEPLOYMENT_NAME = 'oan-sr-odoo'
+                    }
                     env.OPENG2P_ATI_REF = env.BRANCH_NAME
                     env.FULL_IMAGE      = "${ECR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
                     env.BUILD_IMAGE     = "${ECR_REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER}"
@@ -65,11 +73,28 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'dev-kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
-                        kubectl set image deployment/oan-sr-odoo \
-                            oan-sr-odoo=${FULL_IMAGE} \
+                        kubectl set image deployment/${DEPLOYMENT_NAME} \
+                            odoo=${FULL_IMAGE} \
                             -n dev
 
-                        kubectl rollout status deployment/oan-sr-odoo -n dev --timeout=120s
+                        kubectl rollout status deployment/${DEPLOYMENT_NAME} -n dev --timeout=120s
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to Staging') {
+            when { branch 'staging' }
+            agent { label 'vpn-agent' }
+            steps {
+                withCredentials([file(credentialsId: 'dev-kubeconfig', variable: 'KUBECONFIG')]) {
+                    input message: "Approve deploy of openg2p-at:${IMAGE_TAG} to staging (oan-sr-odoo-staging)?"
+                    sh """
+                        kubectl set image deployment/${DEPLOYMENT_NAME} \
+                            odoo=${FULL_IMAGE} \
+                            -n dev
+
+                        kubectl rollout status deployment/${DEPLOYMENT_NAME} -n dev --timeout=120s
                     """
                 }
             }
