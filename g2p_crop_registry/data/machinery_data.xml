@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="machinery_oxen_tillage" model="g2p.machinery">
+        <field name="name">Oxen Tillage</field>
+        <field name="code">oxen_tillage</field>
+    </record>
+    <record id="machinery_equine_other" model="g2p.machinery">
+        <field name="name">Equine/Other Animals</field>
+        <field name="code">equine_other</field>
+    </record>
+    <record id="machinery_tractor_ploughing" model="g2p.machinery">
+        <field name="name">Tractor Ploughing</field>
+        <field name="code">tractor_ploughing</field>
+    </record>
+    <record id="machinery_power_tiller" model="g2p.machinery">
+        <field name="name">Power Tiller</field>
+        <field name="code">power_tiller</field>
+    </record>
+    <record id="g2p_ati.machinery_combine_harvester" model="g2p.machinery">
+        <field name="name">Combine Harvester</field>
+        <field name="code">combine_harvester</field>
+    </record>
+    <record id="machinery_thrashing_machine" model="g2p.machinery">
+        <field name="name">Thrashing Machine</field>
+        <field name="code">thrashing_machine</field>
+    </record>
+    <record id="machinery_family_labor" model="g2p.machinery">
+        <field name="name">Family Labor</field>
+        <field name="code">family_labor</field>
+    </record>
+    <record id="machinery_debo_jigi" model="g2p.machinery">
+        <field name="name">Debo / Jigi</field>
+        <field name="code">debo_jigi</field>
+    </record>
+    <record id="machinery_hired_labor" model="g2p.machinery">
+        <field name="name">Hired Labor</field>
+        <field name="code">hired_labor</field>
+    </record>
+    <record id="machinery_tractor_oxen" model="g2p.machinery">
+        <field name="name">Tractor Primary Tillage + Oxen Secondary Tillage</field>
+        <field name="code">tractor_oxen</field>
+    </record>
+    <record id="machinery_oxen_manual" model="g2p.machinery">
+        <field name="name">Oxen Ploughing + Manual Row Seeding</field>
+        <field name="code">oxen_manual</field>
+    </record>
+</odoo>

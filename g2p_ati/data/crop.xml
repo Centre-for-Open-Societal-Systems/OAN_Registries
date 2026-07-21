@@ -2,242 +2,193 @@
 <odoo noupdate="1">
     <record id="crop_category_cereals" model="g2p.crop.category">
         <field name="name">Cereals</field>
-        <field name="code">cereals</field>
     </record>
     <record id="crop_category_pulses" model="g2p.crop.category">
         <field name="name">Pulses</field>
-        <field name="code">pulses</field>
     </record>
     <record id="crop_category_oil_seeds" model="g2p.crop.category">
         <field name="name">Oil Seeds</field>
-        <field name="code">oil_seeds</field>
     </record>
     <record id="crop_category_vegetables" model="g2p.crop.category">
         <field name="name">Vegetables</field>
-        <field name="code">vegetables</field>
     </record>
     <record id="crop_category_fruits" model="g2p.crop.category">
         <field name="name">Fruits</field>
-        <field name="code">fruits</field>
     </record>
     <record id="crop_maize" model="g2p.crop">
         <field name="name">Maize (Corn)</field>
-        <field name="code">maize</field>
-        <field name="category" ref="crop_category_cereals" />
+        <field name="category_id" ref="crop_category_cereals" />
     </record>
     <record id="crop_wheat" model="g2p.crop">
         <field name="name">Wheat</field>
-        <field name="code">wheat</field>
-        <field name="category" ref="crop_category_cereals" />
+        <field name="category_id" ref="crop_category_cereals" />
     </record>
     <record id="crop_teff" model="g2p.crop">
         <field name="name">Teff</field>
-        <field name="code">teff</field>
-        <field name="category" ref="crop_category_cereals" />
+        <field name="category_id" ref="crop_category_cereals" />
     </record>
     <record id="crop_malt_barley" model="g2p.crop">
         <field name="name">Malt Barley</field>
-        <field name="code">malt_barley</field>
-        <field name="category" ref="crop_category_cereals" />
+        <field name="category_id" ref="crop_category_cereals" />
     </record>
     <record id="crop_food_barley" model="g2p.crop">
         <field name="name">Food Barley</field>
-        <field name="code">food_barley</field>
-        <field name="category" ref="crop_category_cereals" />
+        <field name="category_id" ref="crop_category_cereals" />
     </record>
     <record id="crop_sorghum" model="g2p.crop">
         <field name="name">Sorghum</field>
-        <field name="code">sorghum</field>
-        <field name="category" ref="crop_category_cereals" />
+        <field name="category_id" ref="crop_category_cereals" />
     </record>
     <record id="crop_rice" model="g2p.crop">
         <field name="name">Rice</field>
-        <field name="code">rice</field>
-        <field name="category" ref="crop_category_cereals" />
+        <field name="category_id" ref="crop_category_cereals" />
     </record>
     <record id="crop_finger_millet" model="g2p.crop">
         <field name="name">Finger Millet</field>
-        <field name="code">finger_millet</field>
-        <field name="category" ref="crop_category_cereals" />
+        <field name="category_id" ref="crop_category_cereals" />
     </record>
     <record id="crop_faba_bean" model="g2p.crop">
         <field name="name">Faba Bean</field>
-        <field name="code">faba_bean</field>
-        <field name="category" ref="crop_category_cereals" />
+        <field name="category_id" ref="crop_category_cereals" />
     </record>
     <record id="crop_field_pea" model="g2p.crop">
         <field name="name">Field Pea</field>
-        <field name="code">field_pea</field>
-        <field name="category" ref="crop_category_pulses" />
+        <field name="category_id" ref="crop_category_pulses" />
     </record>
     <record id="crop_haricot_bean" model="g2p.crop">
         <field name="name">Haricot Bean</field>
-        <field name="code">haricot_bean</field>
-        <field name="category" ref="crop_category_pulses" />
+        <field name="category_id" ref="crop_category_pulses" />
     </record>
     <record id="crop_soybean" model="g2p.crop">
         <field name="name">Soybean</field>
-        <field name="code">soybean</field>
-        <field name="category" ref="crop_category_pulses" />
+        <field name="category_id" ref="crop_category_pulses" />
     </record>
     <record id="crop_chickpea" model="g2p.crop">
         <field name="name">Chickpea</field>
-        <field name="code">chickpea</field>
-        <field name="category" ref="crop_category_pulses" />
+        <field name="category_id" ref="crop_category_pulses" />
     </record>
     <record id="crop_lentil" model="g2p.crop">
         <field name="name">Lentil</field>
-        <field name="code">lentil</field>
-        <field name="category" ref="crop_category_pulses" />
+        <field name="category_id" ref="crop_category_pulses" />
     </record>
     <record id="crop_nug" model="g2p.crop">
         <field name="name">Nug</field>
-        <field name="code">nug</field>
-        <field name="category" ref="crop_category_pulses" />
+        <field name="category_id" ref="crop_category_pulses" />
     </record>
     <record id="crop_sesame" model="g2p.crop">
         <field name="name">Sesame</field>
-        <field name="code">sesame</field>
-        <field name="category" ref="crop_category_oil_seeds" />
+        <field name="category_id" ref="crop_category_oil_seeds" />
     </record>
     <record id="crop_sunflower" model="g2p.crop">
         <field name="name">Sunflower</field>
-        <field name="code">sunflower</field>
-        <field name="category" ref="crop_category_oil_seeds" />
+        <field name="category_id" ref="crop_category_oil_seeds" />
     </record>
     <record id="crop_avocado" model="g2p.crop">
         <field name="name">Avocado</field>
-        <field name="code">avocado</field>
-        <field name="category" ref="crop_category_fruits" />
+        <field name="category_id" ref="crop_category_fruits" />
     </record>
     <record id="crop_banana" model="g2p.crop">
         <field name="name">Banana</field>
-        <field name="code">banana</field>
-        <field name="category" ref="crop_category_fruits" />
+        <field name="category_id" ref="crop_category_fruits" />
     </record>
     <record id="crop_mango" model="g2p.crop">
         <field name="name">Mango</field>
-        <field name="code">mango</field>
-        <field name="category" ref="crop_category_fruits" />
+        <field name="category_id" ref="crop_category_fruits" />
     </record>
     <record id="crop_papaya" model="g2p.crop">
         <field name="name">Papaya</field>
-        <field name="code">papaya</field>
-        <field name="category" ref="crop_category_fruits" />
+        <field name="category_id" ref="crop_category_fruits" />
     </record>
     <record id="crop_pineapple" model="g2p.crop">
         <field name="name">Pineapple</field>
-        <field name="code">pineapple</field>
-        <field name="category" ref="crop_category_fruits" />
+        <field name="category_id" ref="crop_category_fruits" />
     </record>
     <record id="crop_tomato" model="g2p.crop">
         <field name="name">Tomato</field>
-        <field name="code">tomato</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_onion" model="g2p.crop">
         <field name="name">Onion</field>
-        <field name="code">onion</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_cabbage" model="g2p.crop">
         <field name="name">Cabbage</field>
-        <field name="code">cabbage</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_carrot" model="g2p.crop">
         <field name="name">Carrot</field>
-        <field name="code">carrot</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_garlic" model="g2p.crop">
         <field name="name">Garlic</field>
-        <field name="code">garlic</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_shallot" model="g2p.crop">
         <field name="name">Shallot</field>
-        <field name="code">shallot</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_pepper" model="g2p.crop">
         <field name="name">Pepper</field>
-        <field name="code">pepper</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_potato" model="g2p.crop">
         <field name="name">Potato</field>
-        <field name="code">potato</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_sweet_potato" model="g2p.crop">
         <field name="name">Sweet Potato</field>
-        <field name="code">sweet_potato</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_enset" model="g2p.crop">
         <field name="name">Enset</field>
-        <field name="code">enset</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_taro" model="g2p.crop">
         <field name="name">Taro</field>
-        <field name="code">taro</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_yam" model="g2p.crop">
         <field name="name">Yam</field>
-        <field name="code">yam</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_cassava" model="g2p.crop">
         <field name="name">Cassava</field>
-        <field name="code">cassava</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_coffee" model="g2p.crop">
         <field name="name">Coffee</field>
-        <field name="code">coffee</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_tea" model="g2p.crop">
         <field name="name">Tea</field>
-        <field name="code">tea</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_ginger" model="g2p.crop">
         <field name="name">Ginger</field>
-        <field name="code">ginger</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_turmeric" model="g2p.crop">
         <field name="name">Turmeric</field>
-        <field name="code">turmeric</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_cardamom" model="g2p.crop">
         <field name="name">Cardamom</field>
-        <field name="code">cardamom</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_korerima" model="g2p.crop">
         <field name="name">Korerima</field>
-        <field name="code">korerima</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_cumin" model="g2p.crop">
         <field name="name">Cumin</field>
-        <field name="code">cumin</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_fenugreek" model="g2p.crop">
         <field name="name">Fenugreek</field>
-        <field name="code">fenugreek</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
     <record id="crop_black_pepper" model="g2p.crop">
         <field name="name">Black Pepper</field>
-        <field name="code">black_pepper</field>
-        <field name="category" ref="crop_category_vegetables" />
+        <field name="category_id" ref="crop_category_vegetables" />
     </record>
 </odoo>
