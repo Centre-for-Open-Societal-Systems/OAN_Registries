@@ -1,0 +1,4 @@
+# add any extra python packages your addons need
+# example:
+# requests==2.31.0
+# phonenumbers==8.13.0
