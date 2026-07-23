@@ -345,6 +345,7 @@ class G2PCrop(models.Model):
 
     def action_set_draft(self):
         for record in self:
+            rejected_stage = record.rejected_at_stage
             record.rejected_at_stage = False
             menu_title = self.env.context.get('menu_title', '')
 
@@ -370,44 +371,60 @@ class G2PCrop(models.Model):
                     stage = 'planning'
 
             if stage == 'planning':
-                if record.planning_state == 'approved':
-                    record.planning_state = 'pending_wah'
-                    record.lifecycle_stage = 'pending_planning'
-                    record.with_context(bypass_write=True).write({'state': 'pending_wah'})
+                if record.planning_state == 'approved' or (record.planning_state == 'rejected' and rejected_stage == 'wah'):
+                    record.with_context(bypass_write=True).write({
+                        'planning_state': 'pending_wah',
+                        'lifecycle_stage': 'pending_planning',
+                        'state': 'pending_wah'
+                    })
                 else:
-                    record.planning_state = 'draft'
-                    record.lifecycle_stage = 'draft'
-                    record.with_context(bypass_write=True).write({'state': 'draft'})
+                    record.with_context(bypass_write=True).write({
+                        'planning_state': 'draft',
+                        'lifecycle_stage': 'draft',
+                        'state': 'draft'
+                    })
 
             elif stage == 'cultivation':
-                if record.cultivation_state == 'approved':
-                    record.cultivation_state = 'pending_wah'
-                    record.lifecycle_stage = 'pending_cultivation'
-                    record.with_context(bypass_write=True).write({'state': 'pending_wah'})
+                if record.cultivation_state == 'approved' or (record.cultivation_state == 'rejected' and rejected_stage == 'wah'):
+                    record.with_context(bypass_write=True).write({
+                        'cultivation_state': 'pending_wah',
+                        'lifecycle_stage': 'pending_cultivation',
+                        'state': 'pending_wah'
+                    })
                 else:
-                    record.cultivation_state = 'draft'
-                    record.lifecycle_stage = 'planning_approved'
-                    record.with_context(bypass_write=True).write({'state': 'draft'})
+                    record.with_context(bypass_write=True).write({
+                        'cultivation_state': 'draft',
+                        'lifecycle_stage': 'planning_approved',
+                        'state': 'draft'
+                    })
 
             elif stage == 'sowing':
-                if record.sowing_state == 'approved':
-                    record.sowing_state = 'pending_wah'
-                    record.lifecycle_stage = 'pending_sowing'
-                    record.with_context(bypass_write=True).write({'state': 'pending_wah'})
+                if record.sowing_state == 'approved' or (record.sowing_state == 'rejected' and rejected_stage == 'wah'):
+                    record.with_context(bypass_write=True).write({
+                        'sowing_state': 'pending_wah',
+                        'lifecycle_stage': 'pending_sowing',
+                        'state': 'pending_wah'
+                    })
                 else:
-                    record.sowing_state = 'draft'
-                    record.lifecycle_stage = 'cultivation_approved'
-                    record.with_context(bypass_write=True).write({'state': 'draft'})
+                    record.with_context(bypass_write=True).write({
+                        'sowing_state': 'draft',
+                        'lifecycle_stage': 'cultivation_approved',
+                        'state': 'draft'
+                    })
 
             elif stage == 'harvesting':
-                if record.harvesting_state == 'approved':
-                    record.harvesting_state = 'pending_wah'
-                    record.lifecycle_stage = 'pending_harvesting'
-                    record.with_context(bypass_write=True).write({'state': 'pending_wah'})
+                if record.harvesting_state == 'approved' or (record.harvesting_state == 'rejected' and rejected_stage == 'wah'):
+                    record.with_context(bypass_write=True).write({
+                        'harvesting_state': 'pending_wah',
+                        'lifecycle_stage': 'pending_harvesting',
+                        'state': 'pending_wah'
+                    })
                 else:
-                    record.harvesting_state = 'draft'
-                    record.lifecycle_stage = 'sowing_approved'
-                    record.with_context(bypass_write=True).write({'state': 'draft'})
+                    record.with_context(bypass_write=True).write({
+                        'harvesting_state': 'draft',
+                        'lifecycle_stage': 'sowing_approved',
+                        'state': 'draft'
+                    })
 
     def action_reject(self):
         return {
