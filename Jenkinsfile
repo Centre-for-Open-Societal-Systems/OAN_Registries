@@ -1,7 +1,6 @@
 pipeline {
-    agent {
-        label 'vpn-agent'
-    }
+    agent any
+
     environment {
         IMAGE_NAME     = "openg2p-at"
         AWS_ACCOUNT_ID = "${env.AWS_ACCOUNT_ID}"
