@@ -1,26 +1,105 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-   <record id="view_livestock_type_tree" model="ir.ui.view">
+    <record id="view_livestock_type_tree" model="ir.ui.view">
         <field name="name">view_livestock_type_tree</field>
         <field name="model">g2p.livestock.type</field>
         <field name="priority">1</field>
         <field name="arch" type="xml">
-            <tree create="true" delete="true" edit="true" editable="bottom">
+            <tree create="true" delete="true" edit="true">
                 <field name="name" />
-                <field name="code" />
+                <field name="species_code" />
+                <field name="dataset_id" />
+                <field name="icon_url" />
+                <field name="description" />
             </tree>
         </field>
     </record>
-	<record id="g2p_livestock_type_view_tree_action" model="ir.actions.act_window">
-		<field name="name">Livestock Types</field>
-		<field name="res_model">g2p.livestock.type</field>
-		<field name="view_mode">tree</field>
-	</record>
-	<menuitem
-        id="g2p_livestock_type_menu"
-        action="g2p_livestock_type_view_tree_action"
-        name="Livestock Types"
+
+    <record id="view_livestock_type_form" model="ir.ui.view">
+        <field name="name">view_livestock_type_form</field>
+        <field name="model">g2p.livestock.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" />
+                            <field name="species_code" />
+                            <field name="dataset_id" />
+                        </group>
+                        <group>
+                            <field name="icon_url" widget="url"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="g2p_livestock_type_view_tree_action" model="ir.actions.act_window">
+        <field name="name">Livestock Types</field>
+        <field name="res_model">g2p.livestock.type</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_livestock_population_tree" model="ir.ui.view">
+        <field name="name">view_livestock_population_tree</field>
+        <field name="model">g2p.livestock.population</field>
+        <field name="arch" type="xml">
+            <tree create="true" delete="true" edit="true" editable="bottom">
+                <field name="species_code" />
+                <field name="census_year" />
+                <field name="population_total" />
+                <field name="source_record_count" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_livestock_population_search" model="ir.ui.view">
+        <field name="name">view_livestock_population_search</field>
+        <field name="model">g2p.livestock.population</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="species_code" />
+                <field name="census_year" />
+                <group expand="0" string="Group By">
+                    <filter string="Species" name="group_by_species" context="{'group_by':'species_code'}"/>
+                    <filter string="Census Year" name="group_by_year" context="{'group_by':'census_year'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="g2p_livestock_population_action" model="ir.actions.act_window">
+        <field name="name">Livestock Population</field>
+        <field name="res_model">g2p.livestock.population</field>
+        <field name="view_mode">tree</field>
+        <field name="search_view_id" ref="view_livestock_population_search"/>
+    </record>
+
+    <menuitem
+        id="g2p_livestock_configuration_menu"
+        name="Livestock"
         sequence="600"
         parent="g2p_registry_base.g2p_configuration_menu_root"
+    />
+
+    <menuitem
+        id="g2p_livestock_type_menu"
+        action="g2p_livestock_type_view_tree_action"
+        name="Livestock Catalog"
+        sequence="10"
+        parent="g2p_livestock_configuration_menu"
+    />
+
+    <menuitem
+        id="g2p_livestock_population_menu"
+        action="g2p_livestock_population_action"
+        name="Livestock Population"
+        sequence="20"
+        parent="g2p_livestock_configuration_menu"
     />
 </odoo>

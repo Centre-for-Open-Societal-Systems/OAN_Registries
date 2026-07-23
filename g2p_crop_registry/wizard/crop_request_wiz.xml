@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_g2p_crop_request_wiz_form" model="ir.ui.view">
+        <field name="name">g2p.crop.request.wiz.form</field>
+        <field name="model">g2p.crop.request.wiz</field>
+        <field name="arch" type="xml">
+            <form>
+                <p class="oe_grey">
+                    Please specify reason for the request
+                </p>
+                <group>
+                    <group>
+                        <field name="crop_registry_ids" widget="many2many_tags" context="{'show_farmer_name_only': True}" />
+                        <field name="reason"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                    <button name="confirm" string="Confirm" type="object" class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_g2p_crop_request_wiz" model="ir.actions.act_window">
+        <field name="name">Suggest Edit</field>
+        <field name="res_model">g2p.crop.request.wiz</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="g2p_crop_registry.model_g2p_crop_registry"/>
+    </record>
+</odoo>

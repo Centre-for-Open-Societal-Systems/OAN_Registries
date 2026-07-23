@@ -9,16 +9,23 @@
         'web','base','mail','g2p_odk_importer_ati', 'g2p_ati_integrations'
     ],
     "data": [
+        'security/groups.xml',
         'security/ir.model.access.csv',
-        'data/pest_data.xml',
-        'data/pesticide_data.xml',
-        'data/weed_data.xml',
-        'data/weedicide_data.xml',
+        'wizard/crop_reject_wizard.xml',
+        'wizard/crop_request_wiz.xml',
+        'data/infestation_type_data.xml',
         'data/land_prep_method_data.xml',
         'data/machinery_data.xml',
         'data/ir_sequence_data.xml',
+        'data/cluster_status_data.xml',
+        'views/crop_request_views.xml',
+
+
+
+        'views/crop_production_menu.xml',
         'views/crop_registry.xml',
         'views/crop_production.xml',
+        'views/cluster_info_popup.xml',
     ],
     "demo": [],
     "images": [],

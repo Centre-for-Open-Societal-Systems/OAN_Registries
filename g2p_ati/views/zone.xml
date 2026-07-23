@@ -5,17 +5,70 @@
         <field name="model">g2p.zone</field>
         <field name="priority">1</field>
         <field name="arch" type="xml">
-            <tree create="true" delete="true" edit="true" editable="bottom">
+            <tree create="true" delete="true" edit="true">
                 <field name="region" required="1" />
                 <field name="code" required="1" />
                 <field name="name" required="1" />
+                <field name="admin2_pcod" />
+                <field name="admin2_refn" />
+                <field name="admin2_altn" />
+                <field name="admin2_al_1" />
+                <field name="admin1_name" />
+                <field name="admin1_pcod" />
+                <field name="admin0_name" />
+                <field name="admin0_pcod" />
+                <field name="lat" />
+                <field name="long" />
+                <field name="shape_length" />
+                <field name="shape_area" />
+                <field name="date" />
+                <field name="valid_on" />
+                <field name="valid_to" />
             </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_zone_form" model="ir.ui.view">
+        <field name="name">view_g2p_zone_form</field>
+        <field name="model">g2p.zone</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="region" required="1" />
+                            <field name="code" required="1" />
+                            <field name="name" required="1" />
+                            <field name="admin2_pcod" />
+                            <field name="admin2_refn" />
+                        </group>
+                        <group>
+                            <field name="admin2_altn" />
+                            <field name="admin2_al_1" />
+                            <field name="admin1_name" />
+                            <field name="admin1_pcod" />
+                            <field name="admin0_name" />
+                            <field name="admin0_pcod" />
+                            <field name="lat" />
+                            <field name="long" />
+                            <field name="shape_length" />
+                            <field name="shape_area" />
+                            <field name="date" />
+                            <field name="valid_on" />
+                            <field name="valid_to" />
+                        </group>
+                    </group>
+                    <group>
+                        <field name="geom" />
+                    </group>
+                </sheet>
+            </form>
         </field>
     </record>
     <record id="g2p_zone_view_tree_action" model="ir.actions.act_window">
         <field name="name">Zones</field>
         <field name="res_model">g2p.zone</field>
-        <field name="view_mode">tree</field>
+        <field name="view_mode">tree,form</field>
         <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
                     Add an Farming Type!
@@ -25,10 +78,16 @@
             </field>
     </record>
     <menuitem
+        id="menu_g2p_location_root"
+        name="Location"
+        parent="g2p_registry_base.g2p_configuration_menu_root"
+        sequence="500"
+    />
+    <menuitem
         id="g2p_zone_menu"
         action="g2p_zone_view_tree_action"
         name="Zones"
-        sequence="500"
-        parent="g2p_registry_base.g2p_configuration_menu_root"
+        sequence="20"
+        parent="menu_g2p_location_root"
     />
 </odoo>

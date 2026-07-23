@@ -27,11 +27,12 @@ def is_date_in_season(test_date, start_date, end_date):
 
 class G2PBiennialLine(models.Model):
     _name = "g2p.biennial.line"
+    _rec_name = "crop_registry_id"
     _description = "Biennial Crop Planned Line"
 
     def write(self, vals):
         result = super().write(vals)
-        if 'crop_expected' in vals:
+        if 'crop_expected' in vals or 'cluster_info_ids' in vals:
             for rec in self:
                 if not rec.sync_id or not rec.crop_registry_id:
                     continue
@@ -39,11 +40,28 @@ class G2PBiennialLine(models.Model):
                     lambda l: l.sync_id == rec.sync_id
                 )
                 for actual in actual_lines:
-                    actual.write({'actual_yield': vals['crop_expected']})
+                    updates = {}
+                    if 'crop_expected' in vals:
+                        updates['actual_yield'] = vals['crop_expected']
+                    if 'cluster_info_ids' in vals:
+                        updates['cluster_info_ids'] = [(6, 0, rec.cluster_info_ids.ids)]
+                    if updates:
+                        actual.write(updates)
         return result
 
     crop_registry_id = fields.Many2one("g2p.crop.registry", string="Crop Registry", ondelete="cascade")
     sync_id = fields.Char(string="Sync ID", default=lambda self: str(uuid.uuid4()))
+
+    menu_title = fields.Char(compute='_compute_menu_title')
+
+    def _compute_menu_title(self):
+        for rec in self:
+            rec.menu_title = self.env.context.get('menu_title', 'Planning Details')
+
+    registry_planning_state = fields.Selection(related="crop_registry_id.planning_state", string="Planning State", readonly=False)
+
+    is_plot_not_registered = fields.Boolean(string="Plot not registered")
+    temporary_land_id = fields.Char(string="Land ID (temporary)")
     land_info_id = fields.Many2one('g2p.land.information', string="Land ID")
     region_name_id = fields.Many2one('g2p.region', string='Region')
     zone_name_id = fields.Many2one('g2p.zone', string='Zone')
@@ -55,7 +73,7 @@ class G2PBiennialLine(models.Model):
     land_area = fields.Float(string="Total Land Area (ha)")
     land_category = fields.Selection([('annual', 'Annual Crop'), ('biennial', 'Biennial Crop'), ('biennial', 'Biennial Crop')], string="Plot Category")
     soil_fertility = fields.Char(string="Soil Fertility")
-    season_id = fields.Many2one('g2p.season', string="Season", required=True)
+    season_id = fields.Many2one('g2p.season', string="Season")
     start_gc = fields.Date(string="Start GC")
     start_month = fields.Integer(string="Start Month", compute="_compute_start_date", store=True)
     start_day = fields.Integer(string="Start Day", compute="_compute_start_date", store=True)
@@ -63,11 +81,17 @@ class G2PBiennialLine(models.Model):
     end_month = fields.Integer(string="End Month", compute="_compute_end_date", store=True)
     end_day = fields.Integer(string="End Day", compute="_compute_end_date", store=True)
 
-    crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
+    crop_name_id = fields.Many2one("g2p.crop", string="Crop")
+    local_name = fields.Char(string="Local Name")
+    scientific_name = fields.Char(string="Scientific Name")
     collected_gc = fields.Date(string="Planned Date (GC)")
     collected_ec = fields.Char(string="Planned Date (EC)")
     crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
     crop_variety_id = fields.Many2one("g2p.crop.variety", string="Crop Variety")
+    cropping_system = fields.Selection([
+        ('mono_cropping', 'Mono-cropping'),
+        ('inter_cropping', 'Inter-cropping'),
+    ], string="Cropping System")
 
     crop_planned_area = fields.Float(string="Planned Crop Area (ha)")
 
@@ -109,6 +133,12 @@ class G2PBiennialLine(models.Model):
     crop_expected = fields.Float(string="Expected Yield (quintals)")
 
     seed_planned = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
+    seed_source = fields.Selection([
+        ('govt_woreda', 'Government / Woreda Agriculture Office'),
+        ('agri_coop', 'Agricultural Cooperative / Union'),
+        ('private_enterprise', 'Private Seed Enterprise'),
+        ('farmer_exchange', 'Farmer-to-Farmer Exchange / Saved Seed'),
+    ], string="Seed Source")
     seed_planned_qty = fields.Float(string="Planned Seed Quantity (kg)")
     seed_planned_fertilizer_type = fields.Selection([
         ('organic', 'Organic'),
@@ -124,26 +154,21 @@ class G2PBiennialLine(models.Model):
 
 
     planned_labor = fields.Integer(string="Planned Labor")
+    cluster_info_ids = fields.One2many('g2p.cluster.information', 'biennial_line_id', string='Cluster Information')
     has_cluster_farming = fields.Selection([
         ('yes', 'Yes'),
         ('no', 'No')
     ], string="Have you done any cluster farming or related activities earlier?")
-    cluster_plan = fields.Float(string="Cluster Plan")
-    cluster_collected_land = fields.Float(string="Cluster Collected Land")
-    cluster_collected_quintal = fields.Float(string="Cluster Collected Quintal")
-    cluster_participant_farmers = fields.Integer(string="Cluster Participant Farmers")
-    collected_land = fields.Float(string="Collected Land")
-    collected_land_quintal = fields.Float(string="Collected Land Quintal")
-    collected_by_combiner = fields.Float(string="Collected by Combiner")
 
     # Survey Personnel
-    surveyor_name = fields.Char(string="Surveyor Name")
-    surveyor_mobile_number = fields.Char(string="Surveyor Mobile Number")
+    surveyor_name = fields.Char(string="DA Name")
+    surveyor_mobile_number = fields.Char(string="DA Mobile Number")
     supervisor_name = fields.Char(string="Supervisor Name")
     supervisor_mobile_number = fields.Char(string="Supervisor Mobile Number")
     first_approvel_status = fields.Selection([
         ('draft', 'Draft'),
     ], string="First approvel status")
+
 
 
     @api.depends('seed_planned_fertilizer_qty')
@@ -245,8 +270,8 @@ class G2PBiennialLine(models.Model):
                     self.collected_ec = False
                     return {
                         'warning': {
-                            'title': 'Invalid Actual Date',
-                            'message': 'Actual Planted Date (GC) must be within the Season Details (Start GC and End GC).'
+                            'title': 'Invalid Planned Date',
+                            'message': 'Planned Date (GC) must be within the Season Details (Start GC and End GC).'
                         }
                     }
             cdate = date(
@@ -283,8 +308,16 @@ class G2PBiennialLine(models.Model):
 
 
 
+    @api.constrains('land_category', 'season_id', 'crop_name_id')
+    def _check_season_crop_required(self):
+        for rec in self:
+            if rec.land_category:
+                if not rec.season_id or not rec.crop_name_id:
+                    raise ValidationError("Season and Crop are required when Plot Category is selected.")
+
 class G2PBiennialActualLine(models.Model):
     _name = "g2p.biennial.actual.line"
+    _rec_name = "crop_registry_id"
     _description = "Biennial Crop Actual Line"
     @api.constrains('actual_yield')
     def _check_actual_yield(self):
@@ -350,6 +383,20 @@ class G2PBiennialActualLine(models.Model):
 
     crop_registry_id = fields.Many2one("g2p.crop.registry", string="Crop Registry", ondelete="cascade")
     sync_id = fields.Char(string="Sync ID", default=lambda self: str(uuid.uuid4()))
+
+    menu_title = fields.Char(compute='_compute_menu_title')
+
+    def _compute_menu_title(self):
+        for rec in self:
+            rec.menu_title = self.env.context.get('menu_title', 'Actual Details')
+
+    registry_cultivation_state = fields.Selection(related="crop_registry_id.cultivation_state", string="Cultivation State", readonly=False)
+    registry_sowing_state = fields.Selection(related="crop_registry_id.sowing_state", string="Sowing State")
+    registry_harvesting_state = fields.Selection(related="crop_registry_id.harvesting_state", string="Harvesting State")
+
+
+    is_plot_not_registered = fields.Boolean(string="Plot not registered")
+    temporary_land_id = fields.Char(string="Land ID (temporary)")
     is_manual = fields.Boolean(string="Is Manual", default=True)
     is_planning = fields.Boolean(string="Is Planning", default=False)
     land_info_id = fields.Many2one('g2p.land.information', string="Land ID")
@@ -400,18 +447,30 @@ class G2PBiennialActualLine(models.Model):
                 self.gps = False
 
 
-    season_id = fields.Many2one('g2p.season', string="Season", required=True)
-    crop_name_id = fields.Many2one("g2p.crop", string="Crop", required=True)
+    season_id = fields.Many2one('g2p.season', string="Season")
+    crop_name_id = fields.Many2one("g2p.crop", string="Crop")
+    local_name = fields.Char(string="Local Name")
+    scientific_name = fields.Char(string="Scientific Name")
     collected_gc = fields.Date(string="Actual Planted Date (GC)")
     collected_ec = fields.Char(string="Actual Planted Date (EC)")
     crop_category_id = fields.Many2one("g2p.crop.category", string="Crop Category", compute="_compute_crop_category", store=True, readonly=True)
     crop_variety_id = fields.Many2one("g2p.crop.variety", string="Crop Variety")
+    cropping_system = fields.Selection([
+        ('mono_cropping', 'Mono-cropping'),
+        ('inter_cropping', 'Inter-cropping'),
+    ], string="Cropping System")
     remark = fields.Char(string="Remark")
     is_crop_changed = fields.Boolean(string="Crop Changed", compute="_compute_is_crop_changed")
     actual_crop_area = fields.Float(string="Actual Crop Area (ha)")
     actual_growth_duration = fields.Float(string="Actual Growth Duration (days)")
 
     actual_seed_class = fields.Selection([('local', 'Local'), ('improved', 'Improved')], string="Seed Type")
+    actual_seed_source = fields.Selection([
+        ('govt_woreda', 'Government / Woreda Agriculture Office'),
+        ('agri_coop', 'Agricultural Cooperative / Union'),
+        ('private_enterprise', 'Private Seed Enterprise'),
+        ('farmer_exchange', 'Farmer-to-Farmer Exchange / Saved Seed'),
+    ], string="Seed Source")
     actual_seed_qty = fields.Float(string="Actual Seed Quantity (kg)")
     actual_fertilizer_type = fields.Selection([
         ('organic', 'Organic'),
@@ -422,32 +481,23 @@ class G2PBiennialActualLine(models.Model):
     actual_fertilizer_qty = fields.Float(string="Actual Fertilizer Quantity (kg)")
     actual_fertilizer_sack = fields.Float(string="Actual Fertilizer Sacks Count", compute="_compute_actual_fertilizer_sacks", store=True)
 
+    # Removed duplicate cluster_info_ids since it was added above
     has_cluster_farming = fields.Selection([
         ('yes', 'Yes'),
         ('no', 'No')
     ], string="Have you done any cluster farming or related activities earlier?")
-    actual_cluster_plan = fields.Float(string="Actual Cluster Plan")
-    actual_cluster_collected_land = fields.Float(string="Actual Cluster Collected Land")
-    actual_cluster_collected_quintal = fields.Float(string="Actual Cluster Collected Quintal")
-    actual_cluster_participant_farmers = fields.Integer(string="Actual Cluster Participant Farmers")
-    actual_collected_land = fields.Float(string="Actual Collected Land")
-    actual_collected_land_quintal = fields.Float(string="Actual Collected Land Quintal")
-    actual_collected_by_combiner = fields.Float(string="Actual Collected by Combiner")
+    cluster_info_ids = fields.One2many('g2p.cluster.information', 'actual_biennial_line_id', string='Actual Cluster Information')
+
 
     # Survey Personnel
-    surveyor_name = fields.Char(string="Surveyor Name")
-    surveyor_mobile_number = fields.Char(string="Surveyor Mobile Number")
+    surveyor_name = fields.Char(string="DA Name")
+    surveyor_mobile_number = fields.Char(string="DA Mobile Number")
     supervisor_name = fields.Char(string="Supervisor Name")
     supervisor_mobile_number = fields.Char(string="Supervisor Mobile Number")
     first_approvel_status = fields.Selection([
         ('draft', 'Draft'),
     ], string="First approvel status")
 
-    pest_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Pest Occurrence")
-    pest_line_ids = fields.One2many('g2p.crop.pest.line', 'actual_biennial_line_id', string="Pest Details")
-
-    weed_occurrence = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Weed Occurrence")
-    weed_line_ids = fields.One2many('g2p.crop.weed.line', 'actual_biennial_line_id', string="Weed Details")
 
     actual_yield = fields.Float(string="Actual Yield (quintal)")
     cultivated_by = fields.Many2one("g2p.machinery", string="Cultivation Type")
@@ -550,6 +600,9 @@ class G2PBiennialActualLine(models.Model):
                 rec.is_mismatch = False
                 continue
             planned_lines = rec.crop_registry_id.biennial_line_ids
+            if not planned_lines:
+                rec.is_mismatch = False
+                continue
             matched = False
             for planned in planned_lines:
                 if (planned.crop_name_id.id == rec.crop_name_id.id
@@ -626,5 +679,20 @@ class G2PBiennialActualLine(models.Model):
             )
             self.collected_gc = gc_date
             return self._onchange_collected_gc()
+
+    def write(self, vals):
+        res = super().write(vals)
+        for rec in self:
+            if rec.crop_registry_id:
+                rec.crop_registry_id._sync_production_cached_values()
+        return res
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            if rec.crop_registry_id:
+                rec.crop_registry_id._sync_production_cached_values()
+        return records
 
 

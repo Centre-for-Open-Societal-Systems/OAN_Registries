@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    
+    <record id="view_g2p_crop_change_request_tree" model="ir.ui.view">
+        <field name="name">g2p.crop.change.request.tree</field>
+        <field name="model">g2p.crop.change.request</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="state == 'rejected'" decoration-success="state == 'approved'">
+                <field name="requested_by" />
+                <field name="crop_registry_id" string="Changed Record" context="{'show_farmer_name_only': True}"/>
+                <field name="validator" />
+                <field name="state" />
+                <field name="can_approve" column_invisible="1" />
+                <button title="Approve" icon="fa-check" name="approve_changes" type="object" class="btn btn-success" invisible="state != 'pending' or not can_approve" />
+                <button title="Reject" icon="fa-times" name="reject_changes" type="object" class="btn btn-danger" invisible="state != 'pending' or not can_approve" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_crop_change_request_form" model="ir.ui.view">
+        <field name="name">g2p.crop.change.request.form</field>
+        <field name="model">g2p.crop.change.request</field>
+        <field name="arch" type="xml">
+            <form string="Update Request">
+                <field name="can_approve" invisible="1" />
+                <header>
+                    <button string="Approve" name="approve_changes" type="object" class="btn-primary" invisible="state != 'pending' or not can_approve" />
+                    <button string="Reject" name="reject_changes" type="object" class="btn-secondary" invisible="state != 'pending' or not can_approve" />
+                </header>
+                <sheet>
+                    <group>
+                        <field name="requested_by" readonly="1" />
+                        <field name="crop_registry_id" readonly="1" string="Changed Record" context="{'show_farmer_name_only': True}"/>
+                        <field name="validator" readonly="1" />
+                        <field name="state" readonly="1" />
+                        <!-- <field name="new_values_display" readonly="1" string="Proposed Changes" /> -->
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_g2p_crop_change_request" model="ir.actions.act_window">
+        <field name="name">Update Requests</field>
+        <field name="res_model">g2p.crop.change.request</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    
+    <record id="view_g2p_crop_edit_request_tree" model="ir.ui.view">
+        <field name="name">g2p.crop.edit.request.tree</field>
+        <field name="model">g2p.crop.edit.request</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="status == 'rejected'" decoration-success="status == 'accepted'">
+                <field name="crop_registry_id" string="Record" context="{'show_farmer_name_only': True}"/>
+                <field name="requester_id" />
+                <field name="status" />
+                <field name="type" />
+                <field name="can_approve" column_invisible="1" />
+                <button title="Accept" icon="fa-check" name="accept_request" type="object" class="btn btn-success" invisible="status != 'newSuggestion' or not can_approve" />
+                <button title="Reject" icon="fa-times" name="reject_request" type="object" class="btn btn-danger" invisible="status != 'newSuggestion' or not can_approve" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_crop_edit_request_form" model="ir.ui.view">
+        <field name="name">g2p.crop.edit.request.form</field>
+        <field name="model">g2p.crop.edit.request</field>
+        <field name="arch" type="xml">
+            <form string="Edit Suggestion">
+                <field name="can_approve" invisible="1" />
+                <header>
+                    <button string="Accept" name="accept_request" type="object" class="btn-primary" invisible="status != 'newSuggestion' or not can_approve" />
+                    <button string="Reject" name="reject_request" type="object" class="btn-secondary" invisible="status != 'newSuggestion' or not can_approve" />
+                </header>
+                <sheet>
+                    <group>
+                        <field name="crop_registry_id" readonly="1" string="Record" context="{'show_farmer_name_only': True}"/>
+                        <field name="requester_id" readonly="1" />
+                        <field name="status" readonly="1" />
+                        <field name="type" readonly="1" />
+                        <field name="reason" readonly="1" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_g2p_crop_edit_request" model="ir.actions.act_window">
+        <field name="name">Edit Suggestions</field>
+        <field name="res_model">g2p.crop.edit.request</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+    </odoo>

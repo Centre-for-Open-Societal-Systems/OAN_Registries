@@ -26,7 +26,7 @@
         id="g2p_season_menu"
         action="g2p_season_view_tree_action"
         name="Seasons"
-        sequence="610"
         parent="g2p_registry_base.g2p_configuration_menu_root"
+        sequence="595"
     />
 </odoo>

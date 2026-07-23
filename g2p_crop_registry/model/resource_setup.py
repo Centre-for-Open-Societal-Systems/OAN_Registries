@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import fields, models
 
 
 class G2PLandPrepMethod(models.Model):
@@ -15,8 +15,13 @@ class G2PWaterResourceLine(models.Model):
 
     crop_registry_id = fields.Many2one('g2p.crop.registry', ondelete="cascade")
     annual_line_id = fields.Many2one('g2p.annual.line', ondelete="cascade")
+    cluster_info_id = fields.Many2one('g2p.cluster.information', ondelete="cascade")
     perennial_line_id = fields.Many2one('g2p.perennial.line', ondelete="cascade")
     biennial_line_id = fields.Many2one('g2p.biennial.line', ondelete="cascade")
+    # Cluster-specific FKs
+    cluster_annual_line_id = fields.Many2one('g2p.annual.line', ondelete="cascade")
+    cluster_perennial_line_id = fields.Many2one('g2p.perennial.line', ondelete="cascade")
+    cluster_biennial_line_id = fields.Many2one('g2p.biennial.line', ondelete="cascade")
     crop_information_id = fields.Many2one('g2p.crop.information', ondelete="cascade")
     water_resource_id = fields.Many2one('g2p.water.source', string="Water Resource", required=True)
     method_id = fields.Char(string="Method")
@@ -29,6 +34,7 @@ class G2PActualWaterResourceLine(models.Model):
     crop_registry_id = fields.Many2one('g2p.crop.registry', ondelete="cascade")
     actual_annual_line_id = fields.Many2one('g2p.annual.actual.line', ondelete="cascade")
     annual_line_id = fields.Many2one('g2p.annual.line', ondelete="cascade")
+    cluster_info_id = fields.Many2one('g2p.cluster.information', ondelete="cascade")
     actual_perennial_line_id = fields.Many2one('g2p.perennial.actual.line', ondelete="cascade")
     actual_biennial_line_id = fields.Many2one('g2p.biennial.actual.line', ondelete="cascade")
     perennial_line_id = fields.Many2one('g2p.perennial.line', ondelete="cascade")
@@ -36,4 +42,7 @@ class G2PActualWaterResourceLine(models.Model):
     water_resource_id = fields.Many2one('g2p.water.source', string="Water Resource", required=True)
     method_id = fields.Char(string="Method")
     frequency = fields.Char(string="Frequency")
+
+
+
 

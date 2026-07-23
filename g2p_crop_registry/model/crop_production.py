@@ -1,9 +1,166 @@
 import logging
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
+from odoo.addons.g2p_ati.models.utils import eth_date
+import re
 
 _logger = logging.getLogger(__name__)
 
+class G2PClusterStatus(models.Model):
+    _name = "g2p.cluster.status"
+    _description = "Cluster Status"
+
+    name = fields.Char(string="Status Name", required=True)
+
+class G2PInfestationType(models.Model):
+    _name = "g2p.infestation.type"
+    _description = "Infestation Type"
+
+    name = fields.Char(string="Name", required=True)
+    code = fields.Char(string="Code", required=True)
+
+class G2PCropInfestationIncident(models.Model):
+    _name = "g2p.crop.infestation.incident"
+    _description = "Crop Infestation Incident"
+    _rec_name = "name"
+
+    name = fields.Char(
+        string="Incident Record ID",
+        readonly=True,
+        copy=False,
+        default="New"
+    )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('name', 'New') == 'New':
+                vals['name'] = self.env['ir.sequence'].next_by_code('g2p.crop.infestation') or 'New'
+        return super(G2PCropInfestationIncident, self).create(vals_list)
+
+    production_id = fields.Many2one('g2p.crop.production', string="Production Record", ondelete="cascade")
+    cluster_line_id = fields.Many2one('g2p.crop.production.cluster.line', string="Cluster Line Record", ondelete="cascade")
+
+    crop_name_id = fields.Many2one(
+        'g2p.crop',
+        compute="_compute_crop_name_id",
+        string="Crop Type Affected",
+        store=True,
+        readonly=True
+    )
+
+    @api.depends('production_id.crop_name_id', 'cluster_line_id.production_id.crop_name_id')
+    def _compute_crop_name_id(self):
+        for rec in self:
+            if rec.production_id:
+                rec.crop_name_id = rec.production_id.crop_name_id
+            elif rec.cluster_line_id and rec.cluster_line_id.production_id:
+                rec.crop_name_id = rec.cluster_line_id.production_id.crop_name_id
+            else:
+                rec.crop_name_id = False
+
+    growth_stage = fields.Selection([
+        ('emergence', 'Emergence / Seedling (ቡቃያ)'),
+        ('vegetative', 'Vegetative (እድገት)'),
+        ('flowering', 'Flowering / Booting (አበባ/ማንቀልጠር)'),
+        ('maturity', 'Maturity / Harvesting (ምርት ስብሰባ)'),
+    ], string="Growth Stage (የዕድገት ደረጃ)")
+
+    infestation_type_ids = fields.Many2many('g2p.infestation.type', string="Type of Infestation")
+
+    is_pest = fields.Boolean(compute="_compute_infestation_flags")
+    is_weed = fields.Boolean(compute="_compute_infestation_flags")
+    is_disease = fields.Boolean(compute="_compute_infestation_flags")
+    is_nutrient = fields.Boolean(compute="_compute_infestation_flags")
+    is_climate = fields.Boolean(compute="_compute_infestation_flags")
+
+    @api.depends('infestation_type_ids', 'infestation_type_ids.code')
+    def _compute_infestation_flags(self):
+        for rec in self:
+            codes = rec.infestation_type_ids.mapped('code')
+            rec.is_pest = 'pest' in codes
+            rec.is_weed = 'weed' in codes
+            rec.is_disease = 'disease' in codes
+            rec.is_nutrient = 'nutrient' in codes
+            rec.is_climate = 'climate' in codes
+
+    @api.onchange('infestation_type_ids')
+    def _onchange_infestation_types(self):
+        codes = self.infestation_type_ids.mapped('code')
+        self.is_pest = 'pest' in codes
+        self.is_weed = 'weed' in codes
+        self.is_disease = 'disease' in codes
+        self.is_nutrient = 'nutrient' in codes
+        self.is_climate = 'climate' in codes
+
+    pest_line_ids = fields.One2many('g2p.crop.pest.line', 'infestation_id', string="Pest Details")
+    weed_line_ids = fields.One2many('g2p.crop.weed.line', 'infestation_id', string="Weed Details")
+    disease_line_ids = fields.One2many('g2p.crop.disease.line', 'infestation_id', string="Disease Details")
+    nutrient_line_ids = fields.One2many('g2p.crop.nutrient.line', 'infestation_id', string="Nutrient Deficiency Details")
+    climate_line_ids = fields.One2many('g2p.crop.climate.line', 'infestation_id', string="Climate Shock Details")
+
+    severity_level = fields.Selection([
+        ('low', 'Low (ቀላል)'),
+        ('medium', 'Medium (መካከለኛ)'),
+        ('high', 'High (ከፍተኛ)'),
+    ], string="Severity Level")
+
+    estimated_damage = fields.Char(string="Estimated Crop Damage (%) or (Hectares)")
+    observation_date = fields.Date(string="Date of Observation (GC)")
+    observation_date_ec = fields.Char(string="Date of Observation (E.C.)")
+    geo_tagged_photo = fields.Binary(string="Geo-tagged Photo Upload")
+    action_taken = fields.Text(string="Action Taken / Extension Advice")
+
+
+    @api.onchange('observation_date')
+    def _onchange_observation_date(self):
+        if self.observation_date:
+            ethiopian_date_str = eth_date.to_ethiopian(
+                self.observation_date.year, self.observation_date.month, self.observation_date.day
+            )
+            self.observation_date_ec = eth_date.convert_tuple_to_string_with_separator(ethiopian_date_str)
+        else:
+            self.observation_date_ec = False
+
+    @api.onchange('observation_date_ec')
+    def _onchange_observation_date_ec(self):
+        if self.observation_date_ec:
+            # Format validation (allow -, /, or . as separators)
+            date_list = re.split("[-/.]", self.observation_date_ec)
+            if len(date_list) == 3:
+                try:
+                    # Expecting DD.MM.YYYY or YYYY.MM.DD?
+                    # eth_date expects DD-MM-YYYY in its check usually, but let's try to convert:
+                    # Let's just let it be Char, and if they typed it correctly we convert it back.
+                    # Based on farmer.py:
+                    d, m, y = int(date_list[0]), int(date_list[1]), int(date_list[2])
+                    if y < 1000: # DD-MM-YYYY
+                        greg_date = eth_date.to_gregorian(y, m, d)
+                    else: # YYYY-MM-DD
+                        greg_date = eth_date.to_gregorian(d, m, y)
+
+                    self.observation_date = fields.Date.from_string(f"{greg_date[0]:04d}-{greg_date[1]:02d}-{greg_date[2]:02d}")
+                except Exception:
+                    pass # Ignore if they are still typing or typed an invalid date
+
+    @api.constrains('estimated_damage', 'production_id', 'cluster_line_id')
+    def _check_estimated_damage(self):
+        for rec in self:
+            if rec.estimated_damage:
+                val_str = rec.estimated_damage.strip().lower()
+                try:
+                    if '%' in val_str:
+                        val = float(val_str.replace('%', '').strip())
+                        if val < 0 or val > 100:
+                            raise ValidationError("Damage percentage must be between 0 and 100.")
+                    else:
+                        # Assume it's hectares or they wrote 'ha'
+                        val = float(val_str.replace('ha', '').replace('hectares', '').strip())
+                        max_area = rec.production_id.area_sown if rec.production_id else (rec.cluster_line_id.area_sown if rec.cluster_line_id else 0.0)
+                        if val < 0 or val > max_area:
+                            raise ValidationError(f"Damage area ({val} ha) cannot exceed the Sown Area ({max_area} ha).")
+                except ValueError:
+                    raise ValidationError("Invalid format for Estimated Crop Damage. Use a number, e.g., '50%' or '1.5 ha'.")
 
 
 class G2PCropProduction(models.Model):
@@ -89,6 +246,9 @@ class G2PCropProduction(models.Model):
 
     sync_id = fields.Char(string="Sync ID")
 
+    is_plot_not_registered = fields.Boolean(string="Plot not registered")
+    temporary_land_id = fields.Char(string="Land ID (temporary)")
+
 
     # ── Farmer & Plot Identity relays ────────────────────
     reg_farmer_id = fields.Many2one('res.partner', related="crop_registry_id.partner_id", string="Farmer ID", readonly=True)
@@ -120,14 +280,63 @@ class G2PCropProduction(models.Model):
         ('not_sown', 'Not Sown'),
     ], string="Sowing Status")
 
-    cluster_status = fields.Selection([
-        ('clustered', 'Clustered'),
-        ('independent', 'Independent'),
-    ], string="Cluster Status")
+    cluster_status_ids = fields.Many2many(
+        "g2p.cluster.status",
+        string="Cluster Status"
+    )
+
+    is_clustered = fields.Boolean(compute='_compute_cluster_status_flags', store=False)
+    is_independent = fields.Boolean(compute='_compute_cluster_status_flags', store=False)
+
+    @api.depends('cluster_status_ids', 'cluster_status_ids.name')
+    def _compute_cluster_status_flags(self):
+        for rec in self:
+            names = rec.cluster_status_ids.mapped('name') if rec.cluster_status_ids else []
+            rec.is_clustered = 'Clustered' in names
+            rec.is_independent = 'Independent' in names
+
+
+    @api.depends('sync_id', 'crop_registry_id', 'crop_registry_id.actual_annual_line_ids.cluster_info_ids', 'crop_registry_id.actual_perennial_line_ids.cluster_info_ids', 'crop_registry_id.actual_biennial_line_ids.cluster_info_ids')
+    def _compute_cluster_info_ids(self):
+        for rec in self:
+            cluster_recs = self.env['g2p.cluster.information']
+            if rec.crop_registry_id and rec.sync_id:
+                annual = rec.crop_registry_id.actual_annual_line_ids.filtered(lambda l: l.sync_id == rec.sync_id)
+                if annual:
+                    cluster_recs |= annual.cluster_info_ids
+                perennial = rec.crop_registry_id.actual_perennial_line_ids.filtered(lambda l: l.sync_id == rec.sync_id)
+                if perennial:
+                    cluster_recs |= perennial.cluster_info_ids
+                biennial = rec.crop_registry_id.actual_biennial_line_ids.filtered(lambda l: l.sync_id == rec.sync_id)
+                if biennial:
+                    cluster_recs |= biennial.cluster_info_ids
+            rec.cluster_info_ids = cluster_recs
+
+    # For clustered sowing
+    cluster_info_ids = fields.Many2many(
+        'g2p.cluster.information',
+        string="Cluster Information",
+        compute='_compute_cluster_info_ids',
+        store=True,
+        readonly=False
+    )
+
+    production_cluster_line_ids = fields.One2many(
+        'g2p.crop.production.cluster.line',
+        'production_id',
+        string="Cluster Details"
+    )
+
+    area_sown = fields.Float(string="Area Sown (ha)", default=0.0)
 
     actual_sowing_date = fields.Date(string="Actual Planted Date")
 
-
+    infestation_incident_ids = fields.One2many(
+        'g2p.crop.infestation.incident',
+        'production_id',
+        string="Infestation Incidents"
+    )
+    has_pest_disease = fields.Boolean(string="Pest / Disease Occurrence", default=False)
 
     # ── Harvest (visible when Sowing Status = Sown) ──────────
     crop_maturity_status = fields.Selection([
@@ -150,8 +359,8 @@ class G2PCropProduction(models.Model):
     actual_yield_cached = fields.Float(string="Actual Yield", default=0.0)
 
     # Survey Personnel
-    surveyor_name = fields.Char(string="Surveyor Name")
-    surveyor_mobile_number = fields.Char(string="Surveyor Mobile Number")
+    surveyor_name = fields.Char(string="DA Name")
+    surveyor_mobile_number = fields.Char(string="DA Mobile Number")
     supervisor_name = fields.Char(string="Supervisor Name")
     supervisor_mobile_number = fields.Char(string="Supervisor Mobile Number")
     first_approvel_status = fields.Selection([
@@ -269,3 +478,131 @@ class G2PCropProduction(models.Model):
                 total_yield / fertilizer_applied
                 if fertilizer_applied else 0.0
             )
+
+
+    # ── Approval Workflow fields ─────────────────────────────
+    registry_lifecycle_stage = fields.Selection(related="crop_registry_id.lifecycle_stage", string="Lifecycle Stage", readonly=True)
+    registry_sowing_state = fields.Selection(related="crop_registry_id.sowing_state", string="Sowing State", readonly=False)
+    registry_harvesting_state = fields.Selection(related="crop_registry_id.harvesting_state", string="Harvesting State", readonly=False)
+
+    can_approve = fields.Boolean(compute='_compute_can_approve')
+    can_set_draft = fields.Boolean(compute='_compute_can_approve')
+    menu_title = fields.Char(compute='_compute_menu_title')
+
+    def _compute_menu_title(self):
+        for rec in self:
+            rec.menu_title = self.env.context.get('menu_title', 'Sowing Details')
+
+    @api.depends('registry_harvesting_state', 'registry_sowing_state')
+    @api.depends_context('uid')
+    def _compute_can_approve(self):
+        for rec in self:
+            is_da = self.env.user.has_group('g2p_crop_registry.group_development_agent')
+            is_sms = self.env.user.has_group('g2p_crop_registry.group_woreda_sms')
+            is_wah = self.env.user.has_group('g2p_crop_registry.group_woreda_agri_office_head')
+
+            # Determine which state to check based on context or lifecycle stage
+            if self.env.context.get('is_harvesting'):
+                state = rec.registry_harvesting_state
+            else:
+                state = rec.registry_sowing_state
+
+            can_approve = False
+            can_set_draft = False
+            if state == 'draft' and is_sms:
+                can_approve = True
+            elif state == 'pending_wah' and is_wah:
+                can_approve = True
+
+            if state in ('draft', 'approved') and is_sms:
+                can_set_draft = False
+            elif state == 'draft' and is_wah:
+                can_set_draft = False
+            else:
+                if is_sms or is_wah:
+                    can_set_draft = True
+
+            rec.can_approve = can_approve
+            rec.can_set_draft = can_set_draft
+
+    def action_approve_sms(self):
+        registries = self.mapped('crop_registry_id')
+        for reg in registries:
+            reg.action_approve_sms()
+
+    def action_approve_wah(self):
+        registries = self.mapped('crop_registry_id')
+        for reg in registries:
+            reg.action_approve_wah()
+
+    def action_reject(self):
+        for rec in self:
+            if rec.crop_registry_id:
+                action = rec.crop_registry_id.action_reject()
+                action['context'] = {
+                    'active_model': 'g2p.crop.registry',
+                    'active_id': rec.crop_registry_id.id,
+                    'active_ids': [rec.crop_registry_id.id],
+                }
+                return action
+
+    def action_set_draft(self):
+        for rec in self:
+            if rec.crop_registry_id:
+                rec.crop_registry_id.action_set_draft()
+
+    def action_suggest_edit(self):
+        for rec in self:
+            if rec.crop_registry_id:
+                return {
+                    'name': 'Suggest Edit',
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'g2p.crop.request.wiz',
+                    'view_mode': 'form',
+                    'target': 'new',
+                    'context': {
+                        'default_crop_registry_ids': [rec.crop_registry_id.id],
+                        'active_model': 'g2p.crop.registry',
+                        'active_id': rec.crop_registry_id.id,
+                        'active_ids': [rec.crop_registry_id.id],
+                    },
+                }
+
+
+class CropProductionClusterLine(models.Model):
+    _name = 'g2p.crop.production.cluster.line'
+    _description = 'Crop Production Cluster Line'
+
+    production_id = fields.Many2one('g2p.crop.production', string="Production Record", ondelete='cascade')
+    cluster_info_id = fields.Many2one('g2p.cluster.information', string="Cluster ID", required=True)
+    cluster_name = fields.Char(related='cluster_info_id.cluster_name', string="Cluster Name", readonly=True)
+
+    sowing_status = fields.Selection([
+        ('Not Sown', 'Not Sown'),
+        ('Sown', 'Sown')
+    ], string="Sowing Status", default='Not Sown')
+    area_sown = fields.Float(string="Area Sown (ha)", default=0.0)
+    has_pest_disease = fields.Boolean(string="Pest / Disease Occurrence", default=False)
+    infestation_incident_ids = fields.One2many(
+        'g2p.crop.infestation.incident',
+        'cluster_line_id',
+        string="Infestation Incidents"
+    )
+
+    # Related info for context
+    season_id = fields.Many2one('g2p.season', related='cluster_info_id.season_id', string="Season", readonly=True)
+    cluster_agro_ecological_zone = fields.Selection(related='cluster_info_id.cluster_agro_ecological_zone', string="Agro Ecological Zone", readonly=True)
+    cluster_area_hectare = fields.Float(related='cluster_info_id.cluster_area_hectare', string="Total Cultivated Area (ha)", readonly=True)
+
+
+    # Harvest fields
+    crop_maturity_status = fields.Selection([
+        ('green', 'Not Yet Ready'),
+        ('yellow', 'Ready for Harvest'),
+    ], string="Crop Maturity Status")
+    harvest_date = fields.Date(string="Harvest Date")
+    area_harvested = fields.Float(string="Area Harvested (ha)")
+    qty_harvested = fields.Float(string="Quantity Harvested (quintal)")
+    post_harvest_loss_pct = fields.Float(string="Post-harvest Loss (%)")
+    qty_stored = fields.Float(string="Quantity Stored")
+    qty_sold = fields.Float(string="Quantity Sold")

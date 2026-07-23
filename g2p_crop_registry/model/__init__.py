@@ -7,3 +7,7 @@ from . import annual_crop
 from . import biennial_crop
 from . import resource_setup
 from . import pest_weed_management
+from . import cluster_information
+
+from . import crop_change_request
+from . import crop_edit_request

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- =============================================
+             Cluster Information Form View
+             ============================================= -->
+        <record id="view_cluster_information_form" model="ir.ui.view">
+            <field name="name">g2p.cluster.information.form</field>
+            <field name="model">g2p.cluster.information</field>
+            <field name="arch" type="xml">
+                <form string="Cluster Information">
+                    <sheet>
+                        <div class="oe_title mb-3">
+                            <h2 style="color: #017e84;">Cluster Information</h2>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="cluster_id" readonly="1"/>
+                            </group>
+                            <group></group>
+                        </group>
+                        <group string="Basic Information">
+                            <group>
+                                <field name="cluster_name"/>
+                                <field name="season_id"/>
+                            </group>
+                            <group>
+                                <field name="start_gc" readonly="1"/>
+                                <field name="end_gc" readonly="1"/>
+                                <field name="start_month" readonly="1"/>
+                                <field name="start_day" readonly="1"/>
+                                <field name="end_month" readonly="1"/>
+                                <field name="end_day" readonly="1"/>
+                            </group>
+                        </group>
+                        <group string="Administrative Hierarchy (Land details)">
+                            <group>
+                                <field name="cluster_agro_ecological_zone"/>
+                                <field name="sub_kebele"/>
+                                <field name="gps_location"/>
+                            </group>
+                            <group>
+                                <field name="region_name_id" readonly="1"/>
+                                <field name="zone_name_id" readonly="1"/>
+                                <field name="woreda_name_id" readonly="1"/>
+                                <field name="kebele_id" readonly="1"/>
+                            </group>
+                        </group>
+                        <group string="Cultivation Details">
+                            <group>
+                                <field name="cluster_area_timad"/>
+                                <field name="cluster_plan" invisible="is_actual"/>
+                                <field name="collected_land_quintal" invisible="is_actual"/>
+                                <field name="cluster_collected_quintal" invisible="is_actual"/>
+                                <field name="collected_by_combiner" invisible="is_actual"/>
+
+                                <field name="actual_cluster_plan" invisible="not is_actual"/>
+                                <field name="actual_collected_land_quintal" invisible="not is_actual"/>
+                                <field name="actual_cluster_collected_quintal" invisible="not is_actual"/>
+                                <field name="actual_collected_by_combiner" invisible="not is_actual"/>
+                            </group>
+                            <group>
+                                <field name="cluster_area_hectare" readonly="1"/>
+                            </group>
+                            <group string="Water Source" colspan="2">
+                                <field name="cluster_water_resource_line_ids" nolabel="1" colspan="2">
+                                    <tree editable="bottom">
+                                        <field name="water_resource_id"/>
+                                        <field name="method_id"/>
+                                        <field name="frequency"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </group>
+                        <group string="Farmer Details">
+                            <group>
+                                <field name="cluster_smallholders"/>
+                            </group>
+                            <group></group>
+                        </group>
+                        <group string="Farmer List" invisible="cluster_smallholders &lt;= 0">
+                            <field name="cluster_farmer_line_ids" nolabel="1" colspan="2">
+                                <tree editable="bottom">
+                                    <field name="farmer_id" context="{'show_farmer_id': 1}"/>
+                                    <field name="fayda_id"/>
+                                    <field name="farmer_name"/>
+                                    <field name="region_id"/>
+                                    <field name="zone_id"/>
+                                    <field name="woreda_id"/>
+                                    <field name="kebele_id"/>
+                                </tree>
+                            </field>
+                        </group>
+
+                        <field name="is_actual" invisible="1"/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>
