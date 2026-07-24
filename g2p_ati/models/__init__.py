@@ -15,3 +15,5 @@ from . import crop_information
 from . import import_source
 from . import farmer
 from . import group_membership
+from . import seed
+from . import crop_variety

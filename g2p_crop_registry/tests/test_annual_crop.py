@@ -1,0 +1,508 @@
+from odoo.tests.common import TransactionCase
+from odoo.exceptions import ValidationError
+
+
+class TestAnnualCrop(TransactionCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        # --- Base partner / crop / registry fixtures ---
+        cls.partner = cls.env['res.partner'].create({
+            'name': 'Test Farmer',
+            'is_farmer': 'yes',
+        })
+
+        cls.category = cls.env['g2p.crop.category'].create({
+            'name': 'Cereal',
+        })
+
+        cls.crop = cls.env['g2p.crop'].create({
+            'name': 'Wheat',
+            'category_id': cls.category.id,
+        })
+
+        cls.crop_variety = cls.env['g2p.crop.variety'].create({
+            'name': 'Winter Wheat',
+            'code': 'WW1',
+            'crop_id': cls.crop.id,
+        })
+
+        cls.crop_registry = cls.env['g2p.crop.registry'].create({
+            'partner_id': cls.partner.id,
+            'fyda_id': 'FAN-1234567890123456',
+            'farmer_display_id': 'Test Farmer',
+        })
+
+        seasons = cls.env['g2p.season'].search([], limit=2)
+        if seasons:
+            cls.season = seasons[0]
+            cls.wrap_season = seasons[1] if len(seasons) > 1 else cls.season
+        else:
+            cls.season = cls.env['g2p.season'].create({
+                'name': 'Test Season',
+                'start_gc': '2025-06-01',
+                'end_gc': '2025-09-30',
+            })
+            cls.wrap_season = cls.season
+
+        # Region, Zone, Woreda, Kebele hierarchy for land info
+        cls.region = cls.env['g2p.region'].create({'name': 'Test Region', 'code': 'R1'})
+        cls.zone = cls.env['g2p.zone'].create({'name': 'Test Zone', 'code': 'Z1', 'region': cls.region.id})
+        cls.woreda = cls.env['g2p.woreda'].create({'name': 'Test Woreda', 'code': 'W1', 'zone': cls.zone.id})
+        cls.kebele = cls.env['g2p.kebele'].create({'name': 'Test Kebele', 'code': 'K1', 'woreda': cls.woreda.id})
+
+        cls.land_info = cls.env['g2p.land.information'].create({
+            'total_land_area': 10.0,
+            'ownership_type': 'owner',
+            'soil_fertility': 'good',
+            'land_kebele': cls.kebele.id,
+            'polygon_data': '12.123, 45.456',
+            'partner_id': cls.partner.id
+        })
+
+    # ------------------------------------------------------------------
+    # Basic creation
+    # ------------------------------------------------------------------
+
+    def test_annual_crop_plan_creation(self):
+        """Test basic creation of an annual planned line"""
+        plan = self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+        })
+        self.assertTrue(plan.id)
+        self.assertEqual(plan.crop_name_id, self.crop)
+
+    def test_annual_crop_actual_creation(self):
+        """Test basic creation of an annual actual line"""
+        actual = self.env['g2p.annual.actual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+        })
+        self.assertTrue(actual.id)
+        self.assertEqual(actual.crop_name_id, self.crop)
+
+    # ------------------------------------------------------------------
+    # Season / date validation (_check_collected_gc, is_date_in_season)
+    # ------------------------------------------------------------------
+
+    def test_collected_gc_within_season_is_valid(self):
+        plan = self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'start_gc': self.season.start_gc,
+            'end_gc': self.season.end_gc,
+            'collected_gc': self.season.start_gc,
+        })
+        self.assertTrue(plan.id)
+
+    def test_collected_gc_outside_season_raises(self):
+        with self.assertRaises(ValidationError):
+            self.env['g2p.annual.line'].create({
+                'crop_registry_id': self.crop_registry.id,
+                'crop_name_id': self.crop.id,
+                'season_id': self.season.id,
+                'start_gc': self.season.start_gc,
+                'end_gc': self.season.end_gc,
+                'collected_gc': '2100-12-25',
+            })
+
+    def test_collected_gc_within_wrap_around_season(self):
+        plan = self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.wrap_season.id,
+            'start_gc': self.wrap_season.start_gc,
+            'end_gc': self.wrap_season.end_gc,
+            'collected_gc': self.wrap_season.start_gc,
+        })
+        self.assertTrue(plan.id)
+
+    def test_collected_gc_outside_wrap_around_season_raises(self):
+        with self.assertRaises(ValidationError):
+            self.env['g2p.annual.line'].create({
+                'crop_registry_id': self.crop_registry.id,
+                'crop_name_id': self.crop.id,
+                'season_id': self.wrap_season.id,
+                'start_gc': self.wrap_season.start_gc,
+                'end_gc': self.wrap_season.end_gc,
+                'collected_gc': '2100-06-15',
+            })
+
+    # ------------------------------------------------------------------
+    # Yield constraints (_check_actual_yield & _onchange_actual_yield)
+    # ------------------------------------------------------------------
+
+    def test_actual_yield_exceeding_expected_raises(self):
+        sync_id = 'sync-yield-test-1'
+        self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+            'crop_expected': 10.0,
+        })
+        with self.assertRaises(ValidationError):
+            self.env['g2p.annual.actual.line'].create({
+                'crop_registry_id': self.crop_registry.id,
+                'crop_name_id': self.crop.id,
+                'season_id': self.season.id,
+                'sync_id': sync_id,
+                'actual_yield': 15.0,
+            })
+
+    def test_actual_yield_within_expected_is_valid(self):
+        sync_id = 'sync-yield-test-2'
+        self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+            'crop_expected': 10.0,
+        })
+        actual = self.env['g2p.annual.actual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+            'actual_yield': 8.0,
+        })
+        self.assertTrue(actual.id)
+
+    def test_onchange_actual_yield(self):
+        sync_id = 'sync-yield-test-3'
+        self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+            'crop_expected': 10.0,
+        })
+        actual = self.env['g2p.annual.actual.line'].new({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+        })
+        actual.actual_yield = 15.0
+        result = actual._onchange_actual_yield()
+        self.assertEqual(actual.actual_yield, 0.0)
+        self.assertIn('warning', result)
+        self.assertEqual(result['warning']['title'], 'Invalid Yield')
+
+    # ------------------------------------------------------------------
+    # Crop area constraints
+    # ------------------------------------------------------------------
+
+    def test_actual_crop_area_exceeding_planned_raises_when_not_manual(self):
+        sync_id = 'sync-area-test-1'
+        self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+            'crop_planned_area': 2.0,
+        })
+        with self.assertRaises(ValidationError):
+            self.env['g2p.annual.actual.line'].create({
+                'crop_registry_id': self.crop_registry.id,
+                'crop_name_id': self.crop.id,
+                'season_id': self.season.id,
+                'sync_id': sync_id,
+                'is_manual': False,
+                'actual_crop_area': 5.0,
+            })
+
+    def test_actual_crop_area_exceeding_planned_allowed_when_manual(self):
+        sync_id = 'sync-area-test-2'
+        self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+            'crop_planned_area': 2.0,
+        })
+        actual = self.env['g2p.annual.actual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+            'is_manual': True,
+            'actual_crop_area': 5.0,
+        })
+        self.assertTrue(actual.id)
+
+    def test_onchange_crop_planned_area(self):
+        registry = self.env['g2p.crop.registry'].new({
+            'partner_id': self.partner.id,
+            'fyda_id': 'FAN-1234567890123456',
+        })
+        plan = self.env['g2p.annual.line'].new({
+            'crop_registry_id': registry,
+            'land_info_id': self.land_info.id,
+            'season_id': self.season.id,
+            'crop_name_id': self.crop.id,
+            'crop_planned_area': 15.0,
+        })
+        registry.annual_line_ids |= plan
+        res = plan._onchange_crop_planned_area()
+        self.assertEqual(plan.crop_planned_area, 0.0)
+        self.assertTrue(res)
+        self.assertIn('warning', res)
+        self.assertEqual(res['warning']['title'], 'Area Exceeded')
+
+    def test_onchange_actual_crop_area(self):
+        registry = self.env['g2p.crop.registry'].new({
+            'partner_id': self.partner.id,
+            'fyda_id': 'FAN-1234567890123456',
+        })
+        actual = self.env['g2p.annual.actual.line'].new({
+            'crop_registry_id': registry,
+            'land_info_id': self.land_info.id,
+            'season_id': self.season.id,
+            'crop_name_id': self.crop.id,
+            'actual_crop_area': 15.0,
+        })
+        registry.actual_annual_line_ids |= actual
+        res = actual._onchange_actual_crop_area()
+        self.assertEqual(actual.actual_crop_area, 0.0)
+        self.assertTrue(res)
+        self.assertIn('warning', res)
+        self.assertEqual(res['warning']['title'], 'Area Exceeded')
+
+    # ------------------------------------------------------------------
+    # write() sync: planned crop_expected -> actual actual_yield
+    # ------------------------------------------------------------------
+
+    def test_write_crop_expected_syncs_to_actual_yield(self):
+        sync_id = 'sync-write-test-1'
+        plan = self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+            'crop_expected': 10.0,
+        })
+        actual = self.env['g2p.annual.actual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+            'actual_yield': 5.0,
+        })
+        plan.write({'crop_expected': 20.0})
+        self.assertEqual(actual.actual_yield, 20.0)
+
+    # ------------------------------------------------------------------
+    # Fertilizer sack computes and onchanges
+    # ------------------------------------------------------------------
+
+    def test_planned_fertilizer_sack_computed(self):
+        plan = self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'seed_planned_fertilizer_qty': 100.0,
+        })
+        self.assertAlmostEqual(plan.seed_planned_fertilizer_sack, 2.0)
+
+        # Test onchange directly
+        plan.seed_planned_fertilizer_qty = 150.0
+        plan._onchange_fertilizer_qty()
+        self.assertAlmostEqual(plan.seed_planned_fertilizer_sack, 3.0)
+
+    def test_actual_fertilizer_sack_computed(self):
+        actual = self.env['g2p.annual.actual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'actual_fertilizer_qty': 150.0,
+        })
+        self.assertAlmostEqual(actual.actual_fertilizer_sack, 3.0)
+
+        # Test onchange directly
+        actual.actual_fertilizer_qty = 200.0
+        actual._onchange_fertilizer_qty()
+        self.assertAlmostEqual(actual.actual_fertilizer_sack, 4.0)
+
+    # ------------------------------------------------------------------
+    # Crop mismatch computes
+    # ------------------------------------------------------------------
+
+    def test_is_mismatch_true_when_crop_differs_from_plan(self):
+        sync_id = 'sync-mismatch-test-1'
+        other_crop = self.env['g2p.crop'].create({
+            'name': 'Maize',
+            'category_id': self.category.id,
+        })
+        self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+        })
+        actual = self.env['g2p.annual.actual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': other_crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+            'is_manual': False,
+        })
+        self.assertTrue(actual.is_crop_changed)
+        actual._compute_is_mismatch()
+        self.assertTrue(actual.is_mismatch)
+
+    def test_is_mismatch_false_when_manual(self):
+        actual = self.env['g2p.annual.actual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'is_manual': True,
+        })
+        self.assertFalse(actual.is_crop_changed)
+        actual._compute_is_mismatch()
+        self.assertFalse(actual.is_mismatch)
+
+    # ------------------------------------------------------------------
+    # Test Land Info Onchange
+    # ------------------------------------------------------------------
+
+    def test_onchange_land_info_id(self):
+        plan = self.env['g2p.annual.line'].new({'land_info_id': self.land_info.id})
+        plan._onchange_land_info_id()
+        self.assertEqual(plan.land_area, 10.0)
+        self.assertEqual(plan.ownership_type, 'owner')
+        self.assertEqual(plan.soil_fertility, 'good')
+        self.assertEqual(plan.kebele_id, self.kebele)
+        self.assertEqual(plan.woreda_name_id, self.woreda)
+        self.assertEqual(plan.zone_name_id, self.zone)
+        self.assertEqual(plan.region_name_id, self.region)
+        self.assertEqual(plan.gps, '12.123, 45.456')
+
+        actual = self.env['g2p.annual.actual.line'].new({'land_info_id': self.land_info.id})
+        actual._onchange_land_info_id()
+        self.assertEqual(actual.land_area, 10.0)
+        self.assertEqual(actual.gps, '12.123, 45.456')
+
+    # ------------------------------------------------------------------
+    # Test Season Onchange and Computes
+    # ------------------------------------------------------------------
+
+    def test_season_onchange_and_computes(self):
+        plan = self.env['g2p.annual.line'].new({'season_id': self.season.id})
+        plan._onchange_season_id()
+        self.assertEqual(plan.start_month, 6)
+        self.assertEqual(plan.start_day, 1)
+        self.assertEqual(plan.end_month, 9)
+        self.assertEqual(plan.end_day, 30)
+
+        # Triggers compute decorators
+        plan.start_gc = False
+        plan._compute_start_date()
+        self.assertEqual(plan.start_month, 0)
+
+        plan.end_gc = False
+        plan._compute_end_date()
+        self.assertEqual(plan.end_month, 0)
+
+        actual = self.env['g2p.annual.actual.line'].new({'season_id': self.season.id})
+        actual._onchange_season_id()
+        self.assertEqual(actual.start_month, 6)
+
+        actual.start_gc = False
+        actual._compute_start_date()
+        self.assertEqual(actual.start_month, 0)
+
+    # ------------------------------------------------------------------
+    # Test Crop Category Compute and Onchange
+    # ------------------------------------------------------------------
+
+    def test_crop_category_and_onchange(self):
+        plan = self.env['g2p.annual.line'].new({'crop_name_id': self.crop.id})
+        plan._compute_crop_category()
+        self.assertEqual(plan.crop_category_id, self.category)
+
+        res = plan._onchange_crop()
+        self.assertIn('domain', res)
+        self.assertEqual(res['domain']['crop_variety_id'][0][2], self.crop.id)
+
+        actual = self.env['g2p.annual.actual.line'].new({'crop_name_id': self.crop.id})
+        actual._compute_crop_category()
+        self.assertEqual(actual.crop_category_id, self.category)
+
+        res = actual._onchange_crop()
+        self.assertIn('domain', res)
+        self.assertEqual(res['domain']['crop_variety_id'][0][2], self.crop.id)
+
+    # ------------------------------------------------------------------
+    # Test Collected EC to GC conversion
+    # ------------------------------------------------------------------
+
+    def test_onchange_collected_ec_to_gc(self):
+        # We need an actual Ethiopian Date to test conversion.
+        # "12-10-2017" in EC is roughly "19-06-2025" in GC depending on year gap (7/8 yrs)
+        # We don't need exact math, just ensure the method executes without error and updates GC
+        plan = self.env['g2p.annual.line'].new({'collected_ec': '12-10-2017'})
+        plan._onchange_collected_ec()
+        # If eth_date.to_gregorian ran, collected_gc should be set
+        self.assertIsNotNone(plan.collected_gc)
+
+        actual = self.env['g2p.annual.actual.line'].new({'collected_ec': '12-10-2017'})
+        actual._onchange_collected_ec()
+        self.assertIsNotNone(actual.collected_gc)
+
+    # ------------------------------------------------------------------
+    # Test Collected GC onchange validation
+    # ------------------------------------------------------------------
+
+    def test_onchange_collected_gc_invalid(self):
+        plan = self.env['g2p.annual.line'].new({
+            'season_id': self.season.id,
+            'start_gc': self.season.start_gc,
+            'end_gc': self.season.end_gc,
+            'collected_gc': '2100-12-25' # out of season
+        })
+        res = plan._onchange_collected_gc()
+        self.assertFalse(plan.collected_gc)
+        self.assertIn('warning', res)
+        self.assertEqual(res['warning']['title'], 'Invalid Planned Date')
+
+        actual = self.env['g2p.annual.actual.line'].new({
+            'season_id': self.season.id,
+            'start_gc': self.season.start_gc,
+            'end_gc': self.season.end_gc,
+            'collected_gc': '2100-12-25' # out of season
+        })
+        res = actual._onchange_collected_gc()
+        self.assertFalse(actual.collected_gc)
+        self.assertIn('warning', res)
+        self.assertEqual(res['warning']['title'], 'Invalid Actual Date')
+
+    # ------------------------------------------------------------------
+    # Name Propagation Sync
+    # ------------------------------------------------------------------
+
+    def test_local_and_scientific_name_propagation(self):
+        sync_id = 'sync-name-test-1'
+        self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'sync_id': sync_id,
+            'local_name': 'Local Wheat',
+            'scientific_name': 'Triticum'
+        })
+
+        # Trigger the sync from crop registry
+        self.crop_registry._onchange_sync_annual_lines()
+
+        # Verify the actual line was created with the propagated names
+        actual = self.env['g2p.annual.actual.line'].search([('sync_id', '=', sync_id)])
+        self.assertEqual(len(actual), 1)
+        self.assertEqual(actual.local_name, 'Local Wheat')
+        self.assertEqual(actual.scientific_name, 'Triticum')

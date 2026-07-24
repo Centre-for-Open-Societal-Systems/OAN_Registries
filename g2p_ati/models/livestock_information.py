@@ -84,8 +84,6 @@ class G2PLiveStockInformation(models.Model):
         ethiopian_date_str = eth_date.to_ethiopian(cdate.year, cdate.month, cdate.day)
         record.collected_ec = eth_date.convert_tuple_to_string_with_separator(ethiopian_date_str)
 
-        record.season = season.id if season else False
-
         season = self.env["g2p.season"].search(
             [
                 ("start_month", "<=", record.collected_gc.month),
@@ -96,8 +94,7 @@ class G2PLiveStockInformation(models.Model):
             limit=1,
         )
 
-        if season:
-            record.season = season.id
+        record.season = season.id if season else False
 
 
 class G2PIllnessType(models.Model):

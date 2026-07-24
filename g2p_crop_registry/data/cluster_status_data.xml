@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="cluster_status_clustered" model="g2p.cluster.status">
+            <field name="name">Clustered</field>
+        </record>
+        <record id="cluster_status_independent" model="g2p.cluster.status">
+            <field name="name">Independent</field>
+        </record>
+    </data>
+</odoo>

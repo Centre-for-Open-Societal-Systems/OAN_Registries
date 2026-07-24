@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- PRE-EMERGENT HERBICIDE -->
+        <record id="weedicide_pre_emergent_1" model="g2p.weedicide">
+            <field name="name">Pendimethalin</field>
+            <field name="code">pendimethalin</field>
+            <field name="weedicide_type">pre_emergent</field>
+        </record>
+        <record id="weedicide_pre_emergent_2" model="g2p.weedicide">
+            <field name="name">Atrazine</field>
+            <field name="code">atrazine</field>
+            <field name="weedicide_type">pre_emergent</field>
+        </record>
+        <record id="weedicide_pre_emergent_3" model="g2p.weedicide">
+            <field name="name">Butachlor</field>
+            <field name="code">butachlor</field>
+            <field name="weedicide_type">pre_emergent</field>
+        </record>
+        <record id="weedicide_pre_emergent_4" model="g2p.weedicide">
+            <field name="name">Metolachlor</field>
+            <field name="code">metolachlor</field>
+            <field name="weedicide_type">pre_emergent</field>
+        </record>
+        <record id="weedicide_pre_emergent_5" model="g2p.weedicide">
+            <field name="name">Oxyfluorfen</field>
+            <field name="code">oxyfluorfen</field>
+            <field name="weedicide_type">pre_emergent</field>
+        </record>
+        <record id="weedicide_pre_emergent_6" model="g2p.weedicide">
+            <field name="name">Pretilachlor</field>
+            <field name="code">pretilachlor</field>
+            <field name="weedicide_type">pre_emergent</field>
+        </record>
+        <record id="weedicide_pre_emergent_7" model="g2p.weedicide">
+            <field name="name">Alachlor</field>
+            <field name="code">alachlor</field>
+            <field name="weedicide_type">pre_emergent</field>
+        </record>
+        <record id="weedicide_pre_emergent_8" model="g2p.weedicide">
+            <field name="name">Isoproturon</field>
+            <field name="code">isoproturon</field>
+            <field name="weedicide_type">pre_emergent</field>
+        </record>
+        <record id="weedicide_pre_emergent_9" model="g2p.weedicide">
+            <field name="name">Fluchloralin</field>
+            <field name="code">fluchloralin</field>
+            <field name="weedicide_type">pre_emergent</field>
+        </record>
+        <record id="weedicide_pre_emergent_10" model="g2p.weedicide">
+            <field name="name">Trifluralin</field>
+            <field name="code">trifluralin</field>
+            <field name="weedicide_type">pre_emergent</field>
+        </record>
+
+        <!-- POST-EMERGENT HERBICIDE -->
+        <record id="weedicide_post_emergent_1" model="g2p.weedicide">
+            <field name="name">2,4-D</field>
+            <field name="code">2_4_d</field>
+            <field name="weedicide_type">post_emergent</field>
+        </record>
+        <record id="weedicide_post_emergent_2" model="g2p.weedicide">
+            <field name="name">Metsulfuron Methyl</field>
+            <field name="code">metsulfuron_methyl</field>
+            <field name="weedicide_type">post_emergent</field>
+        </record>
+        <record id="weedicide_post_emergent_3" model="g2p.weedicide">
+            <field name="name">Clodinafop</field>
+            <field name="code">clodinafop</field>
+            <field name="weedicide_type">post_emergent</field>
+        </record>
+        <record id="weedicide_post_emergent_4" model="g2p.weedicide">
+            <field name="name">Fenoxaprop</field>
+            <field name="code">fenoxaprop</field>
+            <field name="weedicide_type">post_emergent</field>
+        </record>
+        <record id="weedicide_post_emergent_5" model="g2p.weedicide">
+            <field name="name">Bispyribac Sodium</field>
+            <field name="code">bispyribac_sodium</field>
+            <field name="weedicide_type">post_emergent</field>
+        </record>
+        <record id="weedicide_post_emergent_6" model="g2p.weedicide">
+            <field name="name">Ethoxysulfuron</field>
+            <field name="code">ethoxysulfuron</field>
+            <field name="weedicide_type">post_emergent</field>
+        </record>
+        <record id="weedicide_post_emergent_7" model="g2p.weedicide">
+            <field name="name">Pinoxaden</field>
+            <field name="code">pinoxaden</field>
+            <field name="weedicide_type">post_emergent</field>
+        </record>
+        <record id="weedicide_post_emergent_8" model="g2p.weedicide">
+            <field name="name">Metribuzin</field>
+            <field name="code">metribuzin</field>
+            <field name="weedicide_type">post_emergent</field>
+        </record>
+        <record id="weedicide_post_emergent_9" model="g2p.weedicide">
+            <field name="name">Carfentrazone</field>
+            <field name="code">carfentrazone</field>
+            <field name="weedicide_type">post_emergent</field>
+        </record>
+        <record id="weedicide_post_emergent_10" model="g2p.weedicide">
+            <field name="name">Tembotrione</field>
+            <field name="code">tembotrione</field>
+            <field name="weedicide_type">post_emergent</field>
+        </record>
+
+        <!-- SYSTEMIC HERBICIDE -->
+        <record id="weedicide_systemic_1" model="g2p.weedicide">
+            <field name="name">Glyphosate</field>
+            <field name="code">glyphosate</field>
+            <field name="weedicide_type">systemic</field>
+        </record>
+        <record id="weedicide_systemic_2" model="g2p.weedicide">
+            <field name="name">2,4-D Amine</field>
+            <field name="code">2_4_d_amine</field>
+            <field name="weedicide_type">systemic</field>
+        </record>
+        <record id="weedicide_systemic_3" model="g2p.weedicide">
+            <field name="name">Imazethapyr</field>
+            <field name="code">imazethapyr</field>
+            <field name="weedicide_type">systemic</field>
+        </record>
+        <record id="weedicide_systemic_4" model="g2p.weedicide">
+            <field name="name">Metsulfuron</field>
+            <field name="code">metsulfuron</field>
+            <field name="weedicide_type">systemic</field>
+        </record>
+        <record id="weedicide_systemic_5" model="g2p.weedicide">
+            <field name="name">Triclopyr</field>
+            <field name="code">triclopyr</field>
+            <field name="weedicide_type">systemic</field>
+        </record>
+        <record id="weedicide_systemic_6" model="g2p.weedicide">
+            <field name="name">Picloram</field>
+            <field name="code">picloram</field>
+            <field name="weedicide_type">systemic</field>
+        </record>
+        <record id="weedicide_systemic_7" model="g2p.weedicide">
+            <field name="name">Dicamba</field>
+            <field name="code">dicamba</field>
+            <field name="weedicide_type">systemic</field>
+        </record>
+        <record id="weedicide_systemic_8" model="g2p.weedicide">
+            <field name="name">Aminopyralid</field>
+            <field name="code">aminopyralid</field>
+            <field name="weedicide_type">systemic</field>
+        </record>
+        <record id="weedicide_systemic_9" model="g2p.weedicide">
+            <field name="name">Fluroxypyr</field>
+            <field name="code">fluroxypyr</field>
+            <field name="weedicide_type">systemic</field>
+        </record>
+        <record id="weedicide_systemic_10" model="g2p.weedicide">
+            <field name="name">Clopyralid</field>
+            <field name="code">clopyralid</field>
+            <field name="weedicide_type">systemic</field>
+        </record>
+
+        <!-- CONTACT HERBICIDE -->
+        <record id="weedicide_contact_1" model="g2p.weedicide">
+            <field name="name">Paraquat</field>
+            <field name="code">paraquat</field>
+            <field name="weedicide_type">contact</field>
+        </record>
+        <record id="weedicide_contact_2" model="g2p.weedicide">
+            <field name="name">Diquat</field>
+            <field name="code">diquat</field>
+            <field name="weedicide_type">contact</field>
+        </record>
+        <record id="weedicide_contact_3" model="g2p.weedicide">
+            <field name="name">Glufosinate</field>
+            <field name="code">glufosinate</field>
+            <field name="weedicide_type">contact</field>
+        </record>
+        <record id="weedicide_contact_4" model="g2p.weedicide">
+            <field name="name">Oxyfluorfen</field>
+            <field name="code">oxyfluorfen</field>
+            <field name="weedicide_type">contact</field>
+        </record>
+        <record id="weedicide_contact_5" model="g2p.weedicide">
+            <field name="name">Carfentrazone</field>
+            <field name="code">carfentrazone</field>
+            <field name="weedicide_type">contact</field>
+        </record>
+        <record id="weedicide_contact_6" model="g2p.weedicide">
+            <field name="name">Flumioxazin</field>
+            <field name="code">flumioxazin</field>
+            <field name="weedicide_type">contact</field>
+        </record>
+        <record id="weedicide_contact_7" model="g2p.weedicide">
+            <field name="name">Acifluorfen</field>
+            <field name="code">acifluorfen</field>
+            <field name="weedicide_type">contact</field>
+        </record>
+        <record id="weedicide_contact_8" model="g2p.weedicide">
+            <field name="name">Bentazon</field>
+            <field name="code">bentazon</field>
+            <field name="weedicide_type">contact</field>
+        </record>
+        <record id="weedicide_contact_9" model="g2p.weedicide">
+            <field name="name">Bromoxynil</field>
+            <field name="code">bromoxynil</field>
+            <field name="weedicide_type">contact</field>
+        </record>
+        <record id="weedicide_contact_10" model="g2p.weedicide">
+            <field name="name">Pyraflufen</field>
+            <field name="code">pyraflufen</field>
+            <field name="weedicide_type">contact</field>
+        </record>
+
+        <!-- GRAMINICIDE -->
+        <record id="weedicide_graminicide_1" model="g2p.weedicide">
+            <field name="name">Clodinafop</field>
+            <field name="code">clodinafop</field>
+            <field name="weedicide_type">graminicide</field>
+        </record>
+        <record id="weedicide_graminicide_2" model="g2p.weedicide">
+            <field name="name">Fenoxaprop</field>
+            <field name="code">fenoxaprop</field>
+            <field name="weedicide_type">graminicide</field>
+        </record>
+        <record id="weedicide_graminicide_3" model="g2p.weedicide">
+            <field name="name">Pinoxaden</field>
+            <field name="code">pinoxaden</field>
+            <field name="weedicide_type">graminicide</field>
+        </record>
+        <record id="weedicide_graminicide_4" model="g2p.weedicide">
+            <field name="name">Fluazifop</field>
+            <field name="code">fluazifop</field>
+            <field name="weedicide_type">graminicide</field>
+        </record>
+        <record id="weedicide_graminicide_5" model="g2p.weedicide">
+            <field name="name">Quizalofop</field>
+            <field name="code">quizalofop</field>
+            <field name="weedicide_type">graminicide</field>
+        </record>
+        <record id="weedicide_graminicide_6" model="g2p.weedicide">
+            <field name="name">Sethoxydim</field>
+            <field name="code">sethoxydim</field>
+            <field name="weedicide_type">graminicide</field>
+        </record>
+        <record id="weedicide_graminicide_7" model="g2p.weedicide">
+            <field name="name">Cycloxydim</field>
+            <field name="code">cycloxydim</field>
+            <field name="weedicide_type">graminicide</field>
+        </record>
+        <record id="weedicide_graminicide_8" model="g2p.weedicide">
+            <field name="name">Haloxyfop</field>
+            <field name="code">haloxyfop</field>
+            <field name="weedicide_type">graminicide</field>
+        </record>
+        <record id="weedicide_graminicide_9" model="g2p.weedicide">
+            <field name="name">Propaquizafop</field>
+            <field name="code">propaquizafop</field>
+            <field name="weedicide_type">graminicide</field>
+        </record>
+        <record id="weedicide_graminicide_10" model="g2p.weedicide">
+            <field name="name">Tralkoxydim</field>
+            <field name="code">tralkoxydim</field>
+            <field name="weedicide_type">graminicide</field>
+        </record>
+        <!-- BROADLEAF HERBICIDE -->
+        <record id="weedicide_broadleaf_1" model="g2p.weedicide">
+            <field name="name">2,4-D</field>
+            <field name="code">2_4_d</field>
+            <field name="weedicide_type">broadleaf</field>
+        </record>
+        <record id="weedicide_broadleaf_2" model="g2p.weedicide">
+            <field name="name">Dicamba</field>
+            <field name="code">dicamba</field>
+            <field name="weedicide_type">broadleaf</field>
+        </record>
+        <record id="weedicide_broadleaf_3" model="g2p.weedicide">
+            <field name="name">MCPA</field>
+            <field name="code">mcpa</field>
+            <field name="weedicide_type">broadleaf</field>
+        </record>
+        <record id="weedicide_broadleaf_4" model="g2p.weedicide">
+            <field name="name">Triclopyr</field>
+            <field name="code">triclopyr</field>
+            <field name="weedicide_type">broadleaf</field>
+        </record>
+        <record id="weedicide_broadleaf_5" model="g2p.weedicide">
+            <field name="name">Metsulfuron Methyl</field>
+            <field name="code">metsulfuron_methyl</field>
+            <field name="weedicide_type">broadleaf</field>
+        </record>
+        <record id="weedicide_broadleaf_6" model="g2p.weedicide">
+            <field name="name">Fluroxypyr</field>
+            <field name="code">fluroxypyr</field>
+            <field name="weedicide_type">broadleaf</field>
+        </record>
+        <record id="weedicide_broadleaf_7" model="g2p.weedicide">
+            <field name="name">Bentazon</field>
+            <field name="code">bentazon</field>
+            <field name="weedicide_type">broadleaf</field>
+        </record>
+        <record id="weedicide_broadleaf_8" model="g2p.weedicide">
+            <field name="name">Bromoxynil</field>
+            <field name="code">bromoxynil</field>
+            <field name="weedicide_type">broadleaf</field>
+        </record>
+        <record id="weedicide_broadleaf_9" model="g2p.weedicide">
+            <field name="name">Clopyralid</field>
+            <field name="code">clopyralid</field>
+            <field name="weedicide_type">broadleaf</field>
+        </record>
+        <record id="weedicide_broadleaf_10" model="g2p.weedicide">
+            <field name="name">Aminopyralid</field>
+            <field name="code">aminopyralid</field>
+            <field name="weedicide_type">broadleaf</field>
+        </record>
+
+        <!-- SEDGE HERBICIDE -->
+        <record id="weedicide_sedge_1" model="g2p.weedicide">
+            <field name="name">Halosulfuron Methyl</field>
+            <field name="code">halosulfuron_methyl</field>
+            <field name="weedicide_type">sedge</field>
+        </record>
+        <record id="weedicide_sedge_2" model="g2p.weedicide">
+            <field name="name">Ethoxysulfuron</field>
+            <field name="code">ethoxysulfuron</field>
+            <field name="weedicide_type">sedge</field>
+        </record>
+        <record id="weedicide_sedge_3" model="g2p.weedicide">
+            <field name="name">Bispyribac Sodium</field>
+            <field name="code">bispyribac_sodium</field>
+            <field name="weedicide_type">sedge</field>
+        </record>
+        <record id="weedicide_sedge_4" model="g2p.weedicide">
+            <field name="name">Imazosulfuron</field>
+            <field name="code">imazosulfuron</field>
+            <field name="weedicide_type">sedge</field>
+        </record>
+        <record id="weedicide_sedge_5" model="g2p.weedicide">
+            <field name="name">Bentazon</field>
+            <field name="code">bentazon</field>
+            <field name="weedicide_type">sedge</field>
+        </record>
+        <record id="weedicide_sedge_6" model="g2p.weedicide">
+            <field name="name">2,4-D + Metsulfuron</field>
+            <field name="code">2_4_d_metsulfuron</field>
+            <field name="weedicide_type">sedge</field>
+        </record>
+        <record id="weedicide_sedge_7" model="g2p.weedicide">
+            <field name="name">Pyrazosulfuron</field>
+            <field name="code">pyrazosulfuron</field>
+            <field name="weedicide_type">sedge</field>
+        </record>
+        <record id="weedicide_sedge_8" model="g2p.weedicide">
+            <field name="name">Penoxsulam</field>
+            <field name="code">penoxsulam</field>
+            <field name="weedicide_type">sedge</field>
+        </record>
+
+        <!-- AQUATIC HERBICIDE -->
+        <record id="weedicide_aquatic_1" model="g2p.weedicide">
+            <field name="name">Copper Sulphate</field>
+            <field name="code">copper_sulphate</field>
+            <field name="weedicide_type">aquatic</field>
+        </record>
+        <record id="weedicide_aquatic_2" model="g2p.weedicide">
+            <field name="name">Diquat</field>
+            <field name="code">diquat</field>
+            <field name="weedicide_type">aquatic</field>
+        </record>
+        <record id="weedicide_aquatic_3" model="g2p.weedicide">
+            <field name="name">Fluridone</field>
+            <field name="code">fluridone</field>
+            <field name="weedicide_type">aquatic</field>
+        </record>
+        <record id="weedicide_aquatic_4" model="g2p.weedicide">
+            <field name="name">Endothall</field>
+            <field name="code">endothall</field>
+            <field name="weedicide_type">aquatic</field>
+        </record>
+        <record id="weedicide_aquatic_5" model="g2p.weedicide">
+            <field name="name">Triclopyr</field>
+            <field name="code">triclopyr</field>
+            <field name="weedicide_type">aquatic</field>
+        </record>
+        <record id="weedicide_aquatic_6" model="g2p.weedicide">
+            <field name="name">Imazapyr</field>
+            <field name="code">imazapyr</field>
+            <field name="weedicide_type">aquatic</field>
+        </record>
+        <record id="weedicide_aquatic_7" model="g2p.weedicide">
+            <field name="name">Glyphosate</field>
+            <field name="code">glyphosate</field>
+            <field name="weedicide_type">aquatic</field>
+        </record>
+        <record id="weedicide_aquatic_8" model="g2p.weedicide">
+            <field name="name">2,4-D Amine</field>
+            <field name="code">2_4_d_amine</field>
+            <field name="weedicide_type">aquatic</field>
+        </record>
+
+        <!-- FOLIAR HERBICIDE -->
+        <record id="weedicide_foliar_1" model="g2p.weedicide">
+            <field name="name">Glyphosate</field>
+            <field name="code">glyphosate</field>
+            <field name="weedicide_type">foliar</field>
+        </record>
+        <record id="weedicide_foliar_2" model="g2p.weedicide">
+            <field name="name">Glufosinate</field>
+            <field name="code">glufosinate</field>
+            <field name="weedicide_type">foliar</field>
+        </record>
+        <record id="weedicide_foliar_3" model="g2p.weedicide">
+            <field name="name">2,4-D</field>
+            <field name="code">2_4_d</field>
+            <field name="weedicide_type">foliar</field>
+        </record>
+        <record id="weedicide_foliar_4" model="g2p.weedicide">
+            <field name="name">Triclopyr</field>
+            <field name="code">triclopyr</field>
+            <field name="weedicide_type">foliar</field>
+        </record>
+        <record id="weedicide_foliar_5" model="g2p.weedicide">
+            <field name="name">Dicamba</field>
+            <field name="code">dicamba</field>
+            <field name="weedicide_type">foliar</field>
+        </record>
+        <record id="weedicide_foliar_6" model="g2p.weedicide">
+            <field name="name">Paraquat</field>
+            <field name="code">paraquat</field>
+            <field name="weedicide_type">foliar</field>
+        </record>
+        <record id="weedicide_foliar_7" model="g2p.weedicide">
+            <field name="name">Fenoxaprop</field>
+            <field name="code">fenoxaprop</field>
+            <field name="weedicide_type">foliar</field>
+        </record>
+        <record id="weedicide_foliar_8" model="g2p.weedicide">
+            <field name="name">Fluazifop</field>
+            <field name="code">fluazifop</field>
+            <field name="weedicide_type">foliar</field>
+        </record>
+        <record id="weedicide_foliar_9" model="g2p.weedicide">
+            <field name="name">Metsulfuron</field>
+            <field name="code">metsulfuron</field>
+            <field name="weedicide_type">foliar</field>
+        </record>
+        <record id="weedicide_foliar_10" model="g2p.weedicide">
+            <field name="name">Imazethapyr</field>
+            <field name="code">imazethapyr</field>
+            <field name="weedicide_type">foliar</field>
+        </record>
+
+        <!-- SOIL HERBICIDE -->
+        <record id="weedicide_soil_1" model="g2p.weedicide">
+            <field name="name">Pendimethalin</field>
+            <field name="code">pendimethalin</field>
+            <field name="weedicide_type">soil</field>
+        </record>
+        <record id="weedicide_soil_2" model="g2p.weedicide">
+            <field name="name">Atrazine</field>
+            <field name="code">atrazine</field>
+            <field name="weedicide_type">soil</field>
+        </record>
+        <record id="weedicide_soil_3" model="g2p.weedicide">
+            <field name="name">Metolachlor</field>
+            <field name="code">metolachlor</field>
+            <field name="weedicide_type">soil</field>
+        </record>
+        <record id="weedicide_soil_4" model="g2p.weedicide">
+            <field name="name">Trifluralin</field>
+            <field name="code">trifluralin</field>
+            <field name="weedicide_type">soil</field>
+        </record>
+        <record id="weedicide_soil_5" model="g2p.weedicide">
+            <field name="name">Alachlor</field>
+            <field name="code">alachlor</field>
+            <field name="weedicide_type">soil</field>
+        </record>
+        <record id="weedicide_soil_6" model="g2p.weedicide">
+            <field name="name">Simazine</field>
+            <field name="code">simazine</field>
+            <field name="weedicide_type">soil</field>
+        </record>
+        <record id="weedicide_soil_7" model="g2p.weedicide">
+            <field name="name">Isoxaflutole</field>
+            <field name="code">isoxaflutole</field>
+            <field name="weedicide_type">soil</field>
+        </record>
+        <record id="weedicide_soil_8" model="g2p.weedicide">
+            <field name="name">Flumetsulam</field>
+            <field name="code">flumetsulam</field>
+            <field name="weedicide_type">soil</field>
+        </record>
+        <record id="weedicide_soil_9" model="g2p.weedicide">
+            <field name="name">Clomazone</field>
+            <field name="code">clomazone</field>
+            <field name="weedicide_type">soil</field>
+        </record>
+        <record id="weedicide_soil_10" model="g2p.weedicide">
+            <field name="name">Metribuzin</field>
+            <field name="code">metribuzin</field>
+            <field name="weedicide_type">soil</field>
+        </record>
+    </data>
+</odoo>

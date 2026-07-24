@@ -7,6 +7,20 @@ class Region(models.Model):
 
     name = fields.Char("Region")
 
+    # Spatial / MOA Admin Fields
+    admin0_name = fields.Char("Admin 0 Name")
+    admin0_pcod = fields.Char("Admin 0 P-Code")
+    admin1_pcod = fields.Char("Admin 1 P-Code")
+    admin1_refn = fields.Char("Admin 1 Reference Name")
+    admin1_altn = fields.Char("Admin 1 Alternate Name")
+    admin1_al_1 = fields.Char("Admin 1 Alternate Name 1")
+    shape_length = fields.Float("Shape Length")
+    shape_area = fields.Float("Shape Area")
+    date = fields.Date("Date")
+    valid_on = fields.Date("Valid On")
+    valid_to = fields.Date("Valid To")
+    geom = fields.Text("Geometry")
+
     @api.constrains("name")
     def _check_name(self):
         for record in self:
@@ -51,6 +65,26 @@ class Zone(models.Model):
     code = fields.Char(required=True, index=True)
     name = fields.Char(required=True, string="Zone")
 
+    # Spatial / MOA Admin Fields
+    admin2_pcod = fields.Char("Admin 2 P-Code")
+    admin2_refn = fields.Char("Admin 2 Reference Name")
+    admin2_altn = fields.Char("Admin 2 Alternate Name")
+    admin2_al_1 = fields.Char("Admin 2 Alternate Name 1")
+    lat = fields.Float("Latitude")
+    long = fields.Float("Longitude")
+    shape_length = fields.Float("Shape Length")
+    shape_area = fields.Float("Shape Area")
+
+    date = fields.Date("Date")
+    valid_on = fields.Date("Valid On")
+    valid_to = fields.Date("Valid To")
+    geom = fields.Text("Geometry")
+
+    # Related Admin Fields
+    admin1_name = fields.Char(related="region.name", string="Admin 1 Name", readonly=True)
+    admin1_pcod = fields.Char(related="region.admin1_pcod", string="Admin 1 P-Code", readonly=True)
+    admin0_name = fields.Char(related="region.admin0_name", string="Admin 0 Name", readonly=True)
+    admin0_pcod = fields.Char(related="region.admin0_pcod", string="Admin 0 P-Code", readonly=True)
     @api.constrains("region")
     def _check_zone(self):
         for record in self:
@@ -91,6 +125,26 @@ class Woreda(models.Model):
     code = fields.Char(required=True, index=True)
     name = fields.Char(required=True, string="Woreda")
 
+    # Spatial / MOA Admin Fields
+    admin3_pcod = fields.Char("Admin 3 P-Code")
+    admin3_refn = fields.Char("Admin 3 Reference Name")
+    admin3_altn = fields.Char("Admin 3 Alternate Name")
+    admin3_al_1 = fields.Char("Admin 3 Alternate Name 1")
+    shape_length = fields.Float("Shape Length")
+    shape_area = fields.Float("Shape Area")
+
+    date = fields.Date("Date")
+    valid_on = fields.Date("Valid On")
+    valid_to = fields.Date("Valid To")
+    geom = fields.Text("Geometry")
+
+    # Related Admin Fields
+    admin2_name = fields.Char(related="zone.name", string="Admin 2 Name", readonly=True)
+    admin2_pcod = fields.Char(related="zone.admin2_pcod", string="Admin 2 P-Code", readonly=True)
+    admin1_name = fields.Char(related="zone.region.name", string="Admin 1 Name", readonly=True)
+    admin1_pcod = fields.Char(related="zone.region.admin1_pcod", string="Admin 1 P-Code", readonly=True)
+    admin0_name = fields.Char(related="zone.region.admin0_name", string="Admin 0 Name", readonly=True)
+    admin0_pcod = fields.Char(related="zone.region.admin0_pcod", string="Admin 0 P-Code", readonly=True)
     @api.model
     def name_search(self, name, args=None, operator="ilike", limit=100):
         args = args or []
