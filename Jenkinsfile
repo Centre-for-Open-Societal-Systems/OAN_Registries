@@ -7,8 +7,8 @@ pipeline {
         AWS_REGION     = "ap-south-1"
         ECR_REGISTRY   = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
-        OPENG2P_REGISTRY_REF        = "v1.3.0"
-        OPENG2P_SOCIAL_REGISTRY_REF = "v1.3.0"
+        OPENG2P_REGISTRY_REF        = "v1.5.10"
+        OPENG2P_SOCIAL_REGISTRY_REF = "v1.5.8"
         OPENG2P_COMMUNITY_REF       = "v1.2.5"
     }
 
