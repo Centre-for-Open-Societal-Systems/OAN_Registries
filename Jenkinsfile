@@ -95,6 +95,8 @@ pipeline {
                             -n dev
 
                         kubectl rollout status deployment/${DEPLOYMENT_NAME} -n dev --timeout=120s
+                        kubectl exec -n dev deploy/${DEPLOYMENT_NAME} -- \
+                            sh -c 'nohup python3 /mnt/openg2p-ati/g2p_ati_consent_mgt/utils/mock_fayda_otp_api.py > /tmp/mock_fayda.log 2>&1 &'
                     """
                 }
             }
