@@ -362,12 +362,6 @@ class G2PAnnualActualLine(models.Model):
             same_land_annual = self.crop_registry_id.actual_annual_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
             total_actual += sum(same_land_annual.mapped('actual_crop_area'))
 
-            same_land_perennial = self.crop_registry_id.actual_perennial_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
-            total_actual += sum(same_land_perennial.mapped('actual_crop_area'))
-
-            same_land_biennial = self.crop_registry_id.actual_biennial_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
-            total_actual += sum(same_land_biennial.mapped('actual_crop_area'))
-
             max_area = self.land_info_id.total_land_area
             if total_actual > max_area:
                 attempted_area = self.actual_crop_area

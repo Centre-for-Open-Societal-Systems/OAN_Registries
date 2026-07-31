@@ -29,8 +29,10 @@ class TestCropProduction(TransactionCase):
             'farmer_display_id': 'Test Farmer',
         })
 
-        cls.season = cls.env['g2p.season'].search([], limit=1)
-        if not cls.season:
+        seasons = cls.env['g2p.season'].search([], limit=1)
+        if seasons:
+            cls.season = seasons[0]
+        else:
             cls.season = cls.env['g2p.season'].create({
                 'name': 'Test Season',
                 'start_gc': '2025-06-01',
@@ -250,10 +252,10 @@ class TestCropProduction(TransactionCase):
 
         self.assertEqual(cluster_info.start_gc, self.season.start_gc)
         self.assertEqual(cluster_info.end_gc, self.season.end_gc)
-        self.assertEqual(cluster_info.start_month, 6)
-        self.assertEqual(cluster_info.start_day, 1)
-        self.assertEqual(cluster_info.end_month, 9)
-        self.assertEqual(cluster_info.end_day, 30)
+        self.assertEqual(cluster_info.start_month, self.season.start_month)
+        self.assertEqual(cluster_info.start_day, self.season.start_day)
+        self.assertEqual(cluster_info.end_month, self.season.end_month)
+        self.assertEqual(cluster_info.end_day, self.season.end_day)
 
     def test_actual_planted_date_sync_to_production(self):
         # Create an annual actual crop line

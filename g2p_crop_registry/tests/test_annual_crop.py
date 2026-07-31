@@ -35,17 +35,24 @@ class TestAnnualCrop(TransactionCase):
             'farmer_display_id': 'Test Farmer',
         })
 
-        seasons = cls.env['g2p.season'].search([], limit=2)
+        seasons = cls.env['g2p.season'].search([], limit=1)
         if seasons:
             cls.season = seasons[0]
-            cls.wrap_season = seasons[1] if len(seasons) > 1 else cls.season
         else:
             cls.season = cls.env['g2p.season'].create({
                 'name': 'Test Season',
                 'start_gc': '2025-06-01',
                 'end_gc': '2025-09-30',
             })
-            cls.wrap_season = cls.season
+        wrap_seasons = cls.env['g2p.season'].search([('name', '=', 'Test Wrap Season')], limit=1)
+        if wrap_seasons:
+            cls.wrap_season = wrap_seasons[0]
+        else:
+            cls.wrap_season = cls.env['g2p.season'].create({
+                'name': 'Test Wrap Season',
+                'start_gc': '2025-11-01',
+                'end_gc': '2026-02-28',
+            })
 
         # Region, Zone, Woreda, Kebele hierarchy for land info
         cls.region = cls.env['g2p.region'].create({'name': 'Test Region', 'code': 'R1'})
@@ -396,10 +403,10 @@ class TestAnnualCrop(TransactionCase):
     def test_season_onchange_and_computes(self):
         plan = self.env['g2p.annual.line'].new({'season_id': self.season.id})
         plan._onchange_season_id()
-        self.assertEqual(plan.start_month, 6)
-        self.assertEqual(plan.start_day, 1)
-        self.assertEqual(plan.end_month, 9)
-        self.assertEqual(plan.end_day, 30)
+        self.assertEqual(plan.start_month, self.season.start_month)
+        self.assertEqual(plan.start_day, self.season.start_day)
+        self.assertEqual(plan.end_month, self.season.end_month)
+        self.assertEqual(plan.end_day, self.season.end_day)
 
         # Triggers compute decorators
         plan.start_gc = False

@@ -223,13 +223,7 @@ class TestCropRegistry(TransactionCase):
 
         # Test full sync methods
         crop_registry._onchange_sync_annual_lines()
-        crop_registry._onchange_sync_perennial_lines()
-        crop_registry._onchange_sync_biennial_lines()
-
         crop_registry._onchange_sync_actual_to_production_annual()
-        crop_registry._onchange_sync_actual_to_production_perennial()
-        crop_registry._onchange_sync_actual_to_production_biennial()
-
         crop_registry._onchange_sync_production_to_actual()
 
         crop_registry._sync_production_cached_values()

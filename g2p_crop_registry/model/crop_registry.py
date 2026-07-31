@@ -45,26 +45,15 @@ class G2PCrop(models.Model):
         "crop_registry_id",
         string="Planned Input",
     )
-    biennial_line_ids = fields.One2many(
-        "g2p.biennial.line",
-        "crop_registry_id",
-        string="Biennial Crops",
-    )
-    perennial_line_ids = fields.One2many(
-        "g2p.perennial.line",
-        "crop_registry_id",
-        string="Perennial Crops",
-    )
-
     has_no_planning_data = fields.Boolean(
         string="Has No Planning Data",
         compute="_compute_has_no_planning_data"
     )
 
-    @api.depends('annual_line_ids', 'perennial_line_ids', 'biennial_line_ids')
+    @api.depends('annual_line_ids')
     def _compute_has_no_planning_data(self):
         for rec in self:
-            rec.has_no_planning_data = not (rec.annual_line_ids or rec.perennial_line_ids or rec.biennial_line_ids)
+            rec.has_no_planning_data = not rec.annual_line_ids
 
     # =======================================
     # UI Fields: Cultivation / Land Preparation
@@ -74,32 +63,15 @@ class G2PCrop(models.Model):
         "crop_registry_id",
         string="Actual Input",
     )
-    actual_biennial_line_ids = fields.One2many(
-        "g2p.biennial.actual.line",
-        "crop_registry_id",
-        string="Biennial Crops (Actual)",
-    )
-    actual_perennial_line_ids = fields.One2many(
-        "g2p.perennial.actual.line",
-        "crop_registry_id",
-        string="Perennial Crops (Actual)",
-    )
+
     actual_crop_area_exceeded = fields.Boolean(compute="_compute_actual_crop_area_exceeded")
     actual_crop_area_warning = fields.Text(compute="_compute_actual_crop_area_exceeded")
 
-    @api.depends('actual_annual_line_ids.actual_crop_area', 'actual_annual_line_ids.land_info_id',
-                 'actual_perennial_line_ids.actual_crop_area', 'actual_perennial_line_ids.land_info_id',
-                 'actual_biennial_line_ids.actual_crop_area', 'actual_biennial_line_ids.land_info_id')
+    @api.depends('actual_annual_line_ids.actual_crop_area', 'actual_annual_line_ids.land_info_id')
     def _compute_actual_crop_area_exceeded(self):
         for rec in self:
             land_areas = {}
             for line in rec.actual_annual_line_ids:
-                if line.land_info_id:
-                    land_areas[line.land_info_id] = land_areas.get(line.land_info_id, 0.0) + line.actual_crop_area
-            for line in rec.actual_perennial_line_ids:
-                if line.land_info_id:
-                    land_areas[line.land_info_id] = land_areas.get(line.land_info_id, 0.0) + line.actual_crop_area
-            for line in rec.actual_biennial_line_ids:
                 if line.land_info_id:
                     land_areas[line.land_info_id] = land_areas.get(line.land_info_id, 0.0) + line.actual_crop_area
 
@@ -485,8 +457,6 @@ class G2PCrop(models.Model):
 
 
             'production_detail_ids': [(5, 0, 0)],
-            'actual_perennial_line_ids': [(5, 0, 0)],
-            'actual_biennial_line_ids': [(5, 0, 0)],
 
         })
         return {
@@ -510,8 +480,8 @@ class G2PCrop(models.Model):
         if is_sms and not is_wah and not is_admin:
             allowed_records = self.env['g2p.crop.registry']
             for record in self:
-                editing_planning = any(f in vals for f in ['annual_line_ids', 'perennial_line_ids', 'biennial_line_ids'])
-                editing_cultivation = any(f in vals for f in ['actual_annual_line_ids', 'actual_perennial_line_ids', 'actual_biennial_line_ids'])
+                editing_planning = any(f in vals for f in ['annual_line_ids'])
+                editing_cultivation = any(f in vals for f in ['actual_annual_line_ids'])
                 editing_sowing = any(f in vals for f in ['production_detail_ids'])
                 editing_harvesting = any(f in vals for f in ['harvest_detail_ids'])
 
@@ -551,7 +521,7 @@ class G2PCrop(models.Model):
             self = allowed_records
 
         sync_direction = None
-        if any(f in vals for f in ['actual_annual_line_ids', 'actual_perennial_line_ids', 'actual_biennial_line_ids']):
+        if 'actual_annual_line_ids' in vals:
             sync_direction = 'actual_to_prod'
         elif 'production_detail_ids' in vals or 'harvest_detail_ids' in vals:
             sync_direction = 'prod_to_actual'
@@ -592,22 +562,16 @@ class G2PCrop(models.Model):
                 if not prod.sync_id:
                     continue
 
-                # --- Look up planning line (any category) by sync_id ---
+                # --- Look up planning line by sync_id ---
                 planned_annual = rec.annual_line_ids.filtered(lambda l: l.sync_id == prod.sync_id)
-                planned_perennial = rec.perennial_line_ids.filtered(lambda l: l.sync_id == prod.sync_id)
-                planned_biennial = rec.biennial_line_ids.filtered(lambda l: l.sync_id == prod.sync_id)
-                planned_line = (planned_annual or planned_perennial or planned_biennial)
-                planned = planned_line[0] if planned_line else None
+                planned = planned_annual[0] if planned_annual else None
 
                 expected_yield = planned.crop_expected if planned else 0.0
                 planned_area = planned.crop_planned_area if planned else 0.0
 
                 # --- Look up cultivation (actual) line by sync_id ---
                 actual_annual = rec.actual_annual_line_ids.filtered(lambda l: l.sync_id == prod.sync_id)
-                actual_perennial = rec.actual_perennial_line_ids.filtered(lambda l: l.sync_id == prod.sync_id)
-                actual_biennial = rec.actual_biennial_line_ids.filtered(lambda l: l.sync_id == prod.sync_id)
-                actual_line = (actual_annual or actual_perennial or actual_biennial)
-                actual = actual_line[0] if actual_line else None
+                actual = actual_annual[0] if actual_annual else None
 
                 seed_qty = actual.actual_seed_qty if actual else 0.0
                 fert_qty = actual.actual_fertilizer_qty if actual else 0.0
@@ -718,33 +682,6 @@ class G2PCrop(models.Model):
                         new_info = self.env['g2p.crop.information'].create(vals)
                         _sync_water_lines(partner, s_line)
 
-            elif record.actual_biennial_line_ids:
-                for b_line in record.actual_biennial_line_ids:
-                    b_line.is_mismatch = False
-            elif record.actual_perennial_line_ids:
-                for h_line in record.actual_perennial_line_ids:
-                    if not h_line.crop_name_id:
-                        continue
-                    existing = self.env['g2p.crop.information'].search([
-                        ('partner_id', '=', partner.id),
-                        ('crop', '=', h_line.crop_name_id.id),
-                        ('collected_gc', '=', h_line.collected_gc),
-                    ], limit=1)
-
-                    vals = {
-                        'partner_id': partner.id,
-                        'crop': h_line.crop_name_id.id,
-                        'season': h_line.season_id.id,
-                        'collected_gc': h_line.collected_gc,
-                        'collected_ec': h_line.collected_ec,
-                    }
-                    if existing:
-                        existing.write(vals)
-                        _sync_water_lines(partner, h_line)
-                    else:
-                        new_info = self.env['g2p.crop.information'].create(vals)
-                        _sync_water_lines(partner, h_line)
-
     @api.onchange('partner_id')
     def _onchange_partner_id_details(self):
         if self.partner_id:
@@ -830,18 +767,12 @@ class G2PCrop(models.Model):
     primary_season_id = fields.Many2one('g2p.season', compute='_compute_primary_crop_details', store=True, string="Season")
     primary_plot_category = fields.Selection([('annual', 'Annual Crop'), ('perennial', 'Perennial Crop'), ('biennial', 'Biennial Crop')], compute='_compute_primary_crop_details', store=True, string="Plot Category")
 
-    @api.depends('annual_line_ids.crop_name_id', 'annual_line_ids.crop_variety_id', 'annual_line_ids.land_info_id', 'annual_line_ids.season_id', 'annual_line_ids.land_category',
-                 'perennial_line_ids.crop_name_id', 'perennial_line_ids.crop_variety_id', 'perennial_line_ids.land_info_id', 'perennial_line_ids.season_id', 'perennial_line_ids.land_category',
-                 'biennial_line_ids.crop_name_id', 'biennial_line_ids.crop_variety_id', 'biennial_line_ids.land_info_id', 'biennial_line_ids.season_id', 'biennial_line_ids.land_category')
+    @api.depends('annual_line_ids.crop_name_id', 'annual_line_ids.crop_variety_id', 'annual_line_ids.land_info_id', 'annual_line_ids.season_id', 'annual_line_ids.land_category')
     def _compute_primary_crop_details(self):
         for rec in self:
             first_line = False
             if rec.annual_line_ids:
                 first_line = rec.annual_line_ids[0]
-            elif rec.perennial_line_ids:
-                first_line = rec.perennial_line_ids[0]
-            elif hasattr(rec, 'biennial_line_ids') and rec.biennial_line_ids:
-                first_line = rec.biennial_line_ids[0]
 
             rec.crop_name_id = first_line.crop_name_id.id if first_line and first_line.crop_name_id else False
             rec.crop_category_id = first_line.crop_name_id.category_id.id if first_line and first_line.crop_name_id and first_line.crop_name_id.category_id else False
@@ -863,7 +794,7 @@ class G2PCrop(models.Model):
                         "Fayda ID must be in this format: FAN-1234567890123456"
                     )
 
-    @api.constrains('actual_annual_line_ids', 'actual_perennial_line_ids', 'actual_biennial_line_ids')
+    @api.constrains('actual_annual_line_ids')
     def _check_actual_crop_area_limits(self):
         for rec in self:
             if rec.actual_crop_area_exceeded:
@@ -1101,738 +1032,19 @@ class G2PCrop(models.Model):
                         if prod.expected_yield != planned_line.crop_expected:
                             prod.expected_yield = planned_line.crop_expected
 
-            # 2. Sync Perennial Lines
-            for planned_line in rec.perennial_line_ids:
-                if not planned_line.land_info_id and not planned_line.temporary_land_id and not planned_line.season_id and not planned_line.crop_name_id:
-                    continue
-
-                if not planned_line.sync_id:
-                    planned_line.sync_id = str(uuid.uuid4())
-
-                existing_actual = rec.actual_perennial_line_ids.filtered(
-                    lambda l: l.sync_id == planned_line.sync_id or (not l.sync_id and l.season_id == planned_line.season_id and l.crop_name_id == planned_line.crop_name_id)
-                )
-                if not existing_actual:
-                    self.env['g2p.perennial.actual.line'].create({
-                        'crop_registry_id': rec.id,
-                        'sync_id': planned_line.sync_id,
-                        'is_manual': False,
-                        'is_planning': True,
-                        'season_id': planned_line.season_id.id if planned_line.season_id else False,
-                        'land_category': planned_line.land_category if planned_line.land_category else False,
-                        'ownership_type': planned_line.ownership_type if planned_line.ownership_type else False,
-                        'land_area': planned_line.land_area,
-                        'soil_fertility': planned_line.soil_fertility,
-                        'start_gc': planned_line.start_gc,
-                        'end_gc': planned_line.end_gc,
-                        'region_name_id': planned_line.region_name_id.id if planned_line.region_name_id else False,
-                        'zone_name_id': planned_line.zone_name_id.id if planned_line.zone_name_id else False,
-                        'woreda_name_id': planned_line.woreda_name_id.id if planned_line.woreda_name_id else False,
-                        'kebele_id': planned_line.kebele_id.id if planned_line.kebele_id else False,
-                        'land_info_id': planned_line.land_info_id.id if planned_line.land_info_id else False,
-                        'gps': planned_line.gps,
-                        'crop_name_id': planned_line.crop_name_id.id if planned_line.crop_name_id else False,
-                        'crop_category_id': planned_line.crop_category_id.id if planned_line.crop_category_id else False,
-                        'crop_variety_id': planned_line.crop_variety_id.id if planned_line.crop_variety_id else False,
-                        'local_name': planned_line.local_name,
-                        'scientific_name': planned_line.scientific_name,
-                        'actual_crop_area': planned_line.crop_planned_area,
-                        'actual_growth_duration': planned_line.crop_growth_duration,
-                        'has_cluster_farming': planned_line.has_cluster_farming if planned_line.has_cluster_farming else False,
-                        'actual_yield': planned_line.crop_expected if planned_line.crop_expected else 0.0,
-                        'collected_gc': planned_line.collected_gc if planned_line.collected_gc else False,
-                        'collected_ec': planned_line.collected_ec if planned_line.collected_ec else False,
-                        'actual_seed_class': planned_line.seed_planned if planned_line.seed_planned else False,
-                        'actual_seed_source': planned_line.seed_source if planned_line.seed_source else False,
-                        'actual_seed_qty': planned_line.seed_planned_qty if planned_line.seed_planned_qty else 0.0,
-                        'actual_fertilizer_qty': planned_line.seed_planned_fertilizer_qty if planned_line.seed_planned_fertilizer_qty else 0.0,
-                        'actual_fertilizer_type': planned_line.seed_planned_fertilizer_type if planned_line.seed_planned_fertilizer_type else False,
-                        'cropping_system': planned_line.cropping_system if planned_line.cropping_system else False,
-                        'water_resource_line_ids': [(0, 0, {
-                            'water_resource_id': w.water_resource_id.id,
-                            'method_id': w.method_id,
-                            'frequency': w.frequency,
-                        }) for w in planned_line.water_resource_line_ids],
-                        'cluster_info_ids': [(6, 0, planned_line.cluster_info_ids.ids)],
-                    })
-                else:
-                    for actual in existing_actual:
-                        if actual.is_manual:
-                            actual.is_manual = False
-                            actual.is_planning = True
-                        if not actual.sync_id:
-                            actual.sync_id = planned_line.sync_id
-                        if planned_line.crop_name_id and actual.crop_name_id != planned_line.crop_name_id:
-                            actual.crop_name_id = planned_line.crop_name_id.id
-                        if actual.crop_variety_id != planned_line.crop_variety_id:
-                            actual.crop_variety_id = planned_line.crop_variety_id.id if planned_line.crop_variety_id else False
-                        if planned_line.season_id and actual.season_id != planned_line.season_id:
-                            actual.season_id = planned_line.season_id.id
-                        if planned_line.land_info_id and actual.land_info_id != planned_line.land_info_id:
-                            actual.land_info_id = planned_line.land_info_id.id
-                        if planned_line.region_name_id and actual.region_name_id != planned_line.region_name_id:
-                            actual.region_name_id = planned_line.region_name_id.id
-                        if planned_line.zone_name_id and actual.zone_name_id != planned_line.zone_name_id:
-                            actual.zone_name_id = planned_line.zone_name_id.id
-                        if planned_line.woreda_name_id and actual.woreda_name_id != planned_line.woreda_name_id:
-                            actual.woreda_name_id = planned_line.woreda_name_id.id
-                        if planned_line.kebele_id and actual.kebele_id != planned_line.kebele_id:
-                            actual.kebele_id = planned_line.kebele_id.id
-                        if planned_line.gps and actual.gps != planned_line.gps:
-                            actual.gps = planned_line.gps
-                        if planned_line.ownership_type and actual.ownership_type != planned_line.ownership_type:
-                            actual.ownership_type = planned_line.ownership_type
-                        if planned_line.land_area and actual.land_area != planned_line.land_area:
-                            actual.land_area = planned_line.land_area
-                        if planned_line.soil_fertility and actual.soil_fertility != planned_line.soil_fertility:
-                            actual.soil_fertility = planned_line.soil_fertility
-                        if planned_line.land_category and actual.land_category != planned_line.land_category:
-                            actual.land_category = planned_line.land_category
-                        if planned_line.start_gc and actual.start_gc != planned_line.start_gc:
-                            actual.start_gc = planned_line.start_gc
-                        if planned_line.end_gc and actual.end_gc != planned_line.end_gc:
-                            actual.end_gc = planned_line.end_gc
-                        if planned_line.local_name != actual.local_name:
-                            actual.local_name = planned_line.local_name
-                        if planned_line.scientific_name != actual.scientific_name:
-                            actual.scientific_name = planned_line.scientific_name
-                        if planned_line.crop_planned_area and actual.actual_crop_area != planned_line.crop_planned_area:
-                            actual.actual_crop_area = planned_line.crop_planned_area
-                        if planned_line.crop_growth_duration and actual.actual_growth_duration != planned_line.crop_growth_duration:
-                            actual.actual_growth_duration = planned_line.crop_growth_duration
-                        if planned_line.seed_planned and actual.actual_seed_class != planned_line.seed_planned:
-                            actual.actual_seed_class = planned_line.seed_planned
-                        if actual.actual_seed_source != planned_line.seed_source:
-                            actual.actual_seed_source = planned_line.seed_source
-                        if planned_line.seed_planned_qty and actual.actual_seed_qty != planned_line.seed_planned_qty:
-                            actual.actual_seed_qty = planned_line.seed_planned_qty
-                        if planned_line.collected_gc and actual.collected_gc != planned_line.collected_gc:
-                            actual.collected_gc = planned_line.collected_gc
-                        if planned_line.collected_ec and actual.collected_ec != planned_line.collected_ec:
-                            actual.collected_ec = planned_line.collected_ec
-                        if planned_line.seed_planned_fertilizer_type and actual.actual_fertilizer_type != planned_line.seed_planned_fertilizer_type:
-                            actual.actual_fertilizer_type = planned_line.seed_planned_fertilizer_type
-                        if planned_line.seed_planned_fertilizer_qty and actual.actual_fertilizer_qty != planned_line.seed_planned_fertilizer_qty:
-                            actual.actual_fertilizer_qty = planned_line.seed_planned_fertilizer_qty
-                        if planned_line.has_cluster_farming != actual.has_cluster_farming:
-                            actual.has_cluster_farming = planned_line.has_cluster_farming
-                        if set(planned_line.cluster_info_ids.ids) != set(actual.cluster_info_ids.ids):
-                            actual.cluster_info_ids = [(6, 0, planned_line.cluster_info_ids.ids)]
-                            for cinfo in planned_line.cluster_info_ids:
-                                if not cinfo.actual_cluster_plan:
-                                    cinfo.actual_cluster_plan = cinfo.cluster_plan
-                                if not cinfo.actual_cluster_collected_land:
-                                    cinfo.actual_cluster_collected_land = cinfo.cluster_collected_land
-                                if not cinfo.actual_cluster_collected_quintal:
-                                    cinfo.actual_cluster_collected_quintal = cinfo.cluster_collected_quintal
-                                if not cinfo.actual_cluster_participant_farmers:
-                                    cinfo.actual_cluster_participant_farmers = cinfo.cluster_participant_farmers
-                                if not cinfo.actual_collected_land:
-                                    cinfo.actual_collected_land = cinfo.collected_land
-                                if not cinfo.actual_collected_land_quintal:
-                                    cinfo.actual_collected_land_quintal = cinfo.collected_land_quintal
-                                if not cinfo.actual_collected_by_combiner:
-                                    cinfo.actual_collected_by_combiner = cinfo.collected_by_combiner
-
-                        actual.actual_yield = planned_line.crop_expected
-
-                        if actual.cropping_system != planned_line.cropping_system:
-                            actual.cropping_system = planned_line.cropping_system
-
-                        planned_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in planned_line.water_resource_line_ids}
-                        actual_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in actual.water_resource_line_ids}
-                        if planned_waters != actual_waters:
-                            actual.water_resource_line_ids = [(5, 0, 0)] + [(0, 0, {
-                                'water_resource_id': w.water_resource_id.id,
-                                'method_id': w.method_id,
-                                'frequency': w.frequency,
-                            }) for w in planned_line.water_resource_line_ids]
-
-                # Sync Production Details
-                existing_production = rec.production_detail_ids.filtered(
-                    lambda p: p.sync_id == planned_line.sync_id or (not p.sync_id and p.season_id == planned_line.season_id and p.crop_name_id == planned_line.crop_name_id)
-                )
-                if not existing_production:
-                    new_prod = self.env['g2p.crop.production'].create({
-                        'crop_registry_id': rec.id,
-                        'sync_id': planned_line.sync_id,
-                        'season_id': planned_line.season_id.id if planned_line.season_id else False,
-                        'land_info_id': planned_line.land_info_id.id if planned_line.land_info_id else False,
-                        'crop_name_id': planned_line.crop_name_id.id if planned_line.crop_name_id else False,
-                        'expected_yield': planned_line.crop_expected,
-                    })
-                else:
-                    for prod in existing_production:
-                        if not prod.sync_id:
-                            prod.sync_id = planned_line.sync_id
-                        if planned_line.crop_name_id and prod.crop_name_id != planned_line.crop_name_id:
-                            prod.crop_name_id = planned_line.crop_name_id.id
-                        if planned_line.season_id and prod.season_id != planned_line.season_id:
-                            prod.season_id = planned_line.season_id.id
-                        if planned_line.land_info_id and prod.land_info_id != planned_line.land_info_id:
-                            prod.land_info_id = planned_line.land_info_id.id
-                        if prod.expected_yield != planned_line.crop_expected:
-                            prod.expected_yield = planned_line.crop_expected
-
-            # 3. Sync Biennial Lines
-            for planned_line in rec.biennial_line_ids:
-                if not planned_line.land_info_id and not planned_line.temporary_land_id and not planned_line.season_id and not planned_line.crop_name_id:
-                    continue
-
-                if not planned_line.sync_id:
-                    planned_line.sync_id = str(uuid.uuid4())
-
-                existing_actual = rec.actual_biennial_line_ids.filtered(
-                    lambda l: l.sync_id == planned_line.sync_id or (not l.sync_id and l.season_id == planned_line.season_id and l.crop_name_id == planned_line.crop_name_id)
-                )
-                if not existing_actual:
-                    self.env['g2p.biennial.actual.line'].create({
-                        'crop_registry_id': rec.id,
-                        'sync_id': planned_line.sync_id,
-                        'is_manual': False,
-                        'is_planning': True,
-                        'season_id': planned_line.season_id.id if planned_line.season_id else False,
-                        'land_category': planned_line.land_category if planned_line.land_category else False,
-                        'ownership_type': planned_line.ownership_type if planned_line.ownership_type else False,
-                        'land_area': planned_line.land_area,
-                        'soil_fertility': planned_line.soil_fertility,
-                        'start_gc': planned_line.start_gc,
-                        'end_gc': planned_line.end_gc,
-                        'region_name_id': planned_line.region_name_id.id if planned_line.region_name_id else False,
-                        'zone_name_id': planned_line.zone_name_id.id if planned_line.zone_name_id else False,
-                        'woreda_name_id': planned_line.woreda_name_id.id if planned_line.woreda_name_id else False,
-                        'kebele_id': planned_line.kebele_id.id if planned_line.kebele_id else False,
-                        'land_info_id': planned_line.land_info_id.id if planned_line.land_info_id else False,
-                        'gps': planned_line.gps,
-                        'crop_name_id': planned_line.crop_name_id.id if planned_line.crop_name_id else False,
-                        'crop_category_id': planned_line.crop_category_id.id if planned_line.crop_category_id else False,
-                        'crop_variety_id': planned_line.crop_variety_id.id if planned_line.crop_variety_id else False,
-                        'local_name': planned_line.local_name,
-                        'scientific_name': planned_line.scientific_name,
-                        'actual_crop_area': planned_line.crop_planned_area,
-                        'actual_growth_duration': planned_line.crop_growth_duration,
-                        'has_cluster_farming': planned_line.has_cluster_farming if planned_line.has_cluster_farming else False,
-                        'actual_yield': planned_line.crop_expected if planned_line.crop_expected else 0.0,
-                        'collected_gc': planned_line.collected_gc if planned_line.collected_gc else False,
-                        'collected_ec': planned_line.collected_ec if planned_line.collected_ec else False,
-                        'actual_seed_class': planned_line.seed_planned if planned_line.seed_planned else False,
-                        'actual_seed_source': planned_line.seed_source if planned_line.seed_source else False,
-                        'actual_seed_qty': planned_line.seed_planned_qty if planned_line.seed_planned_qty else 0.0,
-                        'actual_fertilizer_qty': planned_line.seed_planned_fertilizer_qty if planned_line.seed_planned_fertilizer_qty else 0.0,
-                        'actual_fertilizer_type': planned_line.seed_planned_fertilizer_type if planned_line.seed_planned_fertilizer_type else False,
-                        'cropping_system': planned_line.cropping_system if planned_line.cropping_system else False,
-                        'water_resource_line_ids': [(0, 0, {
-                            'water_resource_id': w.water_resource_id.id,
-                            'method_id': w.method_id,
-                            'frequency': w.frequency,
-                        }) for w in planned_line.water_resource_line_ids],
-                        'cluster_info_ids': [(6, 0, planned_line.cluster_info_ids.ids)],
-                    })
-                else:
-                    for actual in existing_actual:
-                        if actual.is_manual:
-                            actual.is_manual = False
-                            actual.is_planning = True
-                        if not actual.sync_id:
-                            actual.sync_id = planned_line.sync_id
-                        if planned_line.crop_name_id and actual.crop_name_id != planned_line.crop_name_id:
-                            actual.crop_name_id = planned_line.crop_name_id.id
-                        if actual.crop_variety_id != planned_line.crop_variety_id:
-                            actual.crop_variety_id = planned_line.crop_variety_id.id if planned_line.crop_variety_id else False
-                        if planned_line.season_id and actual.season_id != planned_line.season_id:
-                            actual.season_id = planned_line.season_id.id
-                        if planned_line.land_info_id and actual.land_info_id != planned_line.land_info_id:
-                            actual.land_info_id = planned_line.land_info_id.id
-                        if planned_line.region_name_id and actual.region_name_id != planned_line.region_name_id:
-                            actual.region_name_id = planned_line.region_name_id.id
-                        if planned_line.zone_name_id and actual.zone_name_id != planned_line.zone_name_id:
-                            actual.zone_name_id = planned_line.zone_name_id.id
-                        if planned_line.woreda_name_id and actual.woreda_name_id != planned_line.woreda_name_id:
-                            actual.woreda_name_id = planned_line.woreda_name_id.id
-                        if planned_line.kebele_id and actual.kebele_id != planned_line.kebele_id:
-                            actual.kebele_id = planned_line.kebele_id.id
-                        if planned_line.gps and actual.gps != planned_line.gps:
-                            actual.gps = planned_line.gps
-                        if planned_line.ownership_type and actual.ownership_type != planned_line.ownership_type:
-                            actual.ownership_type = planned_line.ownership_type
-                        if planned_line.land_area and actual.land_area != planned_line.land_area:
-                            actual.land_area = planned_line.land_area
-                        if planned_line.soil_fertility and actual.soil_fertility != planned_line.soil_fertility:
-                            actual.soil_fertility = planned_line.soil_fertility
-                        if planned_line.land_category and actual.land_category != planned_line.land_category:
-                            actual.land_category = planned_line.land_category
-                        if planned_line.start_gc and actual.start_gc != planned_line.start_gc:
-                            actual.start_gc = planned_line.start_gc
-                        if planned_line.end_gc and actual.end_gc != planned_line.end_gc:
-                            actual.end_gc = planned_line.end_gc
-                        if planned_line.local_name != actual.local_name:
-                            actual.local_name = planned_line.local_name
-                        if planned_line.scientific_name != actual.scientific_name:
-                            actual.scientific_name = planned_line.scientific_name
-                        if planned_line.crop_planned_area and actual.actual_crop_area != planned_line.crop_planned_area:
-                            actual.actual_crop_area = planned_line.crop_planned_area
-                        if planned_line.crop_growth_duration and actual.actual_growth_duration != planned_line.crop_growth_duration:
-                            actual.actual_growth_duration = planned_line.crop_growth_duration
-                        if planned_line.seed_planned and actual.actual_seed_class != planned_line.seed_planned:
-                            actual.actual_seed_class = planned_line.seed_planned
-                        if actual.actual_seed_source != planned_line.seed_source:
-                            actual.actual_seed_source = planned_line.seed_source
-                        if planned_line.seed_planned_qty and actual.actual_seed_qty != planned_line.seed_planned_qty:
-                            actual.actual_seed_qty = planned_line.seed_planned_qty
-                        if planned_line.collected_gc and actual.collected_gc != planned_line.collected_gc:
-                            actual.collected_gc = planned_line.collected_gc
-                        if planned_line.collected_ec and actual.collected_ec != planned_line.collected_ec:
-                            actual.collected_ec = planned_line.collected_ec
-                        if planned_line.seed_planned_fertilizer_type and actual.actual_fertilizer_type != planned_line.seed_planned_fertilizer_type:
-                            actual.actual_fertilizer_type = planned_line.seed_planned_fertilizer_type
-                        if planned_line.seed_planned_fertilizer_qty and actual.actual_fertilizer_qty != planned_line.seed_planned_fertilizer_qty:
-                            actual.actual_fertilizer_qty = planned_line.seed_planned_fertilizer_qty
-                        if planned_line.has_cluster_farming != actual.has_cluster_farming:
-                            actual.has_cluster_farming = planned_line.has_cluster_farming
-                        if set(planned_line.cluster_info_ids.ids) != set(actual.cluster_info_ids.ids):
-                            actual.cluster_info_ids = [(6, 0, planned_line.cluster_info_ids.ids)]
-                            for cinfo in planned_line.cluster_info_ids:
-                                if not cinfo.actual_cluster_plan:
-                                    cinfo.actual_cluster_plan = cinfo.cluster_plan
-                                if not cinfo.actual_cluster_collected_land:
-                                    cinfo.actual_cluster_collected_land = cinfo.cluster_collected_land
-                                if not cinfo.actual_cluster_collected_quintal:
-                                    cinfo.actual_cluster_collected_quintal = cinfo.cluster_collected_quintal
-                                if not cinfo.actual_cluster_participant_farmers:
-                                    cinfo.actual_cluster_participant_farmers = cinfo.cluster_participant_farmers
-                                if not cinfo.actual_collected_land:
-                                    cinfo.actual_collected_land = cinfo.collected_land
-                                if not cinfo.actual_collected_land_quintal:
-                                    cinfo.actual_collected_land_quintal = cinfo.collected_land_quintal
-                                if not cinfo.actual_collected_by_combiner:
-                                    cinfo.actual_collected_by_combiner = cinfo.collected_by_combiner
-
-                        actual.actual_yield = planned_line.crop_expected
-
-                        if actual.cropping_system != planned_line.cropping_system:
-                            actual.cropping_system = planned_line.cropping_system
-
-                        planned_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in planned_line.water_resource_line_ids}
-                        actual_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in actual.water_resource_line_ids}
-                        if planned_waters != actual_waters:
-                            actual.water_resource_line_ids = [(5, 0, 0)] + [(0, 0, {
-                                'water_resource_id': w.water_resource_id.id,
-                                'method_id': w.method_id,
-                                'frequency': w.frequency,
-                            }) for w in planned_line.water_resource_line_ids]
-
-                # Sync Production Details
-                existing_production = rec.production_detail_ids.filtered(
-                    lambda p: p.sync_id == planned_line.sync_id or (not p.sync_id and p.season_id == planned_line.season_id and p.crop_name_id == planned_line.crop_name_id)
-                )
-                if not existing_production:
-                    new_prod = self.env['g2p.crop.production'].create({
-                        'crop_registry_id': rec.id,
-                        'sync_id': planned_line.sync_id,
-                        'season_id': planned_line.season_id.id if planned_line.season_id else False,
-                        'land_info_id': planned_line.land_info_id.id if planned_line.land_info_id else False,
-                        'crop_name_id': planned_line.crop_name_id.id if planned_line.crop_name_id else False,
-                        'expected_yield': planned_line.crop_expected,
-                    })
-                else:
-                    for prod in existing_production:
-                        if not prod.sync_id:
-                            prod.sync_id = planned_line.sync_id
-                        if planned_line.crop_name_id and prod.crop_name_id != planned_line.crop_name_id:
-                            prod.crop_name_id = planned_line.crop_name_id.id
-                        if planned_line.season_id and prod.season_id != planned_line.season_id:
-                            prod.season_id = planned_line.season_id.id
-                        if planned_line.land_info_id and prod.land_info_id != planned_line.land_info_id:
-                            prod.land_info_id = planned_line.land_info_id.id
-                        if prod.expected_yield != planned_line.crop_expected:
-                            prod.expected_yield = planned_line.crop_expected
-
-            # Cleanup orphaned actual lines (all types)
+            # Cleanup orphaned actual lines
             planned_annual_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id]
-            planned_perennial_sync_ids = [l.sync_id for l in rec.perennial_line_ids if l.sync_id]
-            planned_biennial_sync_ids = [l.sync_id for l in rec.biennial_line_ids if l.sync_id]
-            valid_sync_ids = planned_annual_sync_ids + planned_perennial_sync_ids + planned_biennial_sync_ids + \
-                             [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual] + \
-                             [l.sync_id for l in rec.actual_perennial_line_ids if l.sync_id and l.is_manual] + \
-                             [l.sync_id for l in rec.actual_biennial_line_ids if l.sync_id and l.is_manual]
+            valid_sync_ids = planned_annual_sync_ids + \
+                             [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual]
 
             orphaned_annual_actual = rec.actual_annual_line_ids.filtered(lambda l: l.sync_id and not l.is_manual and l.sync_id not in planned_annual_sync_ids)
             if orphaned_annual_actual:
                 rec.actual_annual_line_ids -= orphaned_annual_actual
 
-            orphaned_perennial_actual = rec.actual_perennial_line_ids.filtered(lambda l: l.sync_id and not l.is_manual and l.sync_id not in planned_perennial_sync_ids)
-            if orphaned_perennial_actual:
-                rec.actual_perennial_line_ids -= orphaned_perennial_actual
-
-            orphaned_biennial_actual = rec.actual_biennial_line_ids.filtered(lambda l: l.sync_id and not l.is_manual and l.sync_id not in planned_biennial_sync_ids)
-            if orphaned_biennial_actual:
-                rec.actual_biennial_line_ids -= orphaned_biennial_actual
-
             orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
             if orphaned_prod:
                 rec.production_detail_ids -= orphaned_prod
 
-            rec.harvest_detail_ids = rec.production_detail_ids
-
-    @api.onchange('perennial_line_ids')
-    def _onchange_sync_perennial_lines(self):
-        for rec in self:
-            for planned_line in rec.perennial_line_ids:
-                if not planned_line.land_info_id and not planned_line.temporary_land_id and not planned_line.season_id and not planned_line.crop_name_id:
-                    continue
-
-                if not planned_line.sync_id:
-                    planned_line.sync_id = str(uuid.uuid4())
-
-                # Sync Actual Lines
-                existing_actual = rec.actual_perennial_line_ids.filtered(
-                    lambda l: l.sync_id == planned_line.sync_id or (not l.sync_id and l.season_id == planned_line.season_id and l.crop_name_id == planned_line.crop_name_id)
-                )
-                if not existing_actual:
-                    new_line = self.env['g2p.perennial.actual.line'].new({
-                        'sync_id': planned_line.sync_id,
-                        'is_manual': False,
-                        'is_planning': True,
-                        'season_id': planned_line.season_id.id if planned_line.season_id else False,
-                        'land_category': planned_line.land_category if planned_line.land_category else False,
-                        'ownership_type': planned_line.ownership_type if planned_line.ownership_type else False,
-                        'land_area': planned_line.land_area,
-                        'soil_fertility': planned_line.soil_fertility,
-                        'start_gc': planned_line.start_gc,
-                        'end_gc': planned_line.end_gc,
-                        'region_name_id': planned_line.region_name_id.id if planned_line.region_name_id else False,
-                        'zone_name_id': planned_line.zone_name_id.id if planned_line.zone_name_id else False,
-                        'land_info_id': planned_line.land_info_id.id if planned_line.land_info_id else False,
-                        'woreda_name_id': planned_line.woreda_name_id.id if planned_line.woreda_name_id else False,
-                        'kebele_id': planned_line.kebele_id.id if planned_line.kebele_id else False,
-                        'gps': planned_line.gps,
-                        'crop_name_id': planned_line.crop_name_id.id if planned_line.crop_name_id else False,
-                        'crop_category_id': planned_line.crop_category_id.id if planned_line.crop_category_id else False,
-                        'crop_variety_id': planned_line.crop_variety_id.id if planned_line.crop_variety_id else False,
-                        'local_name': planned_line.local_name,
-                        'scientific_name': planned_line.scientific_name,
-                        'actual_crop_area': planned_line.crop_planned_area,
-                        'actual_growth_duration': planned_line.crop_growth_duration,
-                        'has_cluster_farming': planned_line.has_cluster_farming if planned_line.has_cluster_farming else False,
-
-                        'actual_yield': planned_line.crop_expected if planned_line.crop_expected else 0.0,
-                        'collected_gc': planned_line.collected_gc if planned_line.collected_gc else False,
-                        'collected_ec': planned_line.collected_ec if planned_line.collected_ec else False,
-                        'actual_seed_class': planned_line.seed_planned if planned_line.seed_planned else False,
-                        'actual_seed_source': planned_line.seed_source if planned_line.seed_source else False,
-                        'actual_seed_qty': planned_line.seed_planned_qty if planned_line.seed_planned_qty else 0.0,
-                        'water_resource_line_ids': [(0, 0, {
-                            'water_resource_id': w.water_resource_id.id,
-                            'method_id': w.method_id,
-                            'frequency': w.frequency,
-                        }) for w in planned_line.water_resource_line_ids],
-                        'actual_fertilizer_qty': planned_line.seed_planned_fertilizer_qty if planned_line.seed_planned_fertilizer_qty else 0.0,
-                        'actual_fertilizer_type': planned_line.seed_planned_fertilizer_type if planned_line.seed_planned_fertilizer_type else False,
-                        'cropping_system': planned_line.cropping_system if planned_line.cropping_system else False,
-                        'cluster_info_ids': [(6, 0, planned_line.cluster_info_ids.ids)],
-                    })
-                    rec.actual_perennial_line_ids += new_line
-                else:
-                    for actual in existing_actual:
-                        if actual.is_manual:
-                            actual.is_manual = False
-                            actual.is_planning = True
-                        if not actual.sync_id:
-                            actual.sync_id = planned_line.sync_id
-                        if planned_line.crop_name_id and actual.crop_name_id != planned_line.crop_name_id:
-                            actual.crop_name_id = planned_line.crop_name_id.id
-                        if actual.crop_variety_id != planned_line.crop_variety_id:
-                            actual.crop_variety_id = planned_line.crop_variety_id.id if planned_line.crop_variety_id else False
-                        if planned_line.seed_planned and actual.actual_seed_class != planned_line.seed_planned:
-                            actual.actual_seed_class = planned_line.seed_planned
-                        if actual.actual_seed_source != planned_line.seed_source:
-                            actual.actual_seed_source = planned_line.seed_source
-                        if planned_line.local_name != actual.local_name:
-                            actual.local_name = planned_line.local_name
-                        if planned_line.scientific_name != actual.scientific_name:
-                            actual.scientific_name = planned_line.scientific_name
-                        if planned_line.crop_planned_area and actual.actual_crop_area != planned_line.crop_planned_area:
-                            actual.actual_crop_area = planned_line.crop_planned_area
-                        if planned_line.crop_growth_duration and actual.actual_growth_duration != planned_line.crop_growth_duration:
-                            actual.actual_growth_duration = planned_line.crop_growth_duration
-                        if planned_line.seed_planned_qty and actual.actual_seed_qty != planned_line.seed_planned_qty:
-                            actual.actual_seed_qty = planned_line.seed_planned_qty
-                        if planned_line.collected_gc and actual.collected_gc != planned_line.collected_gc:
-                            actual.collected_gc = planned_line.collected_gc
-                        if planned_line.collected_ec and actual.collected_ec != planned_line.collected_ec:
-                            actual.collected_ec = planned_line.collected_ec
-                        if planned_line.seed_planned_fertilizer_type and actual.actual_fertilizer_type != planned_line.seed_planned_fertilizer_type:
-                            actual.actual_fertilizer_type = planned_line.seed_planned_fertilizer_type
-                        if planned_line.seed_planned_fertilizer_qty and actual.actual_fertilizer_qty != planned_line.seed_planned_fertilizer_qty:
-                            actual.actual_fertilizer_qty = planned_line.seed_planned_fertilizer_qty
-                        if planned_line.land_info_id and actual.land_info_id != planned_line.land_info_id:
-                            actual.land_info_id = planned_line.land_info_id.id
-                        if planned_line.region_name_id and actual.region_name_id != planned_line.region_name_id:
-                            actual.region_name_id = planned_line.region_name_id.id
-                        if planned_line.zone_name_id and actual.zone_name_id != planned_line.zone_name_id:
-                            actual.zone_name_id = planned_line.zone_name_id.id
-                        if planned_line.woreda_name_id and actual.woreda_name_id != planned_line.woreda_name_id:
-                            actual.woreda_name_id = planned_line.woreda_name_id.id
-                        if planned_line.kebele_id and actual.kebele_id != planned_line.kebele_id:
-                            actual.kebele_id = planned_line.kebele_id.id
-                        if planned_line.gps and actual.gps != planned_line.gps:
-                            actual.gps = planned_line.gps
-                        if planned_line.land_category and actual.land_category != planned_line.land_category:
-                            actual.land_category = planned_line.land_category
-                        if planned_line.has_cluster_farming != actual.has_cluster_farming:
-                            actual.has_cluster_farming = planned_line.has_cluster_farming
-                        if set(planned_line.cluster_info_ids.ids) != set(actual.cluster_info_ids.ids):
-                            actual.cluster_info_ids = [(6, 0, planned_line.cluster_info_ids.ids)]
-                            for cinfo in planned_line.cluster_info_ids:
-                                if not cinfo.actual_cluster_plan:
-                                    cinfo.actual_cluster_plan = cinfo.cluster_plan
-                                if not cinfo.actual_cluster_collected_land:
-                                    cinfo.actual_cluster_collected_land = cinfo.cluster_collected_land
-                                if not cinfo.actual_cluster_collected_quintal:
-                                    cinfo.actual_cluster_collected_quintal = cinfo.cluster_collected_quintal
-                                if not cinfo.actual_cluster_participant_farmers:
-                                    cinfo.actual_cluster_participant_farmers = cinfo.cluster_participant_farmers
-                                if not cinfo.actual_collected_land:
-                                    cinfo.actual_collected_land = cinfo.collected_land
-                                if not cinfo.actual_collected_land_quintal:
-                                    cinfo.actual_collected_land_quintal = cinfo.collected_land_quintal
-                                if not cinfo.actual_collected_by_combiner:
-                                    cinfo.actual_collected_by_combiner = cinfo.collected_by_combiner
-
-
-                        # Always propagate expected yield from planning → cultivation
-                        actual.actual_yield = planned_line.crop_expected
-
-                        if actual.cropping_system != planned_line.cropping_system:
-                            actual.cropping_system = planned_line.cropping_system
-
-                        planned_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in planned_line.water_resource_line_ids}
-                        actual_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in actual.water_resource_line_ids}
-                        if planned_waters != actual_waters:
-                            actual.water_resource_line_ids = [(5, 0, 0)] + [(0, 0, {
-                                'water_resource_id': w.water_resource_id.id,
-                                'method_id': w.method_id,
-                                'frequency': w.frequency,
-                            }) for w in planned_line.water_resource_line_ids]
-
-                # Sync Production Details
-                existing_production = rec.production_detail_ids.filtered(
-                    lambda p: p.sync_id == planned_line.sync_id or (not p.sync_id and p.season_id == planned_line.season_id and p.crop_name_id == planned_line.crop_name_id)
-                )
-                if not existing_production:
-                    new_prod = self.env['g2p.crop.production'].new({
-                        'sync_id': planned_line.sync_id,
-                        'season_id': planned_line.season_id.id if planned_line.season_id else False,
-                        'land_info_id': planned_line.land_info_id.id if planned_line.land_info_id else False,
-                        'crop_name_id': planned_line.crop_name_id.id,
-                        'expected_yield': planned_line.crop_expected,
-                    })
-                    rec.production_detail_ids += new_prod
-                else:
-                    for prod in existing_production:
-                        if not prod.sync_id:
-                            prod.sync_id = planned_line.sync_id
-                        if planned_line.crop_name_id and prod.crop_name_id != planned_line.crop_name_id:
-                            prod.crop_name_id = planned_line.crop_name_id.id
-                        if planned_line.season_id and prod.season_id != planned_line.season_id:
-                            prod.season_id = planned_line.season_id.id
-                        if planned_line.land_info_id and prod.land_info_id != planned_line.land_info_id:
-                            prod.land_info_id = planned_line.land_info_id.id
-                        if prod.expected_yield != planned_line.crop_expected:
-                            prod.expected_yield = planned_line.crop_expected
-
-            # Cleanup orphaned perennial actual lines
-            planned_perennial_sync_ids = [l.sync_id for l in rec.perennial_line_ids if l.sync_id]
-            valid_sync_ids = planned_perennial_sync_ids + [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual] + [l.sync_id for l in rec.actual_perennial_line_ids if l.sync_id and l.is_manual] + [l.sync_id for l in rec.actual_biennial_line_ids if l.sync_id and l.is_manual]
-            orphaned_perennial_actual = rec.actual_perennial_line_ids.filtered(lambda l: l.sync_id and not l.is_manual and l.sync_id not in planned_perennial_sync_ids)
-            if orphaned_perennial_actual:
-                rec.actual_perennial_line_ids -= orphaned_perennial_actual
-
-            # Check for orphaned production lines
-            orphaned_perennial_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
-            if orphaned_perennial_prod:
-                rec.production_detail_ids -= orphaned_perennial_prod
-
-            rec.harvest_detail_ids = rec.production_detail_ids
-
-    @api.onchange('biennial_line_ids')
-    def _onchange_sync_biennial_lines(self):
-        for rec in self:
-            for planned_line in rec.biennial_line_ids:
-                if not planned_line.land_info_id and not planned_line.temporary_land_id and not planned_line.season_id and not planned_line.crop_name_id:
-                    continue
-
-                if not planned_line.sync_id:
-                    planned_line.sync_id = str(uuid.uuid4())
-
-                # Sync Actual Lines
-                existing_actual = rec.actual_biennial_line_ids.filtered(
-                    lambda l: l.sync_id == planned_line.sync_id or (not l.sync_id and l.season_id == planned_line.season_id and l.crop_name_id == planned_line.crop_name_id)
-                )
-                if not existing_actual:
-                    new_line = self.env['g2p.biennial.actual.line'].new({
-                        'sync_id': planned_line.sync_id,
-                        'is_manual': False,
-                        'is_planning': True,
-                        'season_id': planned_line.season_id.id if planned_line.season_id else False,
-                        'land_category': planned_line.land_category if planned_line.land_category else False,
-                        'ownership_type': planned_line.ownership_type if planned_line.ownership_type else False,
-                        'land_area': planned_line.land_area,
-                        'soil_fertility': planned_line.soil_fertility,
-                        'start_gc': planned_line.start_gc,
-                        'end_gc': planned_line.end_gc,
-                        'region_name_id': planned_line.region_name_id.id if planned_line.region_name_id else False,
-                        'zone_name_id': planned_line.zone_name_id.id if planned_line.zone_name_id else False,
-                        'land_info_id': planned_line.land_info_id.id if planned_line.land_info_id else False,
-                        'woreda_name_id': planned_line.woreda_name_id.id if planned_line.woreda_name_id else False,
-                        'kebele_id': planned_line.kebele_id.id if planned_line.kebele_id else False,
-                        'gps': planned_line.gps,
-                        'crop_name_id': planned_line.crop_name_id.id if planned_line.crop_name_id else False,
-                        'crop_category_id': planned_line.crop_category_id.id if planned_line.crop_category_id else False,
-                        'crop_variety_id': planned_line.crop_variety_id.id if planned_line.crop_variety_id else False,
-                        'local_name': planned_line.local_name,
-                        'scientific_name': planned_line.scientific_name,
-                        'actual_crop_area': planned_line.crop_planned_area,
-                        'actual_growth_duration': planned_line.crop_growth_duration,
-                        'has_cluster_farming': planned_line.has_cluster_farming if planned_line.has_cluster_farming else False,
-
-                        'actual_yield': planned_line.crop_expected if planned_line.crop_expected else 0.0,
-                        'collected_gc': planned_line.collected_gc if planned_line.collected_gc else False,
-                        'collected_ec': planned_line.collected_ec if planned_line.collected_ec else False,
-                        'actual_seed_class': planned_line.seed_planned if planned_line.seed_planned else False,
-                        'actual_seed_source': planned_line.seed_source if planned_line.seed_source else False,
-                        'actual_seed_qty': planned_line.seed_planned_qty if planned_line.seed_planned_qty else 0.0,
-                        'water_resource_line_ids': [(0, 0, {
-                            'water_resource_id': w.water_resource_id.id,
-                            'method_id': w.method_id,
-                            'frequency': w.frequency,
-                        }) for w in planned_line.water_resource_line_ids],
-                        'actual_fertilizer_qty': planned_line.seed_planned_fertilizer_qty if planned_line.seed_planned_fertilizer_qty else 0.0,
-                        'actual_fertilizer_type': planned_line.seed_planned_fertilizer_type if planned_line.seed_planned_fertilizer_type else False,
-                        'cropping_system': planned_line.cropping_system if planned_line.cropping_system else False,
-                        'cluster_info_ids': [(6, 0, planned_line.cluster_info_ids.ids)],
-                    })
-                    rec.actual_biennial_line_ids += new_line
-                else:
-                    for actual in existing_actual:
-                        if actual.is_manual:
-                            actual.is_manual = False
-                            actual.is_planning = True
-                        if not actual.sync_id:
-                            actual.sync_id = planned_line.sync_id
-                        if planned_line.crop_name_id and actual.crop_name_id != planned_line.crop_name_id:
-                            actual.crop_name_id = planned_line.crop_name_id.id
-                        if actual.crop_variety_id != planned_line.crop_variety_id:
-                            actual.crop_variety_id = planned_line.crop_variety_id.id if planned_line.crop_variety_id else False
-                        if planned_line.seed_planned and actual.actual_seed_class != planned_line.seed_planned:
-                            actual.actual_seed_class = planned_line.seed_planned
-                        if actual.actual_seed_source != planned_line.seed_source:
-                            actual.actual_seed_source = planned_line.seed_source
-                        if planned_line.local_name != actual.local_name:
-                            actual.local_name = planned_line.local_name
-                        if planned_line.scientific_name != actual.scientific_name:
-                            actual.scientific_name = planned_line.scientific_name
-                        if planned_line.crop_planned_area and actual.actual_crop_area != planned_line.crop_planned_area:
-                            actual.actual_crop_area = planned_line.crop_planned_area
-                        if planned_line.crop_growth_duration and actual.actual_growth_duration != planned_line.crop_growth_duration:
-                            actual.actual_growth_duration = planned_line.crop_growth_duration
-                        if planned_line.seed_planned_qty and actual.actual_seed_qty != planned_line.seed_planned_qty:
-                            actual.actual_seed_qty = planned_line.seed_planned_qty
-                        if planned_line.collected_gc and actual.collected_gc != planned_line.collected_gc:
-                            actual.collected_gc = planned_line.collected_gc
-                        if planned_line.collected_ec and actual.collected_ec != planned_line.collected_ec:
-                            actual.collected_ec = planned_line.collected_ec
-                        if planned_line.seed_planned_fertilizer_type and actual.actual_fertilizer_type != planned_line.seed_planned_fertilizer_type:
-                            actual.actual_fertilizer_type = planned_line.seed_planned_fertilizer_type
-                        if planned_line.seed_planned_fertilizer_qty and actual.actual_fertilizer_qty != planned_line.seed_planned_fertilizer_qty:
-                            actual.actual_fertilizer_qty = planned_line.seed_planned_fertilizer_qty
-                        if planned_line.land_info_id and actual.land_info_id != planned_line.land_info_id:
-                            actual.land_info_id = planned_line.land_info_id.id
-                        if planned_line.region_name_id and actual.region_name_id != planned_line.region_name_id:
-                            actual.region_name_id = planned_line.region_name_id.id
-                        if planned_line.zone_name_id and actual.zone_name_id != planned_line.zone_name_id:
-                            actual.zone_name_id = planned_line.zone_name_id.id
-                        if planned_line.woreda_name_id and actual.woreda_name_id != planned_line.woreda_name_id:
-                            actual.woreda_name_id = planned_line.woreda_name_id.id
-                        if planned_line.kebele_id and actual.kebele_id != planned_line.kebele_id:
-                            actual.kebele_id = planned_line.kebele_id.id
-                        if planned_line.gps and actual.gps != planned_line.gps:
-                            actual.gps = planned_line.gps
-                        if planned_line.land_category and actual.land_category != planned_line.land_category:
-                            actual.land_category = planned_line.land_category
-                        if planned_line.has_cluster_farming != actual.has_cluster_farming:
-                            actual.has_cluster_farming = planned_line.has_cluster_farming
-                        if set(planned_line.cluster_info_ids.ids) != set(actual.cluster_info_ids.ids):
-                            actual.cluster_info_ids = [(6, 0, planned_line.cluster_info_ids.ids)]
-                            for cinfo in planned_line.cluster_info_ids:
-                                if not cinfo.actual_cluster_plan:
-                                    cinfo.actual_cluster_plan = cinfo.cluster_plan
-                                if not cinfo.actual_cluster_collected_land:
-                                    cinfo.actual_cluster_collected_land = cinfo.cluster_collected_land
-                                if not cinfo.actual_cluster_collected_quintal:
-                                    cinfo.actual_cluster_collected_quintal = cinfo.cluster_collected_quintal
-                                if not cinfo.actual_cluster_participant_farmers:
-                                    cinfo.actual_cluster_participant_farmers = cinfo.cluster_participant_farmers
-                                if not cinfo.actual_collected_land:
-                                    cinfo.actual_collected_land = cinfo.collected_land
-                                if not cinfo.actual_collected_land_quintal:
-                                    cinfo.actual_collected_land_quintal = cinfo.collected_land_quintal
-                                if not cinfo.actual_collected_by_combiner:
-                                    cinfo.actual_collected_by_combiner = cinfo.collected_by_combiner
-
-
-                        # Always propagate expected yield from planning → cultivation
-                        actual.actual_yield = planned_line.crop_expected
-
-                        if actual.cropping_system != planned_line.cropping_system:
-                            actual.cropping_system = planned_line.cropping_system
-
-                        planned_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in planned_line.water_resource_line_ids}
-                        actual_waters = {(w.water_resource_id.id, w.method_id, w.frequency) for w in actual.water_resource_line_ids}
-                        if planned_waters != actual_waters:
-                            actual.water_resource_line_ids = [(5, 0, 0)] + [(0, 0, {
-                                'water_resource_id': w.water_resource_id.id,
-                                'method_id': w.method_id,
-                                'frequency': w.frequency,
-                            }) for w in planned_line.water_resource_line_ids]
-
-                # Sync Production Details
-                existing_production = rec.production_detail_ids.filtered(
-                    lambda p: p.sync_id == planned_line.sync_id or (not p.sync_id and p.season_id == planned_line.season_id and p.crop_name_id == planned_line.crop_name_id)
-                )
-                if not existing_production:
-                    new_prod = self.env['g2p.crop.production'].new({
-                        'sync_id': planned_line.sync_id,
-                        'season_id': planned_line.season_id.id if planned_line.season_id else False,
-                        'land_info_id': planned_line.land_info_id.id if planned_line.land_info_id else False,
-                        'crop_name_id': planned_line.crop_name_id.id,
-                        'expected_yield': planned_line.crop_expected,
-                    })
-                    rec.production_detail_ids += new_prod
-                else:
-                    for prod in existing_production:
-                        if not prod.sync_id:
-                            prod.sync_id = planned_line.sync_id
-                        if planned_line.crop_name_id and prod.crop_name_id != planned_line.crop_name_id:
-                            prod.crop_name_id = planned_line.crop_name_id.id
-                        if planned_line.season_id and prod.season_id != planned_line.season_id:
-                            prod.season_id = planned_line.season_id.id
-                        if planned_line.land_info_id and prod.land_info_id != planned_line.land_info_id:
-                            prod.land_info_id = planned_line.land_info_id.id
-                        if prod.expected_yield != planned_line.crop_expected:
-                            prod.expected_yield = planned_line.crop_expected
-
-            # Cleanup orphaned biennial actual lines
-            planned_biennial_sync_ids = [l.sync_id for l in rec.biennial_line_ids if l.sync_id]
-            valid_sync_ids = planned_biennial_sync_ids + [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual] + [l.sync_id for l in rec.actual_biennial_line_ids if l.sync_id and l.is_manual] + [l.sync_id for l in rec.actual_biennial_line_ids if l.sync_id and l.is_manual]
-            orphaned_biennial_actual = rec.actual_biennial_line_ids.filtered(lambda l: l.sync_id and not l.is_manual and l.sync_id not in planned_biennial_sync_ids)
-            if orphaned_biennial_actual:
-                rec.actual_biennial_line_ids -= orphaned_biennial_actual
-
-            # Check for orphaned production lines
-            orphaned_biennial_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
-            if orphaned_biennial_prod:
-                rec.production_detail_ids -= orphaned_biennial_prod
             rec.harvest_detail_ids = rec.production_detail_ids
 
     @api.onchange('actual_annual_line_ids')
@@ -1888,119 +1100,11 @@ class G2PCrop(models.Model):
                     })
                     rec.production_detail_ids += new_prod
             # Cleanup orphaned production details when actual is deleted
-            valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.perennial_line_ids if l.sync_id] + [l.sync_id for l in rec.biennial_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual] + [l.sync_id for l in rec.actual_perennial_line_ids if l.sync_id and l.is_manual] + [l.sync_id for l in rec.actual_biennial_line_ids if l.sync_id and l.is_manual]
+            valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual]
             orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
             if orphaned_prod:
                 rec.production_detail_ids -= orphaned_prod
         rec.harvest_detail_ids = rec.production_detail_ids
-
-    @api.onchange('actual_perennial_line_ids')
-    def _onchange_sync_actual_to_production_perennial(self):
-        for rec in self:
-            for actual_line in rec.actual_perennial_line_ids:
-                if not actual_line.sync_id:
-                    actual_line.sync_id = str(uuid.uuid4())
-                prod_line = rec.production_detail_ids.filtered(lambda p: p.sync_id == actual_line.sync_id)
-                planned_line = rec.perennial_line_ids.filtered(lambda l: l.sync_id == actual_line.sync_id)
-                expected_yield = planned_line[0].crop_expected if planned_line else 0.0
-                planned_area = planned_line[0].crop_planned_area if planned_line else 0.0
-
-                if prod_line:
-                    prod_line = prod_line[0]
-
-                    if prod_line.season_id != actual_line.season_id:
-                        prod_line.season_id = actual_line.season_id
-                    if prod_line.crop_name_id != actual_line.crop_name_id:
-                        prod_line.crop_name_id = actual_line.crop_name_id
-                    if prod_line.land_info_id != actual_line.land_info_id:
-                        prod_line.land_info_id = actual_line.land_info_id.id
-                    if prod_line.actual_sowing_date != actual_line.collected_gc:
-                        prod_line.actual_sowing_date = actual_line.collected_gc
-                    if prod_line.actual_fertilizer_qty != actual_line.actual_fertilizer_qty:
-                        prod_line.actual_fertilizer_qty = actual_line.actual_fertilizer_qty
-                    if prod_line.actual_seed_qty != actual_line.actual_seed_qty:
-                        prod_line.actual_seed_qty = actual_line.actual_seed_qty
-                    if prod_line.actual_crop_area != actual_line.actual_crop_area:
-                        prod_line.actual_crop_area = actual_line.actual_crop_area
-                    if prod_line.expected_yield != expected_yield:
-                        prod_line.expected_yield = expected_yield
-                    if prod_line.planned_area != planned_area:
-                        prod_line.planned_area = planned_area
-                else:
-                    new_prod = self.env['g2p.crop.production'].new({
-                        'sync_id': actual_line.sync_id,
-                        'season_id': actual_line.season_id.id if actual_line.season_id else False,
-                        'land_info_id': actual_line.land_info_id.id if actual_line.land_info_id else False,
-                        'crop_name_id': actual_line.crop_name_id.id if actual_line.crop_name_id else False,
-                        'actual_sowing_date': actual_line.collected_gc if actual_line.collected_gc else False,
-                        'actual_fertilizer_qty': actual_line.actual_fertilizer_qty if actual_line.actual_fertilizer_qty else 0.0,
-                        'actual_fertilizer_type': actual_line.actual_fertilizer_type if actual_line.actual_fertilizer_type else False,
-                        'actual_seed_qty': actual_line.actual_seed_qty if actual_line.actual_seed_qty else 0.0,
-                        'actual_crop_area': actual_line.actual_crop_area if actual_line.actual_crop_area else 0.0,
-                        'expected_yield': expected_yield,
-                        'planned_area': planned_area,
-                        'qty_harvested': actual_line.actual_yield if actual_line.actual_yield else 0.0,
-
-                    })
-                    rec.production_detail_ids += new_prod
-
-            # Cleanup orphaned production details when actual is deleted
-            valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.perennial_line_ids if l.sync_id] + [l.sync_id for l in rec.biennial_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual] + [l.sync_id for l in rec.actual_perennial_line_ids if l.sync_id and l.is_manual] + [l.sync_id for l in rec.actual_biennial_line_ids if l.sync_id and l.is_manual]
-            orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
-            if orphaned_prod:
-                rec.production_detail_ids -= orphaned_prod
-
-        rec.harvest_detail_ids = rec.production_detail_ids
-
-    @api.onchange('actual_biennial_line_ids')
-    def _onchange_sync_actual_to_production_biennial(self):
-        for rec in self:
-            for actual_line in rec.actual_biennial_line_ids:
-                if not actual_line.sync_id:
-                    actual_line.sync_id = str(uuid.uuid4())
-                prod_line = rec.production_detail_ids.filtered(lambda p: p.sync_id == actual_line.sync_id)
-                planned_line = rec.biennial_line_ids.filtered(lambda l: l.sync_id == actual_line.sync_id)
-                expected_yield = planned_line[0].crop_expected if planned_line else 0.0
-                planned_area = planned_line[0].crop_planned_area if planned_line else 0.0
-
-                if prod_line:
-                    prod_line = prod_line[0]
-
-                    if prod_line.season_id != actual_line.season_id:
-                        prod_line.season_id = actual_line.season_id
-                    if prod_line.crop_name_id != actual_line.crop_name_id:
-                        prod_line.crop_name_id = actual_line.crop_name_id
-                    if prod_line.land_info_id != actual_line.land_info_id:
-                        prod_line.land_info_id = actual_line.land_info_id.id
-                    if prod_line.actual_sowing_date != actual_line.collected_gc:
-                        prod_line.actual_sowing_date = actual_line.collected_gc
-                    if prod_line.actual_fertilizer_qty != actual_line.actual_fertilizer_qty:
-                        prod_line.actual_fertilizer_qty = actual_line.actual_fertilizer_qty
-                    if prod_line.actual_seed_qty != actual_line.actual_seed_qty:
-                        prod_line.actual_seed_qty = actual_line.actual_seed_qty
-                    if prod_line.actual_crop_area != actual_line.actual_crop_area:
-                        prod_line.actual_crop_area = actual_line.actual_crop_area
-                    if prod_line.expected_yield != expected_yield:
-                        prod_line.expected_yield = expected_yield
-                    if prod_line.planned_area != planned_area:
-                        prod_line.planned_area = planned_area
-                else:
-                    new_prod = self.env['g2p.crop.production'].new({
-                        'sync_id': actual_line.sync_id,
-                        'season_id': actual_line.season_id.id if actual_line.season_id else False,
-                        'land_info_id': actual_line.land_info_id.id if actual_line.land_info_id else False,
-                        'crop_name_id': actual_line.crop_name_id.id if actual_line.crop_name_id else False,
-                        'actual_sowing_date': actual_line.collected_gc if actual_line.collected_gc else False,
-                        'actual_fertilizer_qty': actual_line.actual_fertilizer_qty if actual_line.actual_fertilizer_qty else 0.0,
-                        'actual_fertilizer_type': actual_line.actual_fertilizer_type if actual_line.actual_fertilizer_type else False,
-                        'actual_seed_qty': actual_line.actual_seed_qty if actual_line.actual_seed_qty else 0.0,
-                        'actual_crop_area': actual_line.actual_crop_area if actual_line.actual_crop_area else 0.0,
-                        'expected_yield': expected_yield,
-                        'planned_area': planned_area,
-                        'qty_harvested': actual_line.actual_yield if actual_line.actual_yield else 0.0,
-
-                    })
-                    rec.production_detail_ids += new_prod
 
     @api.onchange('production_detail_ids', 'harvest_detail_ids')
     def _onchange_sync_production_to_actual(self):
@@ -2008,16 +1112,9 @@ class G2PCrop(models.Model):
             for prod_line in rec.production_detail_ids:
                 if not prod_line.sync_id:
                     continue
-                # Find corresponding actual line (could be annual, perennial, or biennial)
                 actual_annual = rec.actual_annual_line_ids.filtered(lambda l: l.sync_id == prod_line.sync_id)
-                actual_perennial = rec.actual_perennial_line_ids.filtered(lambda l: l.sync_id == prod_line.sync_id)
-                actual_biennial = rec.actual_biennial_line_ids.filtered(lambda l: l.sync_id == prod_line.sync_id)
-                actual_line = (actual_annual or actual_perennial or actual_biennial)
-                # NOTE: Do NOT push qty_harvested back to actual_yield here.
-                # actual_yield is always driven from crop_expected (planning → cultivation).
 
-            # Cleanup orphaned production details when actual is deleted
-            valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.biennial_line_ids if l.sync_id] + [l.sync_id for l in rec.biennial_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual] + [l.sync_id for l in rec.actual_biennial_line_ids if l.sync_id and l.is_manual] + [l.sync_id for l in rec.actual_biennial_line_ids if l.sync_id and l.is_manual]
+            valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual]
             orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
             if orphaned_prod:
                 rec.production_detail_ids -= orphaned_prod

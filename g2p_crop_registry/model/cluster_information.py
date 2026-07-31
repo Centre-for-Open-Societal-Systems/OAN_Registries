@@ -7,8 +7,6 @@ class G2PClusterFarmerLine(models.Model):
 
     cluster_annual_line_id = fields.Many2one('g2p.annual.line', ondelete="cascade")
     cluster_info_id = fields.Many2one('g2p.cluster.information', ondelete="cascade")
-    cluster_perennial_line_id = fields.Many2one('g2p.perennial.line', ondelete="cascade")
-    cluster_biennial_line_id = fields.Many2one('g2p.biennial.line', ondelete="cascade")
     farmer_id = fields.Many2one('res.partner', string="Farmer ID", domain="[('is_farmer', '=', 'yes')]")
     fayda_id = fields.Char(string="Fayda ID")
     farmer_name = fields.Char(string="Farmer Name")
@@ -49,12 +47,7 @@ class G2PClusterInformation(models.Model):
     _rec_name = "cluster_id"
 
     annual_line_id = fields.Many2one('g2p.annual.line', ondelete="cascade")
-    perennial_line_id = fields.Many2one('g2p.perennial.line', ondelete="cascade")
-    biennial_line_id = fields.Many2one('g2p.biennial.line', ondelete="cascade")
-
     actual_annual_line_id = fields.Many2one('g2p.annual.actual.line', ondelete="cascade")
-    actual_perennial_line_id = fields.Many2one('g2p.perennial.actual.line', ondelete="cascade")
-    actual_biennial_line_id = fields.Many2one('g2p.biennial.actual.line', ondelete="cascade")
 
     production_id = fields.Many2one('g2p.crop.production', ondelete="cascade")
 
@@ -74,7 +67,7 @@ class G2PClusterInformation(models.Model):
     ], string="Agro Ecological Zone")
 
     season_id = fields.Many2one('g2p.season', string="Season")
-    
+
     start_gc = fields.Date(string="Start GC", compute="_compute_season_dates", store=True)
     end_gc = fields.Date(string="End GC", compute="_compute_season_dates", store=True)
 
@@ -112,16 +105,16 @@ class G2PClusterInformation(models.Model):
 
     sub_kebele = fields.Char(string="Sub-Kebele")
     gps_location = fields.Char(string="GPS Location")
-    
+
     region_name_id = fields.Many2one('g2p.region', string="Region", compute="_compute_land_details", store=True, readonly=False)
     zone_name_id = fields.Many2one('g2p.zone', string="Zone", compute="_compute_land_details", store=True, readonly=False)
     woreda_name_id = fields.Many2one('g2p.woreda', string="Woreda", compute="_compute_land_details", store=True, readonly=False)
     kebele_id = fields.Many2one('g2p.kebele', string="Kebele", compute="_compute_land_details", store=True, readonly=False)
 
-    @api.depends('annual_line_id', 'perennial_line_id', 'biennial_line_id')
+    @api.depends('annual_line_id')
     def _compute_land_details(self):
         for rec in self:
-            parent_line = rec.annual_line_id or rec.perennial_line_id or rec.biennial_line_id
+            parent_line = rec.annual_line_id
             if parent_line and hasattr(parent_line, 'land_info_id') and parent_line.land_info_id:
                 land = parent_line.land_info_id
                 if land.land_kebele:
@@ -197,20 +190,8 @@ class G2PClusterInformation(models.Model):
             if self.annual_line_id:
                 parent_line = self.annual_line_id
                 max_area = parent_line.crop_planned_area
-            elif self.perennial_line_id:
-                parent_line = self.perennial_line_id
-                max_area = parent_line.crop_planned_area
-            elif self.biennial_line_id:
-                parent_line = self.biennial_line_id
-                max_area = parent_line.crop_planned_area
             elif self.actual_annual_line_id:
                 parent_line = self.actual_annual_line_id
-                max_area = parent_line.actual_crop_area
-            elif self.actual_perennial_line_id:
-                parent_line = self.actual_perennial_line_id
-                max_area = parent_line.actual_crop_area
-            elif self.actual_biennial_line_id:
-                parent_line = self.actual_biennial_line_id
                 max_area = parent_line.actual_crop_area
 
             if parent_line:

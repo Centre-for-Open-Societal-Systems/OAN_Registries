@@ -296,7 +296,7 @@ class G2PCropProduction(models.Model):
             rec.is_independent = 'Independent' in names
 
 
-    @api.depends('sync_id', 'crop_registry_id', 'crop_registry_id.actual_annual_line_ids.cluster_info_ids', 'crop_registry_id.actual_perennial_line_ids.cluster_info_ids', 'crop_registry_id.actual_biennial_line_ids.cluster_info_ids')
+    @api.depends('sync_id', 'crop_registry_id', 'crop_registry_id.actual_annual_line_ids.cluster_info_ids')
     def _compute_cluster_info_ids(self):
         for rec in self:
             cluster_recs = self.env['g2p.cluster.information']
@@ -304,12 +304,6 @@ class G2PCropProduction(models.Model):
                 annual = rec.crop_registry_id.actual_annual_line_ids.filtered(lambda l: l.sync_id == rec.sync_id)
                 if annual:
                     cluster_recs |= annual.cluster_info_ids
-                perennial = rec.crop_registry_id.actual_perennial_line_ids.filtered(lambda l: l.sync_id == rec.sync_id)
-                if perennial:
-                    cluster_recs |= perennial.cluster_info_ids
-                biennial = rec.crop_registry_id.actual_biennial_line_ids.filtered(lambda l: l.sync_id == rec.sync_id)
-                if biennial:
-                    cluster_recs |= biennial.cluster_info_ids
             rec.cluster_info_ids = cluster_recs
 
     # For clustered sowing

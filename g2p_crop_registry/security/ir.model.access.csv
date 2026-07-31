@@ -1,8 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 
 access_g2p_crop_registry,g2p.crop.registry,model_g2p_crop_registry,base.group_user,1,1,0,0
-access_g2p_perennial_line,g2p.perennial.line,model_g2p_perennial_line,base.group_user,1,1,1,1
-access_g2p_perennial_actual_line,g2p.perennial.actual.line,model_g2p_perennial_actual_line,base.group_user,1,1,1,1
 access_g2p_crop_production,g2p.crop.production,model_g2p_crop_production,base.group_user,1,1,1,1
 
 access_g2p_water_resource_line,g2p.water.resource.line,model_g2p_water_resource_line,base.group_user,1,1,1,1
@@ -14,8 +12,6 @@ access_g2p_crop_weed_line,g2p.crop.weed.line,model_g2p_crop_weed_line,base.group
 
 access_g2p_actual_water_resource_line,g2p.actual.water.resource.line,model_g2p_actual_water_resource_line,base.group_user,1,1,1,1
 access_g2p_land_prep_method,g2p.land.prep.method,model_g2p_land_prep_method,base.group_user,1,1,1,1
-access_g2p_biennial_line,g2p.biennial.line,model_g2p_biennial_line,base.group_user,1,1,1,1
-access_g2p_biennial_actual_line,g2p.biennial.actual.line,model_g2p_biennial_actual_line,base.group_user,1,1,1,1
 access_g2p_cluster_farmer_line,g2p.cluster.farmer.line,model_g2p_cluster_farmer_line,base.group_user,1,1,1,1
 access_g2p_cluster_information,g2p.cluster.information,model_g2p_cluster_information,base.group_user,1,1,1,1
 access_g2p_cluster_status,access_g2p_cluster_status,model_g2p_cluster_status,base.group_user,1,1,1,1
@@ -30,10 +26,6 @@ access_wah_crop_registry,g2p.crop.registry WAH,model_g2p_crop_registry,g2p_crop_
 access_wah_crop_production,g2p.crop.production WAH,model_g2p_crop_production,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
 access_wah_annual_line,g2p.annual.line WAH,model_g2p_annual_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
 access_wah_annual_actual_line,g2p.annual.actual.line WAH,model_g2p_annual_actual_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
-access_wah_perennial_line,g2p.perennial.line WAH,model_g2p_perennial_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
-access_wah_perennial_actual_line,g2p.perennial.actual.line WAH,model_g2p_perennial_actual_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
-access_wah_biennial_line,g2p.biennial.line WAH,model_g2p_biennial_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
-access_wah_biennial_actual_line,g2p.biennial.actual.line WAH,model_g2p_biennial_actual_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
 access_wah_cluster_information,g2p.cluster.information WAH,model_g2p_cluster_information,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
 access_wah_cluster_farmer_line,g2p.cluster.farmer.line WAH,model_g2p_cluster_farmer_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
 access_wah_cluster_status,g2p.cluster.status WAH,model_g2p_cluster_status,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
@@ -60,10 +52,6 @@ access_sms_crop_registry,g2p.crop.registry SMS,model_g2p_crop_registry,g2p_crop_
 access_sms_crop_production,g2p.crop.production SMS,model_g2p_crop_production,g2p_crop_registry.group_woreda_sms,1,1,1,1
 access_sms_annual_line,g2p.annual.line SMS,model_g2p_annual_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
 access_sms_annual_actual_line,g2p.annual.actual.line SMS,model_g2p_annual_actual_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
-access_sms_perennial_line,g2p.perennial.line SMS,model_g2p_perennial_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
-access_sms_perennial_actual_line,g2p.perennial.actual.line SMS,model_g2p_perennial_actual_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
-access_sms_biennial_line,g2p.biennial.line SMS,model_g2p_biennial_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
-access_sms_biennial_actual_line,g2p.biennial.actual.line SMS,model_g2p_biennial_actual_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
 access_sms_cluster_information,g2p.cluster.information SMS,model_g2p_cluster_information,g2p_crop_registry.group_woreda_sms,1,1,1,1
 access_sms_cluster_farmer_line,g2p.cluster.farmer.line SMS,model_g2p_cluster_farmer_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
 access_sms_cluster_status,g2p.cluster.status SMS,model_g2p_cluster_status,g2p_crop_registry.group_woreda_sms,1,1,1,1
