@@ -19,13 +19,10 @@
         'data/ir_sequence_data.xml',
         'data/cluster_status_data.xml',
         'views/crop_request_views.xml',
-
-
-
         'views/crop_production_menu.xml',
         'views/crop_registry.xml',
         'views/crop_production.xml',
-        'views/cluster_info_popup.xml',
+        'views/dashboard_action.xml',
     ],
     "demo": [],
     "images": [],
@@ -33,6 +30,9 @@
     "assets": {
         "web.assets_backend": [
             "g2p_crop_registry/static/src/css/crop_maturity.css",
+            "g2p_crop_registry/static/src/components/dashboard/crop_dashboard.js",
+            "g2p_crop_registry/static/src/components/dashboard/crop_dashboard.xml",
+            "g2p_crop_registry/static/src/components/dashboard/crop_dashboard.scss",
         ],
     },
 }

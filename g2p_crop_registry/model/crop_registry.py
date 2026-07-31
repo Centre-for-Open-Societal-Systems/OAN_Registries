@@ -857,6 +857,23 @@ class G2PCrop(models.Model):
                         'cluster_info_ids': [(6, 0, planned_line.cluster_info_ids.ids)],
                     })
                     rec.actual_annual_line_ids += new_line
+
+            # Cleanup orphaned actual lines (Cultivation)
+            planned_annual_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id]
+            orphaned_annual_actual = rec.actual_annual_line_ids.filtered(
+                lambda l: l.sync_id and not l.is_manual and l.sync_id not in planned_annual_sync_ids
+            )
+            if orphaned_annual_actual:
+                rec.actual_annual_line_ids -= orphaned_annual_actual
+
+            # Cleanup orphaned production details (Sowing & Harvesting)
+            valid_sync_ids = planned_annual_sync_ids + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual]
+            orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
+            if orphaned_prod:
+                rec.production_detail_ids -= orphaned_prod
+
+            rec.harvest_detail_ids = rec.production_detail_ids
+
     def _sync_planned_to_actual_backend(self):
         for rec in self:
             # 1. Sync Annual Lines
@@ -1119,6 +1136,158 @@ class G2PCrop(models.Model):
             if orphaned_prod:
                 rec.production_detail_ids -= orphaned_prod
         rec.harvest_detail_ids = rec.production_detail_ids
+
+    @api.model
+    def get_dashboard_filter_options(self):
+        seasons = self.env['g2p.season'].search_read([], ['id', 'name'])
+        crops = self.env['g2p.crop'].search_read([], ['id', 'name'])
+        regions = self.env['g2p.region'].search_read([], ['id', 'name'])
+        zones = self.env['g2p.zone'].search_read([], ['id', 'name'])
+        woredas = self.env['g2p.woreda'].search_read([], ['id', 'name'])
+        return {
+            'seasons': seasons,
+            'crops': crops,
+            'regions': regions,
+            'zones': zones,
+            'woredas': woredas
+        }
+
+    @api.model
+    def get_dashboard_stats(self, filters=None):
+        domain = []
+        if filters:
+            if filters.get('crop_id'):
+                domain.append(('crop_name_id', '=', int(filters['crop_id'])))
+            if filters.get('region_id'):
+                domain.append(('region_id', '=', int(filters['region_id'])))
+            if filters.get('zone_id'):
+                domain.append(('zone_id', '=', int(filters['zone_id'])))
+            if filters.get('woreda_id'):
+                domain.append(('woreda_id', '=', int(filters['woreda_id'])))
+            if filters.get('season_id'):
+                domain.append(('annual_line_ids.season_id', '=', int(filters['season_id'])))
+
+        records = self.search(domain)
+
+        # Calculate totals
+        total_planned_area = sum(records.mapped('annual_line_ids.crop_planned_area'))
+        total_expected_yield = sum(records.mapped('annual_line_ids.crop_expected'))
+
+        total_actual_area = sum(records.mapped('actual_annual_line_ids.actual_crop_area'))
+        total_actual_yield = sum(records.mapped('actual_annual_line_ids.actual_yield'))
+
+        ratio_planned = (total_actual_area / total_planned_area * 100) if total_planned_area > 0 else 0
+
+        # Line Chart: Yield per Crop (Planned vs Actual)
+        crop_yield_data = {}
+        for rec in records:
+            for line in rec.annual_line_ids:
+                if not line.crop_name_id: continue
+                c_id = line.crop_name_id.name
+                if c_id not in crop_yield_data:
+                    crop_yield_data[c_id] = {'planned': 0, 'actual': 0}
+                crop_yield_data[c_id]['planned'] += line.crop_expected
+            for actual_line in rec.actual_annual_line_ids:
+                if not actual_line.crop_name_id: continue
+                c_id = actual_line.crop_name_id.name
+                if c_id not in crop_yield_data:
+                    crop_yield_data[c_id] = {'planned': 0, 'actual': 0}
+                crop_yield_data[c_id]['actual'] += actual_line.actual_yield
+
+        top_crops_planned_labels = list(crop_yield_data.keys())
+        top_crops_planned_data = [d['planned'] for d in crop_yield_data.values()]
+        top_crops_actual_data = [d['actual'] for d in crop_yield_data.values()]
+
+        # Doughnut Chart: Top Crops by Area
+        crop_area_data = {}
+        for rec in records:
+            for line in rec.annual_line_ids:
+                if not line.crop_name_id: continue
+                c_id = line.crop_name_id.name
+                if c_id not in crop_area_data:
+                    crop_area_data[c_id] = 0
+                crop_area_data[c_id] += line.crop_planned_area
+
+        sorted_crops = sorted(crop_area_data.items(), key=lambda x: x[1], reverse=True)
+        top_crops_area_labels = [c[0] for c in sorted_crops[:5]]
+        top_crops_area_data = [c[1] for c in sorted_crops[:5]]
+
+        # New Graph 1: Area Comparison (Planned vs Actual Area by Crop)
+        crop_area_comp = {}
+        for rec in records:
+            for line in rec.annual_line_ids:
+                if not line.crop_name_id: continue
+                c_id = line.crop_name_id.name
+                if c_id not in crop_area_comp:
+                    crop_area_comp[c_id] = {'planned': 0, 'actual': 0}
+                crop_area_comp[c_id]['planned'] += line.crop_planned_area
+            for actual_line in rec.actual_annual_line_ids:
+                if not actual_line.crop_name_id: continue
+                c_id = actual_line.crop_name_id.name
+                if c_id not in crop_area_comp:
+                    crop_area_comp[c_id] = {'planned': 0, 'actual': 0}
+                crop_area_comp[c_id]['actual'] += actual_line.actual_crop_area
+
+        area_comp_labels = list(crop_area_comp.keys())
+        area_comp_planned = [d['planned'] for d in crop_area_comp.values()]
+        area_comp_actual = [d['actual'] for d in crop_area_comp.values()]
+
+        # New Graph 2: Yield by Region
+        region_yield = {}
+        for rec in records:
+            r_name = rec.region_id.name if rec.region_id else 'Unknown'
+            if r_name not in region_yield:
+                region_yield[r_name] = {'planned': 0, 'actual': 0}
+
+            p_yield = sum(rec.mapped('annual_line_ids.crop_expected'))
+            a_yield = sum(rec.mapped('actual_annual_line_ids.actual_yield'))
+
+            region_yield[r_name]['planned'] += p_yield
+            region_yield[r_name]['actual'] += a_yield
+
+        region_labels = list(region_yield.keys())
+        region_planned_yield = [d['planned'] for d in region_yield.values()]
+        region_actual_yield = [d['actual'] for d in region_yield.values()]
+
+        # PDF Table Data
+        table_data = []
+        for rec in records:
+            for line in rec.annual_line_ids:
+                actual_lines = rec.actual_annual_line_ids.filtered(
+                    lambda l: l.crop_name_id == line.crop_name_id and l.season_id == line.season_id)
+                actual_yield = sum(actual_lines.mapped('actual_yield')) if actual_lines else 0
+                actual_area = sum(actual_lines.mapped('actual_crop_area')) if actual_lines else 0
+                table_data.append({
+                    'farmer_name': rec.farmer_display_id,
+                    'fyda_id': rec.fyda_id or '',
+                    'zone': rec.zone_id.name if rec.zone_id else '',
+                    'crop_name': line.crop_name_id.name if line.crop_name_id else '',
+                    'season': line.season_id.name if line.season_id else '',
+                    'planned_area': line.crop_planned_area,
+                    'actual_area': actual_area,
+                    'expected_yield': line.crop_expected,
+                    'actual_yield': actual_yield,
+                })
+
+        return {
+            'total_planned_crop_area': round(total_planned_area, 2),
+            'total_actual_area': round(total_actual_area, 2),
+            'total_expected_yield': round(total_expected_yield, 2),
+            'total_actual_yield': round(total_actual_yield, 2),
+            'ratio_planned': round(ratio_planned, 1),
+            'top_crops_planned_labels': top_crops_planned_labels,
+            'top_crops_planned_data': top_crops_planned_data,
+            'top_crops_actual_data': top_crops_actual_data,
+            'top_crops_area_labels': top_crops_area_labels,
+            'top_crops_area_data': top_crops_area_data,
+            'area_comp_labels': area_comp_labels,
+            'area_comp_planned': area_comp_planned,
+            'area_comp_actual': area_comp_actual,
+            'region_labels': region_labels,
+            'region_planned_yield': region_planned_yield,
+            'region_actual_yield': region_actual_yield,
+            'table_data': table_data,
+        }
 
 class G2PCropInformationInherit(models.Model):
     _inherit = 'g2p.crop.information'

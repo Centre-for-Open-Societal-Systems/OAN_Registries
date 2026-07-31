@@ -513,3 +513,64 @@ class TestAnnualCrop(TransactionCase):
         self.assertEqual(len(actual), 1)
         self.assertEqual(actual.local_name, 'Local Wheat')
         self.assertEqual(actual.scientific_name, 'Triticum')
+
+    # ------------------------------------------------------------------
+    # Planning Deletion Cascade Tests (Cultivation, Sowing, Harvesting)
+    # ------------------------------------------------------------------
+
+    def test_planning_deletion_cascades_to_cultivation_sowing_harvesting_onchange(self):
+        """Test that removing a Planning line in form onchange removes Cultivation, Sowing, and Harvesting lines."""
+        sync_id = 'sync-cascade-test-1'
+        plan = self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'land_info_id': self.land_info.id,
+            'sync_id': sync_id,
+            'crop_planned_area': 2.0,
+            'crop_expected': 50.0,
+        })
+        self.crop_registry._onchange_sync_annual_lines()
+        self.crop_registry._onchange_sync_actual_to_production_annual()
+
+        # Verify synced lines exist across Cultivation, Sowing, and Harvesting
+        self.assertEqual(len(self.crop_registry.actual_annual_line_ids.filtered(lambda l: l.sync_id == sync_id)), 1)
+        self.assertEqual(len(self.crop_registry.production_detail_ids.filtered(lambda p: p.sync_id == sync_id)), 1)
+
+        # Simulate removing the planning line in UI onchange
+        self.crop_registry.annual_line_ids -= plan
+        self.crop_registry._onchange_sync_annual_lines()
+
+        # Verify ALL linked records (Cultivation, Sowing, Harvesting) were dropped
+        self.assertEqual(len(self.crop_registry.actual_annual_line_ids.filtered(lambda l: l.sync_id == sync_id)), 0)
+        self.assertEqual(len(self.crop_registry.production_detail_ids.filtered(lambda p: p.sync_id == sync_id)), 0)
+        self.assertEqual(len(self.crop_registry.harvest_detail_ids.filtered(lambda p: p.sync_id == sync_id)), 0)
+
+    def test_planning_deletion_cascades_to_cultivation_sowing_harvesting_unlink(self):
+        """Test that deleting (unlinking) a Planning line via ORM deletes Cultivation, Sowing, and Harvesting lines."""
+        sync_id = 'sync-cascade-test-2'
+        plan = self.env['g2p.annual.line'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'land_info_id': self.land_info.id,
+            'sync_id': sync_id,
+            'crop_planned_area': 3.0,
+            'crop_expected': 75.0,
+        })
+        self.crop_registry._sync_planned_to_actual_backend()
+
+        # Confirm initial sync created Cultivation, Sowing, and Harvesting records in database
+        actual_line = self.env['g2p.annual.actual.line'].search([('sync_id', '=', sync_id)])
+        prod_line = self.env['g2p.crop.production'].search([('sync_id', '=', sync_id)])
+        self.assertEqual(len(actual_line), 1)
+        self.assertEqual(len(prod_line), 1)
+
+        # Unlink the planning line directly via ORM
+        plan.unlink()
+
+        # Verify linked Cultivation and Sowing records are deleted from database
+        actual_remaining = self.env['g2p.annual.actual.line'].search([('sync_id', '=', sync_id)])
+        prod_remaining = self.env['g2p.crop.production'].search([('sync_id', '=', sync_id)])
+        self.assertEqual(len(actual_remaining), 0)
+        self.assertEqual(len(prod_remaining), 0)

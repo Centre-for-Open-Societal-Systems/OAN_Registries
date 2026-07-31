@@ -26,13 +26,47 @@ def is_date_in_season(test_date, start_date, end_date):
         is_before_end = (test_m < end_m) or (test_m == end_m and test_d <= end_d)
         return is_after_start or is_before_end
 
+def _generate_unique_land_id(env, partner, region=None, zone=None, woreda=None, kebele=None):
+    reg_code = (region.code if region and hasattr(region, 'code') and region.code else 'RU').upper()
+    zone_code = (zone.code if zone and hasattr(zone, 'code') and zone.code else '01').zfill(2)
+    woreda_code = (woreda.code if woreda and hasattr(woreda, 'code') and woreda.code else '01').zfill(2)
+    kebele_code = (kebele.code if kebele and hasattr(kebele, 'code') and kebele.code else '001').zfill(3)
+
+    base_prefix = f"{reg_code}/{zone_code}/{woreda_code}/{kebele_code}"
+
+    # Query with database row lock to prevent concurrency collisions
+    env.cr.execute(
+        "SELECT land_id FROM g2p_land_information WHERE land_id LIKE %s FOR UPDATE",
+        (f"{base_prefix}/%",)
+    )
+    existing_rows = env.cr.fetchall()
+    existing_ids = [r[0] for r in existing_rows if r[0]]
+
+    max_seq = 0
+    for land_str in existing_ids:
+        parts = land_str.split('/')
+        if len(parts) == 5 and parts[-1].isdigit():
+            max_seq = max(max_seq, int(parts[-1]))
+
+    next_seq = max_seq + 1
+    return f"{base_prefix}/{str(next_seq).zfill(5)}"
+
+
 class G2PAnnualLine(models.Model):
     _name = "g2p.annual.line"
     _description = "Annual Planned Line"
     _rec_name = "crop_registry_id"
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._auto_register_temporary_land()
+        return records
+
     def write(self, vals):
         result = super().write(vals)
+        if any(k in vals for k in ['is_plot_not_registered', 'temporary_land_id', 'land_area', 'ownership_type', 'kebele_id']):
+            self._auto_register_temporary_land()
         if 'crop_expected' in vals or 'cluster_info_ids' in vals:
             for rec in self:
                 if not rec.sync_id or not rec.crop_registry_id:
@@ -49,6 +83,79 @@ class G2PAnnualLine(models.Model):
                     if updates:
                         actual.write(updates)
         return result
+
+    def _auto_register_temporary_land(self):
+        for rec in self:
+            if not rec.is_plot_not_registered or rec.land_info_id:
+                continue
+
+            partner = rec.crop_registry_id.partner_id if rec.crop_registry_id else False
+            if not partner:
+                continue
+
+            existing_land = False
+            if rec.temporary_land_id:
+                existing_land = self.env['g2p.land.information'].search([
+                    ('partner_id', '=', partner.id),
+                    ('land_id', '=', rec.temporary_land_id)
+                ], limit=1)
+
+            if not existing_land and rec.gps:
+                existing_lands = self.env['g2p.land.information'].search([
+                    ('partner_id', '=', partner.id)
+                ])
+                for l in existing_lands:
+                    if hasattr(l, 'gps') and l.gps and l.gps == rec.gps:
+                        existing_land = l
+                        break
+
+            if not existing_land:
+                target_land_id = False
+                if rec.temporary_land_id:
+                    taken = self.env['g2p.land.information'].search([
+                        ('land_id', '=', rec.temporary_land_id)
+                    ], limit=1)
+                    if not taken:
+                        target_land_id = rec.temporary_land_id
+
+                if not target_land_id:
+                    target_land_id = _generate_unique_land_id(
+                        self.env, partner,
+                        region=rec.region_name_id,
+                        zone=rec.zone_name_id,
+                        woreda=rec.woreda_name_id,
+                        kebele=rec.kebele_id
+                    )
+
+                area = rec.land_area or (getattr(rec, 'actual_crop_area', 0.0))
+                existing_land = self.env['g2p.land.information'].create({
+                    'partner_id': partner.id,
+                    'land_id': target_land_id,
+                    'total_land_area': area or 0.0,
+                    'ownership_type': rec.ownership_type or 'owner',
+                    'land_kebele': rec.kebele_id.id if rec.kebele_id else False,
+                })
+
+            rec.write({
+                'land_info_id': existing_land.id,
+                'is_plot_not_registered': False,
+                'temporary_land_id': False,
+            })
+
+    def unlink(self):
+        for line in self:
+            if line.sync_id and line.crop_registry_id:
+                actuals = line.crop_registry_id.actual_annual_line_ids.filtered(
+                    lambda l: l.sync_id == line.sync_id and not l.is_manual
+                )
+                if actuals:
+                    actuals.unlink()
+                prods = line.crop_registry_id.production_detail_ids.filtered(
+                    lambda p: p.sync_id == line.sync_id
+                )
+                if prods:
+                    prods.unlink()
+        return super().unlink()
 
     crop_registry_id = fields.Many2one("g2p.crop.registry", string="Crop Registry", ondelete="cascade")
     sync_id = fields.Char(string="Sync ID", default=lambda self: str(uuid.uuid4()))
@@ -325,6 +432,76 @@ class G2PAnnualActualLine(models.Model):
     _name = "g2p.annual.actual.line"
     _description = "Annual Actual Line"
     _rec_name = "crop_registry_id"
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._auto_register_temporary_land()
+        return records
+
+    def write(self, vals):
+        result = super().write(vals)
+        if any(k in vals for k in ['is_plot_not_registered', 'temporary_land_id', 'land_area', 'actual_crop_area', 'ownership_type', 'kebele_id']):
+            self._auto_register_temporary_land()
+        return result
+
+    def _auto_register_temporary_land(self):
+        for rec in self:
+            if not rec.is_plot_not_registered or rec.land_info_id:
+                continue
+
+            partner = rec.crop_registry_id.partner_id if rec.crop_registry_id else False
+            if not partner:
+                continue
+
+            existing_land = False
+            if rec.temporary_land_id:
+                existing_land = self.env['g2p.land.information'].search([
+                    ('partner_id', '=', partner.id),
+                    ('land_id', '=', rec.temporary_land_id)
+                ], limit=1)
+
+            if not existing_land and rec.gps:
+                existing_lands = self.env['g2p.land.information'].search([
+                    ('partner_id', '=', partner.id)
+                ])
+                for l in existing_lands:
+                    if hasattr(l, 'gps') and l.gps and l.gps == rec.gps:
+                        existing_land = l
+                        break
+
+            if not existing_land:
+                target_land_id = False
+                if rec.temporary_land_id:
+                    taken = self.env['g2p.land.information'].search([
+                        ('land_id', '=', rec.temporary_land_id)
+                    ], limit=1)
+                    if not taken:
+                        target_land_id = rec.temporary_land_id
+
+                if not target_land_id:
+                    target_land_id = _generate_unique_land_id(
+                        self.env, partner,
+                        region=rec.region_name_id,
+                        zone=rec.zone_name_id,
+                        woreda=rec.woreda_name_id,
+                        kebele=rec.kebele_id
+                    )
+
+                area = rec.actual_crop_area or rec.land_area or 0.0
+                existing_land = self.env['g2p.land.information'].create({
+                    'partner_id': partner.id,
+                    'land_id': target_land_id,
+                    'total_land_area': area or 0.0,
+                    'ownership_type': rec.ownership_type or 'owner',
+                    'land_kebele': rec.kebele_id.id if rec.kebele_id else False,
+                })
+
+            rec.write({
+                'land_info_id': existing_land.id,
+                'is_plot_not_registered': False,
+                'temporary_land_id': False,
+            })
     @api.constrains('actual_yield')
     def _check_actual_yield(self):
         for rec in self:
