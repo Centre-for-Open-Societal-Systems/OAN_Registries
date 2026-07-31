@@ -1026,9 +1026,9 @@
                                                         <field name="harvest_date" />
                                                         <field name="area_harvested" />
                                                         <field name="qty_harvested" />
-                                                        <field name="post_harvest_loss_pct" optional="hide" />
-                                                        <field name="qty_stored" optional="hide" />
-                                                        <field name="qty_sold" optional="hide" />
+                                                        <field name="post_harvest_loss_pct" />
+                                                        <field name="qty_stored" />
+                                                        <field name="qty_sold" />
                                                     </tree>
                                                 </field>
                                             </group>
