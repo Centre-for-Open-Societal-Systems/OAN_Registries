@@ -163,7 +163,7 @@
                                                  <group invisible="not land_category">
                                                      <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}" />
                                                  </group>
-                                                 <field name="cluster_info_ids" invisible="has_cluster_farming != 'yes'" colspan="2">
+                                                 <field name="cluster_info_ids" invisible="has_cluster_farming != 'yes'" colspan="2" form_view_ref="g2p_crop_registry.view_cluster_information_form" context="{'form_view_ref': 'g2p_crop_registry.view_cluster_information_form'}">>
                                                      <tree>
                                                          <field name="cluster_id" />
                                                          <field name="cluster_name" />
@@ -300,7 +300,7 @@
                                                 <group invisible="not is_manual">
                                                     <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}" />
                                                 </group>
-                                                <field name="cluster_info_ids" invisible="has_cluster_farming != 'yes'" colspan="2" context="{'show_actual': True}">
+                                                <field name="cluster_info_ids" invisible="has_cluster_farming != 'yes'" colspan="2" form_view_ref="g2p_crop_registry.view_cluster_information_form" context="{'show_actual': True, 'form_view_ref': 'g2p_crop_registry.view_cluster_information_form'}">
                                                     <tree>
                                                         <field name="cluster_id" />
                                                         <field name="cluster_name" />
