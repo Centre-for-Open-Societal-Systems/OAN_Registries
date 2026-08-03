@@ -307,17 +307,72 @@ class TestCropProduction(TransactionCase):
 
         # 2. Test _compute_infestation_flags & _onchange_infestation_types
         inf_type_pest = self.env['g2p.infestation.type'].create({'name': 'Pest', 'code': 'pest'})
-        incident.infestation_type_ids = [(4, inf_type_pest.id)]
+        inf_type_weed = self.env['g2p.infestation.type'].create({'name': 'Weed', 'code': 'weed'})
+        inf_type_nutrient = self.env['g2p.infestation.type'].create({'name': 'Nutrient Deficiency (የንጥረ ነገር እጥረት)', 'code': 'nutrient'})
+        incident.infestation_type_ids = [(4, inf_type_pest.id), (4, inf_type_weed.id), (4, inf_type_nutrient.id)]
 
         # Trigger compute
         incident._compute_infestation_flags()
         self.assertTrue(incident.is_pest)
-        self.assertFalse(incident.is_weed)
+        self.assertTrue(incident.is_weed)
+        self.assertTrue(incident.is_nutrient)
+        self.assertFalse(incident.is_disease)
 
         # Trigger onchange
         incident._onchange_infestation_types()
         self.assertTrue(incident.is_pest)
+        self.assertTrue(incident.is_weed)
+        self.assertTrue(incident.is_nutrient)
 
+    def test_unsaved_virtual_infestation_flags_onchange(self):
+        """Test flag computation and onchange on unsaved virtual records (NewId) for all tag types."""
+        inf_type_pest = self.env['g2p.infestation.type'].create({'name': 'Pest', 'code': 'pest'})
+        inf_type_nutrient = self.env['g2p.infestation.type'].create({'name': 'Nutrient Deficiency (የንጥረ ነገር እጥረት)', 'code': 'nutrient'})
+        inf_type_climate = self.env['g2p.infestation.type'].create({'name': 'Climate Shock', 'code': 'climate'})
+
+        # Create unsaved (new) incident record
+        incident = self.env['g2p.crop.infestation.incident'].new()
+
+        # 1. Add ONLY Nutrient Deficiency & Climate Shock
+        incident.update({
+            'infestation_type_ids': [(6, 0, [inf_type_nutrient.id, inf_type_climate.id])]
+        })
+        incident._onchange_infestation_types()
+        self.assertTrue(incident.is_nutrient, "is_nutrient should compute to True on unsaved record")
+        self.assertTrue(incident.is_climate, "is_climate should compute to True on unsaved record")
+        self.assertFalse(incident.is_pest, "is_pest should be False")
+
+        # 2. Add Pest in combination
+        incident.update({
+            'infestation_type_ids': [(6, 0, [inf_type_nutrient.id, inf_type_climate.id, inf_type_pest.id])]
+        })
+        incident._onchange_infestation_types()
+        self.assertTrue(incident.is_nutrient)
+        self.assertTrue(incident.is_climate)
+        self.assertTrue(incident.is_pest)
+
+        # 3. Remove all tags (empty selection)
+        incident.update({
+            'infestation_type_ids': [(5, 0, 0)]
+        })
+        incident._onchange_infestation_types()
+        self.assertFalse(incident.is_nutrient, "is_nutrient should flip back to False when tag is removed")
+        self.assertFalse(incident.is_climate, "is_climate should flip back to False when tag is removed")
+        self.assertFalse(incident.is_pest, "is_pest should flip back to False when tag is removed")
+
+    def test_observation_date_and_damage_checks(self):
+        """Test observation date onchange and estimated damage validation."""
+        production = self.env['g2p.crop.production'].create({
+            'crop_registry_id': self.crop_registry.id,
+            'crop_name_id': self.crop.id,
+            'season_id': self.season.id,
+            'actual_crop_area': 10.0,
+            'area_sown': 8.0,
+        })
+        incident = self.env['g2p.crop.infestation.incident'].create({
+            'production_id': production.id,
+            'severity_level': 'low',
+        })
         # 3. Test _onchange_observation_date
         incident.observation_date = '2025-06-15'
         incident._onchange_observation_date()
