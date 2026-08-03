@@ -163,7 +163,7 @@
                                                  <group invisible="not land_category">
                                                      <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}" />
                                                  </group>
-                                                 <field name="cluster_info_ids" invisible="has_cluster_farming != 'yes'" colspan="2" form_view_ref="g2p_crop_registry.view_cluster_information_form" context="{'form_view_ref': 'g2p_crop_registry.view_cluster_information_form'}">>
+                                                 <field name="cluster_info_ids" invisible="has_cluster_farming != 'yes'" colspan="2" form_view_ref="g2p_crop_registry.view_cluster_information_form" context="{'form_view_ref': 'g2p_crop_registry.view_cluster_information_form'}">
                                                      <tree>
                                                          <field name="cluster_id" />
                                                          <field name="cluster_name" />
@@ -805,7 +805,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//form" position="inside">
                     <style>
-                        .nav-tabs { display: none !important; }
+                        .o_form_sheet > .o_notebook > .nav-tabs, .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
                     </style>
                 </xpath>
                 <!-- Replace header: show planning_state statusbar only -->
@@ -917,7 +917,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//form" position="inside">
                     <style>
-                        .nav-tabs { display: none !important; }
+                        .o_form_sheet > .o_notebook > .nav-tabs, .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
                     </style>
                 </xpath>
                 <!-- Replace header: show cultivation_state statusbar only -->
@@ -1030,7 +1030,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//form" position="inside">
                     <style>
-                        .nav-tabs { display: none !important; }
+                        .o_form_sheet > .o_notebook > .nav-tabs, .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
                     </style>
                 </xpath>
                 <!-- Replace header: show sowing_state statusbar only -->
@@ -1139,7 +1139,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//form" position="inside">
                     <style>
-                        .nav-tabs { display: none !important; }
+                        .o_form_sheet > .o_notebook > .nav-tabs, .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
                     </style>
                 </xpath>
                 <!-- Replace header: show harvesting_state statusbar only -->

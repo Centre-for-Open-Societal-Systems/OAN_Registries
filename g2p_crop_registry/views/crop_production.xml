@@ -154,6 +154,8 @@
                                                 <field name="is_pest" invisible="1" />
                                                 <field name="is_weed" invisible="1" />
                                                 <field name="is_disease" invisible="1" />
+                                                <field name="is_nutrient" invisible="1" />
+                                                <field name="is_climate" invisible="1" />
 
                                                 <notebook>
                                                     <page string="Pest Occurrence" invisible="not is_pest">
@@ -188,6 +190,30 @@
                                                                 <field name="method_of_control" />
                                                                 <field name="fungicide_type" />
                                                                 <field name="fungicide_name" />
+                                                                <field name="frequency_of_application" />
+                                                            </tree>
+                                                        </field>
+                                                    </page>
+                                                    <page string="Nutrient Deficiency" invisible="not is_nutrient">
+                                                        <field name="nutrient_line_ids" nolabel="1" colspan="2">
+                                                            <tree editable="bottom">
+                                                                <field name="nutrient_type" />
+                                                                <field name="nutrient_name" />
+                                                                <field name="method_of_control" />
+                                                                <field name="fertilizer_type" readonly="method_of_control != 'foliar_spray'" />
+                                                                <field name="fertilizer_name" readonly="method_of_control != 'foliar_spray'" />
+                                                                <field name="frequency_of_application" />
+                                                            </tree>
+                                                        </field>
+                                                    </page>
+                                                    <page string="Climate Shock" invisible="not is_climate">
+                                                        <field name="climate_line_ids" nolabel="1" colspan="2">
+                                                            <tree editable="bottom">
+                                                                <field name="shock_type" />
+                                                                <field name="shock_event_name" />
+                                                                <field name="method_of_control" />
+                                                                <field name="recovery_input_type" />
+                                                                <field name="recovery_input_name" />
                                                                 <field name="frequency_of_application" />
                                                             </tree>
                                                         </field>
@@ -262,6 +288,8 @@
                                                                 <field name="is_pest" invisible="1" />
                                                                 <field name="is_weed" invisible="1" />
                                                                 <field name="is_disease" invisible="1" />
+                                                                <field name="is_nutrient" invisible="1" />
+                                                                <field name="is_climate" invisible="1" />
 
                                                                 <notebook>
                                                                     <page string="Pest Occurrence" invisible="not is_pest">
@@ -296,6 +324,30 @@
                                                                                 <field name="method_of_control" />
                                                                                 <field name="fungicide_type" />
                                                                                 <field name="fungicide_name" />
+                                                                                <field name="frequency_of_application" />
+                                                                            </tree>
+                                                                        </field>
+                                                                    </page>
+                                                                    <page string="Nutrient Deficiency" invisible="not is_nutrient">
+                                                                        <field name="nutrient_line_ids" nolabel="1" colspan="2">
+                                                                            <tree editable="bottom">
+                                                                                <field name="nutrient_type" />
+                                                                                <field name="nutrient_name" />
+                                                                                <field name="method_of_control" />
+                                                                                <field name="fertilizer_type" readonly="method_of_control != 'foliar_spray'" />
+                                                                                <field name="fertilizer_name" readonly="method_of_control != 'foliar_spray'" />
+                                                                                <field name="frequency_of_application" />
+                                                                            </tree>
+                                                                        </field>
+                                                                    </page>
+                                                                    <page string="Climate Shock" invisible="not is_climate">
+                                                                        <field name="climate_line_ids" nolabel="1" colspan="2">
+                                                                            <tree editable="bottom">
+                                                                                <field name="shock_type" />
+                                                                                <field name="shock_event_name" />
+                                                                                <field name="method_of_control" />
+                                                                                <field name="recovery_input_type" />
+                                                                                <field name="recovery_input_name" />
                                                                                 <field name="frequency_of_application" />
                                                                             </tree>
                                                                         </field>

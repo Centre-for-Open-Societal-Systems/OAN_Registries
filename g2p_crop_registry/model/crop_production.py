@@ -74,24 +74,24 @@ class G2PCropInfestationIncident(models.Model):
     is_nutrient = fields.Boolean(compute="_compute_infestation_flags")
     is_climate = fields.Boolean(compute="_compute_infestation_flags")
 
-    @api.depends('infestation_type_ids', 'infestation_type_ids.code')
+    @api.depends('infestation_type_ids', 'infestation_type_ids.code', 'infestation_type_ids.name')
     def _compute_infestation_flags(self):
         for rec in self:
-            codes = rec.infestation_type_ids.mapped('code')
-            rec.is_pest = 'pest' in codes
-            rec.is_weed = 'weed' in codes
-            rec.is_disease = 'disease' in codes
-            rec.is_nutrient = 'nutrient' in codes
-            rec.is_climate = 'climate' in codes
+            all_str = rec._get_infestation_type_strings(rec.infestation_type_ids)
+            rec.is_pest = any('pest' in s or 'ተባይ' in s for s in all_str)
+            rec.is_weed = any('weed' in s or 'አረም' in s for s in all_str)
+            rec.is_disease = any('disease' in s or 'በሽታ' in s for s in all_str)
+            rec.is_nutrient = any('nutrient' in s or 'deficiency' in s or 'ንጥረ' in s or 'nut' in s for s in all_str)
+            rec.is_climate = any('climate' in s or 'shock' in s or 'አየር' in s or 'clim' in s for s in all_str)
 
     @api.onchange('infestation_type_ids')
     def _onchange_infestation_types(self):
-        codes = self.infestation_type_ids.mapped('code')
-        self.is_pest = 'pest' in codes
-        self.is_weed = 'weed' in codes
-        self.is_disease = 'disease' in codes
-        self.is_nutrient = 'nutrient' in codes
-        self.is_climate = 'climate' in codes
+        all_str = self._get_infestation_type_strings(self.infestation_type_ids)
+        self.is_pest = any('pest' in s or 'ተባይ' in s for s in all_str)
+        self.is_weed = any('weed' in s or 'አረም' in s for s in all_str)
+        self.is_disease = any('disease' in s or 'በሽታ' in s for s in all_str)
+        self.is_nutrient = any('nutrient' in s or 'deficiency' in s or 'ንጥረ' in s or 'nut' in s for s in all_str)
+        self.is_climate = any('climate' in s or 'shock' in s or 'አየር' in s or 'clim' in s for s in all_str)
 
     def _get_infestation_type_strings(self, infestation_types):
         strings = []
