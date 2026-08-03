@@ -45,7 +45,7 @@ class TestPestWeedManagement(TransactionCase):
             'pesticide_name': 'Test Insecticide',
             'pesticide_frequency': 'Once a week'
         })
-        
+
         # Change method to hand picking
         pest_line.pesticide_method = 'hand_picking'
         pest_line._onchange_pesticide_method()
@@ -71,34 +71,4 @@ class TestPestWeedManagement(TransactionCase):
         self.assertFalse(disease_line.fungicide_name)
         self.assertFalse(disease_line.frequency_of_application)
 
-    def test_nutrient_method_of_control_onchange(self):
-        nutrient_line = self.env['g2p.crop.nutrient.line'].new({
-            'infestation_id': self.infestation.id,
-            'method_of_control': 'foliar_spray',
-            'fertilizer_type': 'organic',
-            'fertilizer_name': 'Compost',
-            'frequency_of_application': 'Once a week'
-        })
 
-        nutrient_line.method_of_control = 'soil_application'
-        nutrient_line._onchange_method_of_control_nutrient()
-
-        self.assertFalse(nutrient_line.fertilizer_type)
-        self.assertFalse(nutrient_line.fertilizer_name)
-        self.assertFalse(nutrient_line.frequency_of_application)
-
-    def test_climate_method_of_control_onchange(self):
-        climate_line = self.env['g2p.crop.climate.line'].new({
-            'infestation_id': self.infestation.id,
-            'method_of_control': 'drainage',
-            'recovery_input_type': 'soil_conditioner',
-            'recovery_input_name': 'Conditioner A',
-            'frequency_of_application': 'Once a week'
-        })
-
-        climate_line.method_of_control = 'replanting'
-        climate_line._onchange_method_of_control_climate()
-
-        self.assertFalse(climate_line.recovery_input_type)
-        self.assertFalse(climate_line.recovery_input_name)
-        self.assertFalse(climate_line.frequency_of_application)

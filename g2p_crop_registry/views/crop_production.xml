@@ -128,8 +128,13 @@
                                         <tree create="0" edit="0" delete="0">
                                             <field name="name" />
                                             <field name="growth_stage" />
-                                            <field name="infestation_type_ids" widget="many2many_tags" />
+                                            <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
                                             <field name="severity_level" />
+                                            <field name="is_pest" column_invisible="1" />
+                                            <field name="is_weed" column_invisible="1" />
+                                            <field name="is_disease" column_invisible="1" />
+                                            <field name="is_nutrient" column_invisible="1" />
+                                            <field name="is_climate" column_invisible="1" />
                                         </tree>
                                         <form string="Infestation Incident" create="0" edit="0">
                                             <sheet>
@@ -139,7 +144,7 @@
                                                 <group>
                                                     <group>
                                                         <field name="crop_name_id" />
-                                                        <field name="infestation_type_ids" widget="many2many_tags" />
+                                                        <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
                                                         <field name="growth_stage" />
                                                     </group>
                                                     <group>
@@ -262,8 +267,13 @@
                                                         <tree create="0" edit="0" delete="0">
                                                             <field name="name" />
                                                             <field name="growth_stage" />
-                                                            <field name="infestation_type_ids" widget="many2many_tags" />
+                                                            <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
                                                             <field name="severity_level" />
+                                                            <field name="is_pest" column_invisible="1" />
+                                                            <field name="is_weed" column_invisible="1" />
+                                                            <field name="is_disease" column_invisible="1" />
+                                                            <field name="is_nutrient" column_invisible="1" />
+                                                            <field name="is_climate" column_invisible="1" />
                                                         </tree>
                                                         <form string="Infestation Incident" create="0" edit="0">
                                                             <sheet>
@@ -273,7 +283,7 @@
                                                                 <group>
                                                                     <group>
                                                                         <field name="crop_name_id" />
-                                                                        <field name="infestation_type_ids" widget="many2many_tags" />
+                                                                        <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
                                                                         <field name="growth_stage" />
                                                                     </group>
                                                                     <group>
@@ -368,7 +378,7 @@
                             </page>
 
 
-                            <page string="Harvest" invisible="sowing_status != 'sown'">
+                            <page string="Harvesting">
                                 <group string="Harvest Details">
                                     <group>
                                         <field name="crop_maturity_status" decoration-success="crop_maturity_status == 'green'" decoration-warning="crop_maturity_status == 'yellow'" readonly="1" />
@@ -385,7 +395,7 @@
                             </page>
 
 
-                            <page string="Production Result" invisible="sowing_status != 'sown'">
+                            <page string="Production Result">
                                 <group string="Computed Outputs" colspan="2">
                                     <group>
                                         <field name="yield_per_ha" readonly="1" />

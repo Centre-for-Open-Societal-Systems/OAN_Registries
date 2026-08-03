@@ -68,78 +68,50 @@ class G2PCropInfestationIncident(models.Model):
 
     infestation_type_ids = fields.Many2many('g2p.infestation.type', string="Type of Infestation")
 
-    is_pest = fields.Boolean(compute="_compute_infestation_flags")
-    is_weed = fields.Boolean(compute="_compute_infestation_flags")
-    is_disease = fields.Boolean(compute="_compute_infestation_flags")
-    is_nutrient = fields.Boolean(compute="_compute_infestation_flags")
-    is_climate = fields.Boolean(compute="_compute_infestation_flags")
+    is_pest = fields.Boolean(compute="_compute_infestation_flags", store=True)
+    is_weed = fields.Boolean(compute="_compute_infestation_flags", store=True)
+    is_disease = fields.Boolean(compute="_compute_infestation_flags", store=True)
+    is_nutrient = fields.Boolean(compute="_compute_infestation_flags", store=True)
+    is_climate = fields.Boolean(compute="_compute_infestation_flags", store=True)
 
     @api.depends('infestation_type_ids', 'infestation_type_ids.code', 'infestation_type_ids.name')
     def _compute_infestation_flags(self):
         for rec in self:
-            all_str = rec._get_infestation_type_strings(rec.infestation_type_ids)
-            rec.is_pest = any('pest' in s or 'ተባይ' in s for s in all_str)
-            rec.is_weed = any('weed' in s or 'አረም' in s for s in all_str)
-            rec.is_disease = any('disease' in s or 'በሽታ' in s for s in all_str)
-            rec.is_nutrient = any('nutrient' in s or 'deficiency' in s or 'ንጥረ' in s or 'nut' in s for s in all_str)
-            rec.is_climate = any('climate' in s or 'shock' in s or 'አየር' in s or 'clim' in s for s in all_str)
+            rec._update_infestation_flags()
 
     @api.onchange('infestation_type_ids')
     def _onchange_infestation_types(self):
-        all_str = self._get_infestation_type_strings(self.infestation_type_ids)
+        self._update_infestation_flags()
+
+    def _update_infestation_flags(self):
+        all_str = []
+        for t in self.infestation_type_ids:
+            for attr in ('code', 'name', 'display_name'):
+                val = getattr(t, attr, None)
+                if val and isinstance(val, str):
+                    all_str.append(val.lower())
+            orig = getattr(t, '_origin', None)
+            if orig:
+                for attr in ('code', 'name', 'display_name'):
+                    val = getattr(orig, attr, None)
+                    if val and isinstance(val, str):
+                        all_str.append(val.lower())
+            real_id = getattr(t, 'id', None)
+            if hasattr(real_id, 'origin'):
+                real_id = real_id.origin
+            if isinstance(real_id, int):
+                real_rec = self.env['g2p.infestation.type'].browse(real_id)
+                if real_rec.exists():
+                    for attr in ('code', 'name', 'display_name'):
+                        val = getattr(real_rec, attr, None)
+                        if val and isinstance(val, str):
+                            all_str.append(val.lower())
+
         self.is_pest = any('pest' in s or 'ተባይ' in s for s in all_str)
         self.is_weed = any('weed' in s or 'አረም' in s for s in all_str)
         self.is_disease = any('disease' in s or 'በሽታ' in s for s in all_str)
         self.is_nutrient = any('nutrient' in s or 'deficiency' in s or 'ንጥረ' in s or 'nut' in s for s in all_str)
         self.is_climate = any('climate' in s or 'shock' in s or 'አየር' in s or 'clim' in s for s in all_str)
-
-    def _get_infestation_type_strings(self, infestation_types):
-        strings = []
-        if not infestation_types:
-            return strings
-
-        for t in infestation_types:
-            real_id = None
-            if hasattr(t, '_origin') and t._origin and getattr(t._origin, 'id', None):
-                orig_id = t._origin.id
-                if isinstance(orig_id, int):
-                    real_id = orig_id
-                elif hasattr(orig_id, 'origin') and isinstance(orig_id.origin, int):
-                    real_id = orig_id.origin
-
-            if not real_id and getattr(t, 'id', None):
-                if isinstance(t.id, int):
-                    real_id = t.id
-                elif hasattr(t.id, 'origin') and isinstance(t.id.origin, int):
-                    real_id = t.id.origin
-                elif isinstance(t.id, str) and t.id.isdigit():
-                    real_id = int(t.id)
-
-            if not real_id and isinstance(t, int):
-                real_id = t
-
-            if real_id:
-                real_rec = self.env['g2p.infestation.type'].browse(real_id)
-                if real_rec.exists():
-                    if real_rec.code:
-                        strings.append(str(real_rec.code).lower())
-                    else:
-                        _logger.warning("g2p.infestation.type ID %s has no 'code', falling back to name '%s'", real_id, real_rec.name)
-                        if real_rec.name:
-                            strings.append(str(real_rec.name).lower())
-                        if real_rec.display_name:
-                            strings.append(str(real_rec.display_name).lower())
-                    continue
-
-            if hasattr(t, 'code') and t.code:
-                strings.append(str(t.code).lower())
-            elif hasattr(t, 'name') and t.name:
-                _logger.warning("g2p.infestation.type record has no 'code', falling back to name '%s'", t.name)
-                strings.append(str(t.name).lower())
-                if hasattr(t, 'display_name') and t.display_name:
-                    strings.append(str(t.display_name).lower())
-
-        return strings
 
     pest_line_ids = fields.One2many('g2p.crop.pest.line', 'infestation_id', string="Pest Details")
     weed_line_ids = fields.One2many('g2p.crop.weed.line', 'infestation_id', string="Weed Details")
@@ -341,7 +313,7 @@ class G2PCropProduction(models.Model):
         for rec in self:
             names = rec.cluster_status_ids.mapped('name') if rec.cluster_status_ids else []
             rec.is_clustered = 'Clustered' in names
-            rec.is_independent = 'Independent' in names
+            rec.is_independent = not rec.is_clustered
 
 
     @api.depends('sync_id', 'crop_registry_id', 'crop_registry_id.actual_annual_line_ids.cluster_info_ids')

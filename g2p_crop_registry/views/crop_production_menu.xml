@@ -30,11 +30,11 @@
                     <button name="action_approve_sms" type="object" string="Approve" class="btn-success" invisible="not can_approve" groups="g2p_crop_registry.group_woreda_sms" />
                     <button name="action_approve_wah" type="object" string="Approve" class="btn-success" invisible="not can_approve" groups="g2p_crop_registry.group_woreda_agri_office_head" />
                     <button name="action_reject" type="object" string="Reject" class="btn-danger" invisible="not can_approve" groups="g2p_crop_registry.group_woreda_sms,g2p_crop_registry.group_woreda_agri_office_head" />
-                    
+
                     <button name="action_set_draft" string="Set To Draft" type="object" class="btn-info" invisible="not can_set_draft" groups="g2p_crop_registry.group_woreda_sms,g2p_crop_registry.group_woreda_agri_office_head" />
-                    
+
                     <button name="action_suggest_edit" type="object" string="Suggest Edit" class="btn-warning" invisible="((context.get('is_harvesting') and registry_harvesting_state != 'approved') or (not context.get('is_harvesting') and registry_sowing_state != 'approved'))" groups="g2p_crop_registry.group_development_agent,g2p_crop_registry.group_woreda_sms" />
-                    
+
                     <field name="registry_sowing_state" widget="statusbar" statusbar_visible="draft,pending_wah,update_requested,approved" invisible="context.get('is_harvesting')" />
                     <field name="registry_harvesting_state" widget="statusbar" statusbar_visible="draft,pending_wah,update_requested,approved" invisible="not context.get('is_harvesting')" />
                     <field name="can_approve" invisible="1" />
@@ -59,7 +59,7 @@
                             <field name="cluster_status_ids" widget="many2many_tags" readonly="registry_sowing_state != 'draft'" />
                         </group>
                     </group>
-                    
+
                     <group string="Independent Details" invisible="context.get('is_harvesting') or not is_independent">
                         <group>
                             <field name="sowing_status" readonly="registry_sowing_state != 'draft'" />
@@ -80,8 +80,13 @@
                             <tree>
                                 <field name="name" />
                                 <field name="growth_stage" />
-                                <field name="infestation_type_ids" widget="many2many_tags" />
+                                <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]"/>
                                 <field name="severity_level" />
+                                <field name="is_pest" column_invisible="1" />
+                                <field name="is_weed" column_invisible="1" />
+                                <field name="is_disease" column_invisible="1" />
+                                <field name="is_nutrient" column_invisible="1" />
+                                <field name="is_climate" column_invisible="1" />
                             </tree>
                             <form string="Infestation Incident">
                                 <sheet>
@@ -91,7 +96,7 @@
                                     <group>
                                         <group>
                                             <field name="crop_name_id" />
-                                            <field name="infestation_type_ids" widget="many2many_tags" />
+                                            <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
                                             <field name="growth_stage" />
                                         </group>
                                         <group>
@@ -102,12 +107,12 @@
                                             <field name="geo_tagged_photo" widget="image" invisible="severity_level != 'high'" required="severity_level == 'high'" />
                                         </group>
                                     </group>
-                                    
+
                                     <field name="is_pest" invisible="1" />
                                     <field name="is_weed" invisible="1" />
                                     <field name="is_disease" invisible="1" />
                                     <field name="is_nutrient" invisible="1" />
-                                    <field name="is_climate" invisible="1" />                                                            
+                                    <field name="is_climate" invisible="1" />
                                     <notebook>
                                         <page string="Pest Occurrence" invisible="not is_pest">
                                             <field name="pest_line_ids" nolabel="1" colspan="2">
@@ -170,7 +175,7 @@
                                             </field>
                                         </page>
                                     </notebook>
-                                    
+
                                     <group>
                                         <field name="action_taken" invisible="1" />
                                     </group>
@@ -178,7 +183,7 @@
                             </form>
                         </field>
                     </group>
-                    
+
                     <group string="Clustered Details" invisible="context.get('is_harvesting') or not is_clustered">
                         <field name="production_cluster_line_ids" nolabel="1" colspan="2" readonly="registry_sowing_state != 'draft'">
                             <tree editable="bottom" create="false" delete="false">
@@ -204,17 +209,22 @@
                                             <field name="sowing_status" />
                                             <field name="area_sown" />
                                             <field name="has_pest_disease" widget="boolean_toggle" />
-                                            <field name="cluster_area_hectare" readonly="1" force_save="1" />
+                <field name="cluster_area_hectare" readonly="1" force_save="1" />
                                         </group>
                                     </group>
-                                    
+
                                     <group string="Pest / Disease Details" invisible="not has_pest_disease">
                                         <field name="infestation_incident_ids" nolabel="1" colspan="2">
                                             <tree>
                                                 <field name="name" />
                                                 <field name="growth_stage" />
-                                                <field name="infestation_type_ids" widget="many2many_tags" />
+                                                <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
                                                 <field name="severity_level" />
+                                                <field name="is_pest" column_invisible="1" />
+                                                <field name="is_weed" column_invisible="1" />
+                                                <field name="is_disease" column_invisible="1" />
+                                                <field name="is_nutrient" column_invisible="1" />
+                                                <field name="is_climate" column_invisible="1" />
                                             </tree>
                                             <form string="Infestation Incident">
                                                 <sheet>
@@ -224,7 +234,7 @@
                                                     <group>
                                                         <group>
                                                             <field name="crop_name_id" />
-                                                            <field name="infestation_type_ids" widget="many2many_tags" />
+                                                            <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
                                                             <field name="growth_stage" />
                                                         </group>
                                                         <group>
@@ -235,12 +245,12 @@
                                                             <field name="geo_tagged_photo" widget="image" invisible="severity_level != 'high'" required="severity_level == 'high'" />
                                                         </group>
                                                     </group>
-                                                    
+
                                                     <field name="is_pest" invisible="1" />
                                                     <field name="is_weed" invisible="1" />
                                                     <field name="is_disease" invisible="1" />
                                                     <field name="is_nutrient" invisible="1" />
-                                                    <field name="is_climate" invisible="1" />                                                                            
+                                                    <field name="is_climate" invisible="1" />
                                                     <notebook>
                                                         <page string="Pest Occurrence" invisible="not is_pest">
                                                             <field name="pest_line_ids" nolabel="1" colspan="2">
@@ -303,7 +313,7 @@
                                                             </field>
                                                         </page>
                                                     </notebook>
-                                                    
+
                                                     <group>
                                                         <field name="action_taken" invisible="1" />
                                                     </group>
@@ -327,7 +337,7 @@
                             <field name="crop_name_id" readonly="1" />
                         </group>
                     </group>
-                    
+
                     <group string="Independent Harvest" invisible="not context.get('is_harvesting') or not is_independent">
                         <group>
                             <field name="crop_maturity_status" decoration-success="crop_maturity_status == 'green'" decoration-warning="crop_maturity_status == 'yellow'" readonly="registry_harvesting_state != 'draft'" />
@@ -341,7 +351,7 @@
                             <field name="qty_sold" readonly="registry_harvesting_state != 'draft'" />
                         </group>
                     </group>
-                    
+
                     <group string="Production Result (Computed)" invisible="not context.get('is_harvesting') or not is_independent">
                         <group>
                             <field name="yield_per_ha" readonly="1" />
@@ -353,7 +363,7 @@
                             <field name="seed_productivity" readonly="1" />
                         </group>
                     </group>
-                    
+
                     <group string="Clustered Harvest" invisible="not context.get('is_harvesting') or not is_clustered">
                         <field name="production_cluster_line_ids" nolabel="1" colspan="2" readonly="registry_harvesting_state != 'draft'">
                             <tree editable="bottom" create="false" delete="false">

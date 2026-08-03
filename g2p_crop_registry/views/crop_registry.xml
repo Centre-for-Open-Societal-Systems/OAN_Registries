@@ -351,14 +351,19 @@
                                             </group>
 
 
-                                            <group string="Pest / Disease Details" invisible="not is_independent or not has_pest_disease">
-                                                <field name="infestation_incident_ids" nolabel="1" colspan="2">
-                                                    <tree>
-                                                        <field name="name" />
-                                                        <field name="growth_stage" />
-                                                        <field name="infestation_type_ids" widget="many2many_tags" />
-                                                        <field name="severity_level" />
-                                                    </tree>
+                                             <group string="Pest / Disease Details" invisible="not is_independent or not has_pest_disease">
+                                                 <field name="infestation_incident_ids" nolabel="1" colspan="2">
+                                                     <tree>
+                                                         <field name="name" />
+                                                         <field name="growth_stage" />
+                                                         <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
+                                                         <field name="severity_level" />
+                                                         <field name="is_pest" column_invisible="1" />
+                                                         <field name="is_weed" column_invisible="1" />
+                                                         <field name="is_disease" column_invisible="1" />
+                                                         <field name="is_nutrient" column_invisible="1" />
+                                                         <field name="is_climate" column_invisible="1" />
+                                                     </tree>
                                                     <form string="Infestation Incident">
                                                         <sheet>
                                                             <div class="oe_title">
@@ -367,7 +372,7 @@
                                                             <group>
                                                                 <group>
                                                                     <field name="crop_name_id" />
-                                                                    <field name="infestation_type_ids" widget="many2many_tags" />
+                                                                    <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
                                                                     <field name="growth_stage" />
                                                                 </group>
                                                                 <group>
@@ -489,8 +494,13 @@
                                                                     <tree>
                                                                         <field name="name" />
                                                                         <field name="growth_stage" />
-                                                                        <field name="infestation_type_ids" widget="many2many_tags" />
+                                                                        <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
                                                                         <field name="severity_level" />
+                                                                        <field name="is_pest" column_invisible="1" />
+                                                                        <field name="is_weed" column_invisible="1" />
+                                                                        <field name="is_disease" column_invisible="1" />
+                                                                        <field name="is_nutrient" column_invisible="1" />
+                                                                        <field name="is_climate" column_invisible="1" />
                                                                     </tree>
                                                                     <form string="Infestation Incident">
                                                                         <sheet>
@@ -500,7 +510,7 @@
                                                                             <group>
                                                                                 <group>
                                                                                     <field name="crop_name_id" />
-                                                                                    <field name="infestation_type_ids" widget="many2many_tags" />
+                                                                                    <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
                                                                                     <field name="growth_stage" />
                                                                                 </group>
                                                                                 <group>
@@ -805,7 +815,9 @@
             <field name="arch" type="xml">
                 <xpath expr="//form" position="inside">
                     <style>
-                        .o_form_sheet > .o_notebook > .nav-tabs, .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
+                        .o_content > .o_form_renderer > .o_form_sheet > .o_notebook > .nav-tabs,
+                        .o_content > .o_form_renderer > .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
+                        .modal .nav-tabs, .o_dialog .nav-tabs { display: flex !important; }
                     </style>
                 </xpath>
                 <!-- Replace header: show planning_state statusbar only -->
@@ -917,7 +929,9 @@
             <field name="arch" type="xml">
                 <xpath expr="//form" position="inside">
                     <style>
-                        .o_form_sheet > .o_notebook > .nav-tabs, .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
+                        .o_content > .o_form_renderer > .o_form_sheet > .o_notebook > .nav-tabs,
+                        .o_content > .o_form_renderer > .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
+                        .modal .nav-tabs, .o_dialog .nav-tabs { display: flex !important; }
                     </style>
                 </xpath>
                 <!-- Replace header: show cultivation_state statusbar only -->
@@ -1030,7 +1044,9 @@
             <field name="arch" type="xml">
                 <xpath expr="//form" position="inside">
                     <style>
-                        .o_form_sheet > .o_notebook > .nav-tabs, .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
+                        .o_content > .o_form_renderer > .o_form_sheet > .o_notebook > .nav-tabs,
+                        .o_content > .o_form_renderer > .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
+                        .modal .nav-tabs, .o_dialog .nav-tabs { display: flex !important; }
                     </style>
                 </xpath>
                 <!-- Replace header: show sowing_state statusbar only -->
@@ -1139,7 +1155,9 @@
             <field name="arch" type="xml">
                 <xpath expr="//form" position="inside">
                     <style>
-                        .o_form_sheet > .o_notebook > .nav-tabs, .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
+                        .o_content > .o_form_renderer > .o_form_sheet > .o_notebook > .nav-tabs,
+                        .o_content > .o_form_renderer > .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
+                        .modal .nav-tabs, .o_dialog .nav-tabs { display: flex !important; }
                     </style>
                 </xpath>
                 <!-- Replace header: show harvesting_state statusbar only -->
