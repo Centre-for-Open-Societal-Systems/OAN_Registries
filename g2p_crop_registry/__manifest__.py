@@ -23,6 +23,7 @@
         'views/crop_registry.xml',
         'views/crop_production.xml',
         'views/dashboard_action.xml',
+        'views/cluster_info_popup.xml',
     ],
     "demo": [],
     "images": [],
