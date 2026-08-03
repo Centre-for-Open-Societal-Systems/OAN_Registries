@@ -93,7 +93,7 @@ class G2PCropInfestationIncident(models.Model):
         self.is_nutrient = 'nutrient' in codes
         self.is_climate = 'climate' in codes
 
-        def _get_infestation_type_strings(self, infestation_types):
+    def _get_infestation_type_strings(self, infestation_types):
         strings = []
         if not infestation_types:
             return strings
