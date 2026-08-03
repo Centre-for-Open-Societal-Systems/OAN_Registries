@@ -93,6 +93,54 @@ class G2PCropInfestationIncident(models.Model):
         self.is_nutrient = 'nutrient' in codes
         self.is_climate = 'climate' in codes
 
+        def _get_infestation_type_strings(self, infestation_types):
+        strings = []
+        if not infestation_types:
+            return strings
+
+        for t in infestation_types:
+            real_id = None
+            if hasattr(t, '_origin') and t._origin and getattr(t._origin, 'id', None):
+                orig_id = t._origin.id
+                if isinstance(orig_id, int):
+                    real_id = orig_id
+                elif hasattr(orig_id, 'origin') and isinstance(orig_id.origin, int):
+                    real_id = orig_id.origin
+
+            if not real_id and getattr(t, 'id', None):
+                if isinstance(t.id, int):
+                    real_id = t.id
+                elif hasattr(t.id, 'origin') and isinstance(t.id.origin, int):
+                    real_id = t.id.origin
+                elif isinstance(t.id, str) and t.id.isdigit():
+                    real_id = int(t.id)
+
+            if not real_id and isinstance(t, int):
+                real_id = t
+
+            if real_id:
+                real_rec = self.env['g2p.infestation.type'].browse(real_id)
+                if real_rec.exists():
+                    if real_rec.code:
+                        strings.append(str(real_rec.code).lower())
+                    else:
+                        _logger.warning("g2p.infestation.type ID %s has no 'code', falling back to name '%s'", real_id, real_rec.name)
+                        if real_rec.name:
+                            strings.append(str(real_rec.name).lower())
+                        if real_rec.display_name:
+                            strings.append(str(real_rec.display_name).lower())
+                    continue
+
+            if hasattr(t, 'code') and t.code:
+                strings.append(str(t.code).lower())
+            elif hasattr(t, 'name') and t.name:
+                _logger.warning("g2p.infestation.type record has no 'code', falling back to name '%s'", t.name)
+                strings.append(str(t.name).lower())
+                if hasattr(t, 'display_name') and t.display_name:
+                    strings.append(str(t.display_name).lower())
+
+        return strings
+
     pest_line_ids = fields.One2many('g2p.crop.pest.line', 'infestation_id', string="Pest Details")
     weed_line_ids = fields.One2many('g2p.crop.weed.line', 'infestation_id', string="Weed Details")
     disease_line_ids = fields.One2many('g2p.crop.disease.line', 'infestation_id', string="Disease Details")
