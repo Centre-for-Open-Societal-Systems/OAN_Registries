@@ -379,7 +379,15 @@
 
 
                             <page string="Harvesting">
-                                <group string="Harvest Details">
+                                <group string="Harvesting">
+                                    <group>
+                                        <field name="land_info_id" context="{'show_land_id': True}" readonly="1" force_save="1" />
+                                        <field name="cluster_status_ids" widget="many2many_tags" readonly="1" force_save="1" />
+                                        <field name="is_clustered" invisible="1" />
+                                        <field name="is_independent" invisible="1" />
+                                    </group>
+                                </group>
+                                <group string="Independent Harvest" invisible="not is_independent">
                                     <group>
                                         <field name="crop_maturity_status" decoration-success="crop_maturity_status == 'green'" decoration-warning="crop_maturity_status == 'yellow'" readonly="1" />
                                         <field name="harvest_date" readonly="1" />
@@ -392,11 +400,7 @@
                                         <field name="qty_sold" readonly="1" />
                                     </group>
                                 </group>
-                            </page>
-
-
-                            <page string="Production Result">
-                                <group string="Computed Outputs" colspan="2">
+                                <group string="Production Result (Computed)" invisible="not is_independent">
                                     <group>
                                         <field name="yield_per_ha" readonly="1" />
                                         <field name="yield_performance_pct" readonly="1" />
@@ -406,6 +410,20 @@
                                         <field name="land_utilization_rate" readonly="1" />
                                         <field name="seed_productivity" readonly="1" />
                                     </group>
+                                </group>
+                                <group string="Clustered Harvest" invisible="not is_clustered">
+                                    <field name="production_cluster_line_ids" nolabel="1" colspan="2" readonly="1">
+                                        <tree editable="bottom" create="false" delete="false">
+                                            <field name="cluster_info_id" readonly="1" force_save="1" />
+                                            <field name="crop_maturity_status" readonly="1" force_save="1" />
+                                            <field name="harvest_date" readonly="1" force_save="1" />
+                                            <field name="area_harvested" readonly="1" force_save="1" />
+                                            <field name="qty_harvested" readonly="1" force_save="1" />
+                                            <field name="post_harvest_loss_pct" readonly="1" force_save="1" />
+                                            <field name="qty_stored" readonly="1" force_save="1" />
+                                            <field name="qty_sold" readonly="1" force_save="1" />
+                                        </tree>
+                                    </field>
                                 </group>
                             </page>
 

@@ -312,7 +312,7 @@ class G2PCropProduction(models.Model):
         for rec in self:
             names = rec.cluster_status_ids.mapped('name') if rec.cluster_status_ids else []
             rec.is_clustered = 'Clustered' in names
-            rec.is_independent = not rec.is_clustered
+            rec.is_independent = 'Independent' in names
 
 
     @api.depends('sync_id', 'crop_registry_id', 'crop_registry_id.actual_annual_line_ids.cluster_info_ids')
