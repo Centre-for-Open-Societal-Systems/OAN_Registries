@@ -66,7 +66,7 @@
                         <field name="is_da" invisible="1" />
                         <field name="lifecycle_stage" invisible="1" />
                         <field name="planning_state" invisible="1" /><notebook>
-                            <page string="Planning" readonly="lifecycle_stage in ('planning_approved', 'pending_cultivation', 'cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved') and is_da">
+                            <page name="page_planning" string="Planning" readonly="lifecycle_stage in ('planning_approved', 'pending_cultivation', 'cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved') and is_da">
                                 <group string="Planned Crops">
                                     <field name="annual_line_ids" nolabel="1" colspan="2" readonly="lifecycle_stage in ('planning_approved', 'pending_cultivation', 'cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved') and is_da">
                                         <tree>
@@ -185,7 +185,7 @@
                                 </group>
 
                             </page>
-                            <page string="Cultivation / Land Preparation" invisible="planning_state != 'approved'" readonly="lifecycle_stage in ('cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved')">
+                            <page name="page_cultivation" string="Cultivation / Land Preparation" invisible="planning_state != 'approved'" readonly="lifecycle_stage in ('cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved')">
                                 <field name="has_no_planning_data" invisible="1" />
                                 <div class="alert alert-warning" role="alert" invisible="not has_no_planning_data" style="margin-bottom: 10px;">
                                     There is no data in the Planning section. You are creating a cultivation record directly here.
@@ -320,7 +320,7 @@
                                     </field>
                                 </group>
                             </page>
-                            <page string="Sowing" invisible="lifecycle_stage in ('draft', 'pending_planning', 'planning_approved', 'pending_cultivation')" readonly="lifecycle_stage in ('sowing_approved', 'pending_harvesting', 'harvesting_approved')">
+                            <page name="page_sowing" string="Sowing" invisible="lifecycle_stage in ('draft', 'pending_planning', 'planning_approved', 'pending_cultivation')" readonly="lifecycle_stage in ('sowing_approved', 'pending_harvesting', 'harvesting_approved')">
                                 <group string="Sowing Crops">
                                 <field name="production_detail_ids" nolabel="1" colspan="2">
                                     <form>
@@ -626,7 +626,7 @@
 
                             </page>
 
-                            <page string="Harvesting" invisible="lifecycle_stage in ('draft', 'pending_planning', 'planning_approved', 'pending_cultivation', 'cultivation_approved', 'pending_sowing')" readonly="lifecycle_stage == 'harvesting_approved'">
+                            <page name="page_harvesting" string="Harvesting" invisible="lifecycle_stage in ('draft', 'pending_planning', 'planning_approved', 'pending_cultivation', 'cultivation_approved', 'pending_sowing')" readonly="lifecycle_stage == 'harvesting_approved'">
                                 <group string="Harvesting Crops">
                                 <field name="harvest_detail_ids" nolabel="1" colspan="2" string="Harvesting Details">
                                     <form string="Harvesting Details">
@@ -840,19 +840,16 @@
                     </header>
                 </xpath>
                 <!-- Show only Planning tab (page[1]); hide all others -->
-                <xpath expr="//notebook/page[1]" position="attributes">
+                <xpath expr="//page[@name='page_planning']" position="attributes">
                     <attribute name="invisible">0</attribute>
                 </xpath>
-                <xpath expr="//notebook/page[2]" position="attributes">
+                <xpath expr="//page[@name='page_cultivation']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
-                <xpath expr="//notebook/page[3]" position="attributes">
+                <xpath expr="//page[@name='page_sowing']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
-                <xpath expr="//notebook/page[4]" position="attributes">
-                    <attribute name="invisible">1</attribute>
-                </xpath>
-                <xpath expr="//notebook/page[5]" position="attributes">
+                <xpath expr="//page[@name='page_harvesting']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
                 <!-- rejection_reason visible only when planning_state == rejected -->
@@ -954,19 +951,16 @@
                     </header>
                 </xpath>
                 <!-- Planning tab: readonly (reference), Cultivation tab: active, hide Sowing/Harvesting/Survey -->
-                <xpath expr="//notebook/page[1]" position="attributes">
+                <xpath expr="//page[@name='page_planning']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
-                <xpath expr="//notebook/page[2]" position="attributes">
+                <xpath expr="//page[@name='page_cultivation']" position="attributes">
                     <attribute name="invisible">0</attribute>
                 </xpath>
-                <xpath expr="//notebook/page[3]" position="attributes">
+                <xpath expr="//page[@name='page_sowing']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
-                <xpath expr="//notebook/page[4]" position="attributes">
-                    <attribute name="invisible">1</attribute>
-                </xpath>
-                <xpath expr="//notebook/page[5]" position="attributes">
+                <xpath expr="//page[@name='page_harvesting']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
                 <!-- rejection_reason visible only when cultivation_state == rejected -->
@@ -1069,19 +1063,16 @@
                     </header>
                 </xpath>
                 <!-- Hide Planning, Cultivation, Harvesting, Survey tabs; show only Sowing -->
-                <xpath expr="//notebook/page[1]" position="attributes">
+                <xpath expr="//page[@name='page_planning']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
-                <xpath expr="//notebook/page[2]" position="attributes">
+                <xpath expr="//page[@name='page_cultivation']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
-                <xpath expr="//notebook/page[3]" position="attributes">
+                <xpath expr="//page[@name='page_sowing']" position="attributes">
                     <attribute name="invisible">0</attribute>
                 </xpath>
-                <xpath expr="//notebook/page[4]" position="attributes">
-                    <attribute name="invisible">1</attribute>
-                </xpath>
-                <xpath expr="//notebook/page[5]" position="attributes">
+                <xpath expr="//page[@name='page_harvesting']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
                 <xpath expr="//group[@name='farmer_identity']" position="attributes">
@@ -1180,20 +1171,17 @@
                     </header>
                 </xpath>
                 <!-- Show Planning(readonly), Cultivation(readonly), Sowing(readonly), Harvesting(active); hide Survey -->
-                <xpath expr="//notebook/page[1]" position="attributes">
+                <xpath expr="//page[@name='page_planning']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
-                <xpath expr="//notebook/page[2]" position="attributes">
+                <xpath expr="//page[@name='page_cultivation']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
-                <xpath expr="//notebook/page[3]" position="attributes">
+                <xpath expr="//page[@name='page_sowing']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
-                <xpath expr="//notebook/page[4]" position="attributes">
+                <xpath expr="//page[@name='page_harvesting']" position="attributes">
                     <attribute name="invisible">0</attribute>
-                </xpath>
-                <xpath expr="//notebook/page[5]" position="attributes">
-                    <attribute name="invisible">1</attribute>
                 </xpath>
                 <xpath expr="//group[@name='farmer_identity']" position="attributes">
                     <attribute name="invisible">1</attribute>
