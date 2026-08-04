@@ -66,14 +66,12 @@ class G2PCropInfestationIncident(models.Model):
         ('maturity', 'Maturity / Harvesting (ምርት ስብሰባ)'),
     ], string="Growth Stage (የዕድገት ደረጃ)")
 
-    infestation_type_ids = fields.Many2many('g2p.infestation.type', string="Type of Infestation")
+    infestation_type_ids = fields.Many2many('g2p.infestation.type', string="Type of Infestation", domain="[('code', '!=', 'climate')]")
 
     is_pest = fields.Boolean(compute="_compute_infestation_flags", store=True)
     is_weed = fields.Boolean(compute="_compute_infestation_flags", store=True)
     is_disease = fields.Boolean(compute="_compute_infestation_flags", store=True)
     is_nutrient = fields.Boolean(compute="_compute_infestation_flags", store=True)
-    is_climate = fields.Boolean(compute="_compute_infestation_flags", store=True)
-
     @api.depends('infestation_type_ids', 'infestation_type_ids.code', 'infestation_type_ids.name')
     def _compute_infestation_flags(self):
         for rec in self:

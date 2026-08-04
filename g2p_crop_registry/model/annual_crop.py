@@ -60,13 +60,10 @@ class G2PAnnualLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)
-        records._auto_register_temporary_land()
         return records
 
     def write(self, vals):
         result = super().write(vals)
-        if any(k in vals for k in ['is_plot_not_registered', 'temporary_land_id', 'land_area', 'ownership_type', 'kebele_id']):
-            self._auto_register_temporary_land()
         if 'crop_expected' in vals or 'cluster_info_ids' in vals:
             for rec in self:
                 if not rec.sync_id or not rec.crop_registry_id:
@@ -83,64 +80,6 @@ class G2PAnnualLine(models.Model):
                     if updates:
                         actual.write(updates)
         return result
-
-    def _auto_register_temporary_land(self):
-        for rec in self:
-            if not rec.is_plot_not_registered or rec.land_info_id:
-                continue
-
-            partner = rec.crop_registry_id.partner_id if rec.crop_registry_id else False
-            if not partner:
-                continue
-
-            existing_land = False
-            if rec.temporary_land_id:
-                existing_land = self.env['g2p.land.information'].search([
-                    ('partner_id', '=', partner.id),
-                    ('land_id', '=', rec.temporary_land_id)
-                ], limit=1)
-
-            if not existing_land and rec.gps:
-                existing_lands = self.env['g2p.land.information'].search([
-                    ('partner_id', '=', partner.id)
-                ])
-                for l in existing_lands:
-                    if hasattr(l, 'gps') and l.gps and l.gps == rec.gps:
-                        existing_land = l
-                        break
-
-            if not existing_land:
-                target_land_id = False
-                if rec.temporary_land_id:
-                    taken = self.env['g2p.land.information'].search([
-                        ('land_id', '=', rec.temporary_land_id)
-                    ], limit=1)
-                    if not taken:
-                        target_land_id = rec.temporary_land_id
-
-                if not target_land_id:
-                    target_land_id = _generate_unique_land_id(
-                        self.env, partner,
-                        region=rec.region_name_id,
-                        zone=rec.zone_name_id,
-                        woreda=rec.woreda_name_id,
-                        kebele=rec.kebele_id
-                    )
-
-                area = rec.land_area or (getattr(rec, 'actual_crop_area', 0.0))
-                existing_land = self.env['g2p.land.information'].create({
-                    'partner_id': partner.id,
-                    'land_id': target_land_id,
-                    'total_land_area': area or 0.0,
-                    'ownership_type': rec.ownership_type or 'owner',
-                    'land_kebele': rec.kebele_id.id if rec.kebele_id else False,
-                })
-
-            rec.write({
-                'land_info_id': existing_land.id,
-                'is_plot_not_registered': False,
-                'temporary_land_id': False,
-            })
 
     def unlink(self):
         for line in self:
@@ -436,72 +375,11 @@ class G2PAnnualActualLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)
-        records._auto_register_temporary_land()
         return records
 
     def write(self, vals):
         result = super().write(vals)
-        if any(k in vals for k in ['is_plot_not_registered', 'temporary_land_id', 'land_area', 'actual_crop_area', 'ownership_type', 'kebele_id']):
-            self._auto_register_temporary_land()
         return result
-
-    def _auto_register_temporary_land(self):
-        for rec in self:
-            if not rec.is_plot_not_registered or rec.land_info_id:
-                continue
-
-            partner = rec.crop_registry_id.partner_id if rec.crop_registry_id else False
-            if not partner:
-                continue
-
-            existing_land = False
-            if rec.temporary_land_id:
-                existing_land = self.env['g2p.land.information'].search([
-                    ('partner_id', '=', partner.id),
-                    ('land_id', '=', rec.temporary_land_id)
-                ], limit=1)
-
-            if not existing_land and rec.gps:
-                existing_lands = self.env['g2p.land.information'].search([
-                    ('partner_id', '=', partner.id)
-                ])
-                for l in existing_lands:
-                    if hasattr(l, 'gps') and l.gps and l.gps == rec.gps:
-                        existing_land = l
-                        break
-
-            if not existing_land:
-                target_land_id = False
-                if rec.temporary_land_id:
-                    taken = self.env['g2p.land.information'].search([
-                        ('land_id', '=', rec.temporary_land_id)
-                    ], limit=1)
-                    if not taken:
-                        target_land_id = rec.temporary_land_id
-
-                if not target_land_id:
-                    target_land_id = _generate_unique_land_id(
-                        self.env, partner,
-                        region=rec.region_name_id,
-                        zone=rec.zone_name_id,
-                        woreda=rec.woreda_name_id,
-                        kebele=rec.kebele_id
-                    )
-
-                area = rec.actual_crop_area or rec.land_area or 0.0
-                existing_land = self.env['g2p.land.information'].create({
-                    'partner_id': partner.id,
-                    'land_id': target_land_id,
-                    'total_land_area': area or 0.0,
-                    'ownership_type': rec.ownership_type or 'owner',
-                    'land_kebele': rec.kebele_id.id if rec.kebele_id else False,
-                })
-
-            rec.write({
-                'land_info_id': existing_land.id,
-                'is_plot_not_registered': False,
-                'temporary_land_id': False,
-            })
     @api.constrains('actual_yield')
     def _check_actual_yield(self):
         for rec in self:

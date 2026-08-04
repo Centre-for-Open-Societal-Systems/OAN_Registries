@@ -19,8 +19,6 @@ access_g2p_crop_production_cluster_line,g2p.crop.production.cluster.line,model_g
 access_g2p_crop_infestation_incident,g2p.crop.infestation.incident,model_g2p_crop_infestation_incident,base.group_user,1,1,1,1
 access_g2p_infestation_type,g2p.infestation.type,model_g2p_infestation_type,base.group_user,1,1,1,1
 access_g2p_crop_disease_line,g2p.crop.disease.line,model_g2p_crop_disease_line,base.group_user,1,1,1,1
-access_g2p_crop_nutrient_line,g2p.crop.nutrient.line,model_g2p_crop_nutrient_line,base.group_user,1,1,1,1
-access_g2p_crop_climate_line,g2p.crop.climate.line,model_g2p_crop_climate_line,base.group_user,1,1,1,1
 
 access_wah_crop_registry,g2p.crop.registry WAH,model_g2p_crop_registry,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
 access_wah_crop_production,g2p.crop.production WAH,model_g2p_crop_production,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
