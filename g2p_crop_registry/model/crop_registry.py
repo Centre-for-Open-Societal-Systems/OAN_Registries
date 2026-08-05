@@ -300,6 +300,7 @@ class G2PCrop(models.Model):
                     record.lifecycle_stage = 'cultivation_approved'
                     record.sowing_state = 'draft'
                     record.state = 'draft'
+                    record._sync_actual_to_production_backend()
             elif 'Sowing' in menu_title or record.lifecycle_stage in ['cultivation_approved', 'pending_sowing', 'sowing_rejected']:
                 if record.sowing_state in ['pending_wah', 'rejected']:
                     record.sowing_state = 'approved'
@@ -1117,6 +1118,60 @@ class G2PCrop(models.Model):
                     })
                     rec.production_detail_ids += new_prod
             # Cleanup orphaned production details when actual is deleted
+            valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual]
+            orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
+            if orphaned_prod:
+                rec.production_detail_ids -= orphaned_prod
+        rec.harvest_detail_ids = rec.production_detail_ids
+
+    def _sync_actual_to_production_backend(self):
+        for rec in self:
+            for actual_line in rec.actual_annual_line_ids:
+                if not actual_line.sync_id:
+                    actual_line.sync_id = str(uuid.uuid4())
+                prod_line = rec.production_detail_ids.filtered(lambda p: p.sync_id == actual_line.sync_id)
+                planned_line = rec.annual_line_ids.filtered(lambda l: l.sync_id == actual_line.sync_id)
+                expected_yield = planned_line[0].crop_expected if planned_line else 0.0
+                planned_area = planned_line[0].crop_planned_area if planned_line else 0.0
+
+                if prod_line:
+                    prod_line = prod_line[0]
+                    if prod_line.season_id != actual_line.season_id:
+                        prod_line.season_id = actual_line.season_id
+                    if prod_line.crop_name_id != actual_line.crop_name_id:
+                        prod_line.crop_name_id = actual_line.crop_name_id
+                    if prod_line.land_info_id.id != (actual_line.land_info_id.id if actual_line.land_info_id else False):
+                        prod_line.land_info_id = actual_line.land_info_id.id if actual_line.land_info_id else False
+                    if prod_line.actual_sowing_date != actual_line.collected_gc:
+                        prod_line.actual_sowing_date = actual_line.collected_gc
+                    if prod_line.actual_fertilizer_type != actual_line.actual_fertilizer_type:
+                        prod_line.actual_fertilizer_type = actual_line.actual_fertilizer_type
+                    if prod_line.actual_fertilizer_qty != actual_line.actual_fertilizer_qty:
+                        prod_line.actual_fertilizer_qty = actual_line.actual_fertilizer_qty
+                    if prod_line.actual_seed_qty != actual_line.actual_seed_qty:
+                        prod_line.actual_seed_qty = actual_line.actual_seed_qty
+                    if prod_line.actual_crop_area != actual_line.actual_crop_area:
+                        prod_line.actual_crop_area = actual_line.actual_crop_area
+                    if prod_line.expected_yield != expected_yield:
+                        prod_line.expected_yield = expected_yield
+                    if prod_line.planned_area != planned_area:
+                        prod_line.planned_area = planned_area
+                else:
+                    self.env['g2p.crop.production'].create({
+                        'crop_registry_id': rec.id,
+                        'sync_id': actual_line.sync_id,
+                        'season_id': actual_line.season_id.id if actual_line.season_id else False,
+                        'land_info_id': actual_line.land_info_id.id if actual_line.land_info_id else False,
+                        'crop_name_id': actual_line.crop_name_id.id if actual_line.crop_name_id else False,
+                        'actual_sowing_date': actual_line.collected_gc if actual_line.collected_gc else False,
+                        'actual_fertilizer_qty': actual_line.actual_fertilizer_qty if actual_line.actual_fertilizer_qty else 0.0,
+                        'actual_fertilizer_type': actual_line.actual_fertilizer_type if actual_line.actual_fertilizer_type else False,
+                        'actual_seed_qty': actual_line.actual_seed_qty if actual_line.actual_seed_qty else 0.0,
+                        'actual_crop_area': actual_line.actual_crop_area if actual_line.actual_crop_area else 0.0,
+                        'expected_yield': expected_yield,
+                        'planned_area': planned_area,
+                        'qty_harvested': actual_line.actual_yield if actual_line.actual_yield else 0.0,
+                    })
             valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual]
             orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
             if orphaned_prod:

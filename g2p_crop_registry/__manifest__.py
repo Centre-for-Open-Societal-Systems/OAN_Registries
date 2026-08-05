@@ -18,6 +18,7 @@
         'data/machinery_data.xml',
         'data/ir_sequence_data.xml',
         'data/cluster_status_data.xml',
+        'data/odk_import_data.xml',
         'views/crop_request_views.xml',
         'views/crop_production_menu.xml',
         'views/crop_registry.xml',
