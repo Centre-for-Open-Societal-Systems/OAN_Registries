@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Default ODK Configurations -->
+    <record id="odk_config_crop_sown_registry___planning" model="odk.config">
+        <field name="name">Crop Sown Registry - Planning</field>
+        <field name="base_url">https://odk.13.207.43.8.nip.io</field>
+        <field name="username">vilbertraj21@gmail.com</field>
+        <field name="password">odksandbox</field>
+        <field name="project">9</field>
+        <field name="form_id">crop_sown_registry_plan</field>
+    </record>
+
+    <record id="odk_config_crop_sown_registry___cult_land_prep" model="odk.config">
+        <field name="name">Crop Sown Registry - Cult/Land Prep</field>
+        <field name="base_url">https://odk.13.207.43.8.nip.io</field>
+        <field name="username">vilbertraj21@gmail.com</field>
+        <field name="password">odksandbox</field>
+        <field name="project">9</field>
+        <field name="form_id">crop_sown_registry_prep</field>
+    </record>
+
+    <record id="odk_config_crop_sown_registry___sowing" model="odk.config">
+        <field name="name">Crop Sown Registry - Sowing</field>
+        <field name="base_url">https://odk.13.207.43.8.nip.io</field>
+        <field name="username">vilbertraj21@gmail.com</field>
+        <field name="password">odksandbox</field>
+        <field name="project">9</field>
+        <field name="form_id">crop_sown_registry_sown</field>
+    </record>
+
+    <record id="odk_config_crop_sown_registry___harvesting" model="odk.config">
+        <field name="name">Crop Sown Registry - Harvesting</field>
+        <field name="base_url">https://odk.13.207.43.8.nip.io</field>
+        <field name="username">vilbertraj21@gmail.com</field>
+        <field name="password">odksandbox</field>
+        <field name="project">9</field>
+        <field name="form_id">crop_sown_registry_harvest</field>
+    </record>
+
+    <!-- Default ODK Imports -->
+    <record id="odk_import_crop_sown_registry___planning" model="odk.import">
+        <field name="odk_config" ref="odk_config_crop_sown_registry___planning"/>
+        <field name="target_registry">g2p.crop.registry.planning</field>
+        <field name="json_formatter">{
+  "submission_time": .__system.submissionDate,
+
+  "farmer_identity": {
+    "fyda_id": .farmer_identity.fyda_id,
+    "farmer_display_id": .farmer_identity.farmer_display_id,
+    "region_display_id": .farmer_identity.region_display_id,
+    "zone_display_id": .farmer_identity.zone_display_id,
+    "woreda_id": .farmer_identity.woreda_id,
+    "kebele_id": .farmer_identity.kebele_id,
+    "gps": .farmer_identity.gps
+  },
+
+  "planning": (.planning // [] | map({
+
+    "is_plot_not_registered": .is_plot_not_registered,
+    "land_info_id": .land_info_id,
+    "land_category": .land_category,
+    "ownership_type": .ownership_type,
+    "land_area": .land_area,
+
+    "region": .region_name_id,
+    "zone": .zone_name_id,
+    "woreda": .woreda_name_id,
+    "kebele": .kebele_id,
+    "soil_fertility": .soil_fertility,
+    "gps": .gps,
+
+    "season_details": {
+      "season": .season_details.season_id
+    },
+
+    "crop_details": {
+      "crop": .crop_details.crop_name_id,
+      "crop_category": .crop_details.crop_category_id,
+      "local_name": .crop_details.local_name,
+      "scientific_name": .crop_details.scientific_name,
+      "crop_variety": .crop_details.crop_variety_id,
+      "cropping_system": .crop_details.cropping_system,
+      "planned_date_gc": .crop_details.collected_gc,
+      "planned_date_ec": .crop_details.collected_ec
+    },
+
+    "crop_planned_inputs": {
+      "avg_growth_duration_days": .crop_planned_inputs.crop_growth_duration,
+      "planned_crop_area_ha": .crop_planned_inputs.crop_planned_area,
+      "expected_yield_quintal": .crop_planned_inputs.crop_expected
+    },
+
+    "seed_planned_inputs": {
+      "seed_type": .seed_planned_inputs.seed_planned,
+      "seed_source": .seed_planned_inputs.seed_source,
+      "planned_seed_qty_kg": .seed_planned_inputs.seed_planned_qty,
+      "planned_fertilizer_type": .seed_planned_inputs.seed_planned_fertilizer_type,
+      "planned_fertilizer_qty_kg": .seed_planned_inputs.seed_planned_fertilizer_qty,
+      "planned_labor": .seed_planned_inputs.planned_labor
+    },
+
+    "water_details": .water_details,
+    "has_cluster_farming": .has_cluster.has_cluster_farming,
+
+    "cluster_information": {
+      "cluster_name": .cluster_information.cluster_name,
+      "season_id": .cluster_information.season_id,
+      "agro_ecological_zone": .cluster_information.cluster_agro_ecological_zone,
+      "sub_kebele": .cluster_information.sub_kebele
+    },
+
+    "cultivation_details": {
+      "cluster_area_timad": .cluster_information.cultivation_details.cluster_area_timad,
+      "cluster_area_hectare": .cluster_information.cultivation_details.cluster_area_hectare,
+      "cluster_plan": .cluster_information.cultivation_details.cluster_plan,
+      "collected_land_quintal": .cluster_information.cultivation_details.collected_land_quintal,
+      "cluster_collected_land_quintal": .cluster_information.cultivation_details.cluster_collected_quintal,
+      "collected_by_combiner": .cluster_information.cultivation_details.collected_by_combiner
+    },
+
+    "water_details_1": .cluster_information.water_details_1,
+    "cluster_smallholders": .cluster_information.cluster_smallholders,
+    "farmer_list": (.farmer_list // .cluster_information.farmer_list // []),
+    
+    "survey_personnel": {
+      "surveyor_name": .survey_personnel.surveyor_name,
+      "surveyor_mobile_number": .survey_personnel.surveyor_mobile_number,
+      "supervisor_name": .survey_personnel.supervisor_name,
+      "supervisor_mobile_number": .survey_personnel.supervisor_mobile_number
+    }
+
+  })),
+
+  "data_enumerator_name": .__system.submitterName,
+  "data_enumerator_odk_id": .__system.submitterId,
+  "data_enumerator_deviceid": .__system.deviceId,
+  "odk_submission_date": .__system.submissionDate
+}
+</field>
+    </record>
+
+    <record id="odk_import_crop_sown_registry___cult_land_prep" model="odk.import">
+        <field name="odk_config" ref="odk_config_crop_sown_registry___cult_land_prep"/>
+        <field name="target_registry">g2p.crop.registry.cultivation</field>
+        <field name="json_formatter">{
+  "submission_time": .__system.submissionDate,
+
+  "farmer_identity": {
+    "fyda_id": .farmer_identity.fyda_id
+  },
+
+  "cultivation_land_prep": (.cult_land_prep // [] | map({
+
+    "is_plot_not_registered": .is_plot_not_registered,
+    "land_info_id": .land_info_id,
+    "land_category": .land_category,
+    "ownership_type": .ownership_type,
+    "land_area": .land_area,
+
+    "region": .region_name_id,
+    "zone": .zone_name_id,
+    "woreda": .woreda_name_id,
+    "kebele": .kebele_id,
+    "soil_fertility": .soil_fertility,
+    "gps": .gps,
+
+    "season_details": {
+      "season": .season_details.season_id
+    },
+
+    "crop_details": {
+      "crop": .crop_details.crop_name_id,
+      "crop_category": .crop_details.crop_category_id,
+      "local_name": .crop_details.local_name,
+      "scientific_name": .crop_details.scientific_name,
+      "crop_variety": .crop_details.crop_variety_id,
+      "cropping_system": .crop_details.cropping_system,
+      "actual_planted_date_gc": .crop_details.collected_gc,
+      "actual_planted_date_ec": .crop_details.collected_ec
+    },
+
+    "crop_actual_inputs": {
+      "actual_growth_duration_days": .crop_actual_inputs.actual_growth_duration,
+      "actual_crop_area_ha": .crop_actual_inputs.actual_crop_area,
+      "actual_yield_quintal": .crop_actual_inputs.actual_yield,
+      "cultivated_by": .crop_actual_inputs.cultivated_by,
+      "land_prep_method_ids": .crop_actual_inputs.land_prep_method_ids
+    },
+
+    "seed_actual_inputs": {
+      "actual_seed_class": .seed_actual_inputs.actual_seed_class,
+      "actual_seed_source": .seed_actual_inputs.actual_seed_source,
+      "actual_seed_qty_kg": .seed_actual_inputs.actual_seed_qty,
+      "actual_fertilizer_type": .seed_actual_inputs.actual_fertilizer_type,
+      "actual_fertilizer_qty_kg": .seed_actual_inputs.actual_fertilizer_qty
+    },
+
+    "water_details": (.water_details // [] | map({
+      "water_resource_id": .water_resource_id,
+      "method_id": .method_id,
+      "frequency": .frequency
+    })),
+
+    "has_cluster_farming": .has_cluster.has_cluster_farming,
+
+    "cluster_information": {
+      "cluster_name": .cluster_information.cluster_name,
+      "season_id": .cluster_information.season_id,
+      "agro_ecological_zone": .cluster_information.cluster_agro_ecological_zone,
+      "sub_kebele": .cluster_information.sub_kebele
+    },
+
+    "cultivation_details": {
+      "cluster_area_timad": .cluster_information.cultivation_details.cluster_area_timad,
+      "cluster_area_hectare": .cluster_information.cultivation_details.cluster_area_hectare,
+      "cluster_plan": .cluster_information.cultivation_details.cluster_plan,
+      "collected_land_quintal": .cluster_information.cultivation_details.collected_land_quintal,
+      "cluster_collected_land_quintal": .cluster_information.cultivation_details.cluster_collected_quintal,
+      "collected_by_combiner": .cluster_information.cultivation_details.collected_by_combiner
+    },
+
+    "water_details_1": (
+      .cluster_information.water_details_1 // [] | map({
+        "water_resource_id": .water_resource_id,
+        "method_id": .method_id,
+        "frequency": .frequency
+      })
+    ),
+
+    "cluster_smallholders": .cluster_information.cluster_smallholders,
+
+    "farmer_list": (
+      .farmer_list //
+      .cluster_information.farmer_list //
+      [] |
+      map({
+        "fyda_id": .fyda_id,
+        "farmer_name": .farmer_name,
+        "region": .region_id,
+        "zone": .zone_id,
+        "woreda": .woreda_id,
+        "kebele": .kebele_id
+      })
+    ),
+
+    "survey_personnel": {
+      "surveyor_name": .survey_personnel.surveyor_name,
+      "surveyor_mobile_number": .survey_personnel.surveyor_mobile_number,
+      "supervisor_name": .survey_personnel.supervisor_name,
+      "supervisor_mobile_number": .survey_personnel.supervisor_mobile_number
+    }
+
+  })),
+
+  "data_enumerator_name": .__system.submitterName,
+  "data_enumerator_odk_id": .__system.submitterId,
+  "data_enumerator_deviceid": .__system.deviceId,
+  "odk_submission_date": .__system.submissionDate
+}</field>
+    </record>
+
+    <record id="odk_import_crop_sown_registry___sowing" model="odk.import">
+        <field name="odk_config" ref="odk_config_crop_sown_registry___sowing"/>
+        <field name="target_registry">g2p.crop.registry.sowing_harvesting</field>
+        <field name="json_formatter">{
+  "submission_time": .__system.submissionDate,
+
+  "farmer_identity": {
+    "fyda_id": .farmer_identity.fyda_id
+  },
+
+  "sowing": (.sowing_details // .sowing_harvesting // .sowing // []),
+
+  "data_enumerator_name": .__system.submitterName,
+  "data_enumerator_odk_id": .__system.submitterId,
+  "data_enumerator_deviceid": .__system.deviceId,
+  "odk_submission_date": .__system.submissionDate
+}</field>
+    </record>
+
+    <record id="odk_import_crop_sown_registry___harvesting" model="odk.import">
+        <field name="odk_config" ref="odk_config_crop_sown_registry___harvesting"/>
+        <field name="target_registry">g2p.crop.registry.harvesting</field>
+        <field name="json_formatter">{
+  "submission_time": .__system.submissionDate,
+
+  "farmer_identity": {
+    "fyda_id": .farmer_identity.fyda_id
+  },
+
+  "harvesting": {
+    "land_info_id": .harvesting.land_info_id,
+
+    "independant_harvest": {
+      "crop_maturity_status": .independant_harvest.crop_maturity_status,
+      "harvest_date": .independant_harvest.harvest_date,
+      "area_harvested": .independant_harvest.area_harvested,
+      "qty_harvested": .independant_harvest.qty_harvested,
+      "post_harvest_loss_pct": .independant_harvest.post_harvest_loss_pct,
+      "qty_stored": .independant_harvest.qty_stored,
+      "qty_sold": .independant_harvest.qty_sold
+    },
+
+    "survey_personnel": {
+      "surveyor_name": .survey_personnel.surveyor_name,
+      "surveyor_mobile_number": .survey_personnel.surveyor_mobile_number,
+      "supervisor_name": .survey_personnel.supervisor_name,
+      "supervisor_mobile_number": .survey_personnel.supervisor_mobile_number
+    }
+  },
+
+  "data_enumerator_name": .__system.submitterName,
+  "data_enumerator_odk_id": .__system.submitterId,
+  "data_enumerator_deviceid": .__system.deviceId,
+  "odk_submission_date": .__system.submissionDate
+}</field>
+    </record>
+
+</odoo>

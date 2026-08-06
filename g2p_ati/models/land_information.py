@@ -4,7 +4,7 @@ from odoo.exceptions import ValidationError
 
 class G2PLandInformation(models.Model):
     _name = "g2p.land.information"
-    _rec_name = "partner_id"
+    _rec_name = "land_id"
 
     partner_id = fields.Many2one("res.partner", string="Farmer", required=True, index=True)
     farmer_id = fields.Char(related="partner_id.farmer_id", string="Farmer ID", readonly=True)

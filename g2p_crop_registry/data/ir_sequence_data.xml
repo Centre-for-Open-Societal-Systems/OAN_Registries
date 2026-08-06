@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Sequence for g2p.crop.registry -->
+        <record id="seq_g2p_crop_registry" model="ir.sequence">
+            <field name="name">Crop Registry Sequence</field>
+            <field name="code">g2p.crop.registry</field>
+            <field name="prefix">CROP/REG/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Sequence for g2p.crop.production -->
+        <record id="seq_g2p_crop_production" model="ir.sequence">
+            <field name="name">Crop Production Sequence</field>
+            <field name="code">g2p.crop.production</field>
+            <field name="prefix">CROP/PROD/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Sequence for g2p.cluster -->
+        <record id="seq_g2p_cluster" model="ir.sequence">
+            <field name="name">Cluster Sequence</field>
+            <field name="code">g2p.cluster</field>
+            <field name="prefix">CLTR/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Sequence for g2p.crop.infestation -->
+        <record id="seq_g2p_crop_infestation" model="ir.sequence">
+            <field name="name">Crop Infestation Incident Sequence</field>
+            <field name="code">g2p.crop.infestation</field>
+            <field name="prefix">PI/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

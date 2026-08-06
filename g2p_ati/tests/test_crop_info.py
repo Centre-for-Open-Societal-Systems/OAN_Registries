@@ -11,10 +11,10 @@ class TestG2PCropInformation(TransactionCase):
         super().setUp()
         self.farmer = self.env["res.partner"].create({"name": "Test Farmer"})
         self.crop_category = self.env["g2p.crop.category"].create(
-            {"name": "Test Crop Category", "code": "TCC"}
+            {"name": "Test Crop Category"}
         )
         self.crop = self.env["g2p.crop"].create(
-            {"category": self.crop_category.id, "name": "Test Crop", "code": "TC"}
+            {"category_id": self.crop_category.id, "name": "Test Crop"}
         )
         self.disease = self.env["g2p.illness.type"].create(
             {"name": "Test Disease", "code": "TD", "illness_type": "crop"}

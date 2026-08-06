@@ -1,15 +1,64 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
+    <!-- Ecological Zone Views -->
+    <record id="view_ecological_zone_tree" model="ir.ui.view">
+        <field name="name">view_ecological_zone_tree</field>
+        <field name="model">g2p.ecological.zone</field>
+        <field name="arch" type="xml">
+            <tree create="true" delete="true" edit="true" editable="bottom">
+                <field name="name" />
+                <field name="description" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_g2p_ecological_zone" model="ir.actions.act_window">
+        <field name="name">Ecological Zones</field>
+        <field name="res_model">g2p.ecological.zone</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Crop Views -->
     <record id="view_crop_tree" model="ir.ui.view">
         <field name="name">view_crop_tree</field>
         <field name="model">g2p.crop</field>
         <field name="priority">1</field>
         <field name="arch" type="xml">
-            <tree create="true" delete="true" edit="true" editable="bottom">
-                <field name="category" />
+            <tree create="true" delete="true" edit="true">
+                <field name="category_id" />
                 <field name="name" />
-                <field name="code" />
+                <field name="description" />
+                <field name="known_for" />
+                <field name="preferred_ecological_zone_id" />
+                <field name="num_field_inspection_needed" />
+                <field name="isolation_distance" />
             </tree>
+        </field>
+    </record>
+
+    <record id="view_crop_form" model="ir.ui.view">
+        <field name="name">view_crop_form</field>
+        <field name="model">g2p.crop</field>
+        <field name="arch" type="xml">
+            <form string="Crop Information">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" />
+                            <field name="category_id" />
+                            <field name="preferred_ecological_zone_id" />
+                        </group>
+                        <group>
+                            <field name="num_field_inspection_needed" />
+                            <field name="isolation_distance" />
+                        </group>
+                    </group>
+                    <group>
+                        <field name="known_for" />
+                        <field name="description" />
+                    </group>
+                </sheet>
+            </form>
         </field>
     </record>
 
@@ -19,11 +68,29 @@
         <field name="view_mode">tree,form,graph</field>
     </record>
 
+    <!-- Parent Menu for Crop Section -->
+    <menuitem
+        id="menu_g2p_crop_root"
+        name="Crops"
+        parent="g2p_registry_base.g2p_configuration_menu_root"
+        sequence="610"
+    />
+
+    <!-- Menus under Crop Parent -->
     <menuitem
         id="g2p_crop_menu"
         action="g2p_crop_view_tree_action"
-        name="Crops"
-        sequence="610"
-        parent="g2p_registry_base.g2p_configuration_menu_root"
+        name="Crops Catalog"
+        sequence="10"
+        parent="menu_g2p_crop_root"
     />
+
+    <menuitem
+        id="g2p_ecological_zone_menu"
+        action="action_g2p_ecological_zone"
+        name="Ecological Zones"
+        sequence="30"
+        parent="menu_g2p_crop_root"
+    />
+
 </odoo>
