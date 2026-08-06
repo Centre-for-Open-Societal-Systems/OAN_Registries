@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="group_development_agent" model="res.groups">
+        <field name="name">Development Agent</field>
+        <field name="category_id" ref="g2p_registry_base.openg2p_module" />
+    </record>
+
+    <record id="group_woreda_sms" model="res.groups">
+        <field name="name">Woreda Subject Matter Specialist (SMS)</field>
+        <field name="category_id" ref="g2p_registry_base.openg2p_module" />
+    </record>
+
+    <record id="group_woreda_agri_office_head" model="res.groups">
+        <field name="name">Woreda Agriculture Office Head</field>
+        <field name="category_id" ref="g2p_registry_base.openg2p_module" />
+    </record>
+</odoo>
+

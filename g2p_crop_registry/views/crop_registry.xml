@@ -1,0 +1,1248 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+
+    <data>
+
+
+        <record id="view_crop_registry_tree" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.tree</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="arch" type="xml">
+                <tree string="Crop Sown Registry" decoration-success="state == 'approved'" decoration-danger="state == 'rejected'" decoration-muted="state == 'draft'" decoration-info="state == 'update_requested'" decoration-warning="state == 'pending_wah'">
+                    <field name="partner_id" context="{'show_farmer_id': True}" options="{'no_create': True}" />
+                    <field name="fyda_id" />
+                    <field name="farmer_display_id" />
+                    <field name="state" widget="badge" decoration-danger="state == 'rejected'" decoration-muted="state == 'draft'" decoration-info="state == 'update_requested'" decoration-success="state == 'approved'" decoration-warning="state == 'pending_wah'" />
+                    <field name="can_approve" column_invisible="1" />
+                </tree>
+            </field>
+        </record>
+
+
+
+        <record id="view_g2p_crop_production_sowing_form" model="ir.ui.view">
+            <field name="name">g2p.crop.production.sowing.form</field>
+            <field name="model">g2p.crop.production</field>
+            <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="sync_id" invisible="1" force_save="1" />
+                    <group string="Sowing">
+                        <group>
+                            <field name="land_info_id" context="{'show_land_id': True}" readonly="1" force_save="1" />
+                            <field name="cluster_status_ids" widget="many2many_tags" />
+                            <field name="is_clustered" invisible="1" />
+                            <field name="is_independent" invisible="1" />
+                            <field name="cluster_info_ids" invisible="1" />
+                        </group>
+                    </group>
+                    <group string="Independent Details" invisible="not is_independent">
+                        <group>
+                            <field name="sowing_status" />
+                            <field name="area_sown" />
+                            <field name="has_pest_disease" widget="boolean_toggle" />
+                        </group>
+                        <group>
+                            <field name="season_id" readonly="1" force_save="1" />
+                            <field name="crop_name_id" string="Actual Crop name" readonly="1" force_save="1" />
+                            <field name="actual_sowing_date" readonly="1" force_save="1" />
+                            <field name="actual_fertilizer_type" readonly="1" force_save="1" />
+                            <field name="actual_fertilizer_qty" readonly="1" force_save="1" />
+                        </group>
+                    </group>
+
+
+                     <group string="Pest / Disease Details" invisible="not is_independent or not has_pest_disease">
+                         <field name="infestation_incident_ids" nolabel="1" colspan="2">
+                             <tree>
+                                 <field name="name" />
+                                 <field name="growth_stage" />
+                                 <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
+                                 <field name="severity_level" />
+                                 <field name="is_pest" column_invisible="1" />
+                                 <field name="is_weed" column_invisible="1" />
+                                 <field name="is_disease" column_invisible="1" />
+                                 <field name="is_nutrient" column_invisible="1" />
+                                 <field name="is_climate" column_invisible="1" />
+                             </tree>
+                            <form string="Infestation Incident">
+                                <sheet>
+                                    <div class="oe_title">
+                                        <h1><field name="name" /></h1>
+                                    </div>
+                                    <group>
+                                        <group>
+                                            <field name="crop_name_id" />
+                                            <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
+                                            <field name="growth_stage" />
+                                        </group>
+                                        <group>
+                                            <field name="observation_date" />
+                                            <field name="observation_date_ec" />
+                                            <field name="severity_level" />
+                                            <field name="estimated_damage" placeholder="e.g., 50% or 1.5 (for ha)" />
+                                            <field name="geo_tagged_photo" widget="image" invisible="severity_level != 'high'" required="severity_level == 'high'" />
+                                        </group>
+                                    </group>
+
+                                    <field name="is_pest" invisible="1" />
+                                    <field name="is_weed" invisible="1" />
+                                    <field name="is_disease" invisible="1" />
+                                    <field name="is_nutrient" invisible="1" />
+                                    <field name="is_climate" invisible="1" />
+                                    <notebook>
+                                        <page string="Pest Occurrence" invisible="not is_pest">
+                                            <field name="pest_line_ids" nolabel="1" colspan="2">
+                                                 <tree editable="bottom">
+                                                    <field name="pest_type" />
+                                                    <field name="pest_name" />
+                                                    <field name="pesticide_method" />
+                                                    <field name="pesticide_type" readonly="pesticide_method != 'chemical_spray'" />
+                                                    <field name="pesticide_name" readonly="pesticide_method != 'chemical_spray'" />
+                                                    <field name="pesticide_frequency" readonly="pesticide_method != 'chemical_spray'" />
+                                                </tree>
+                                            </field>
+                                        </page>
+                                        <page string="Weed Occurrence" invisible="not is_weed">
+                                            <field name="weed_line_ids" nolabel="1" colspan="2">
+                                                <tree editable="bottom">
+                                                    <field name="weed_type" />
+                                                    <field name="weed_name" />
+                                                    <field name="pesticide_method" />
+                                                    <field name="weedicide_type" readonly="pesticide_method != 'chemical_spray'" />
+                                                    <field name="weedicide_name" readonly="pesticide_method != 'chemical_spray'" />
+                                                    <field name="pesticide_frequency" readonly="pesticide_method != 'chemical_spray'" />
+                                                </tree>
+                                            </field>
+                                        </page>
+                                        <page string="Disease" invisible="not is_disease">
+                                            <field name="disease_line_ids" nolabel="1" colspan="2">
+                                                <tree editable="bottom">
+                                                    <field name="disease_type" />
+                                                    <field name="disease_name" />
+                                                    <field name="method_of_control" />
+                                                    <field name="fungicide_type" readonly="method_of_control != 'chemical_spray'" />
+                                                    <field name="fungicide_name" readonly="method_of_control != 'chemical_spray'" />
+                                                    <field name="frequency_of_application" readonly="method_of_control != 'chemical_spray'" />
+                                                </tree>
+                                            </field>
+                                        </page>
+                                        <page string="Nutrient Deficiency" invisible="not is_nutrient">
+                                            <field name="nutrient_line_ids" nolabel="1" colspan="2">
+                                                <tree editable="bottom">
+                                                    <field name="nutrient_type" />
+                                                    <field name="nutrient_name" />
+                                                    <field name="method_of_control" />
+                                                    <field name="fertilizer_type" readonly="method_of_control != 'foliar_spray'" />
+                                                    <field name="fertilizer_name" readonly="method_of_control != 'foliar_spray'" />
+                                                    <field name="frequency_of_application" />
+                                                </tree>
+                                            </field>
+                                        </page>
+                                        <page string="Climate Shock" invisible="not is_climate">
+                                            <field name="climate_line_ids" nolabel="1" colspan="2">
+                                                <tree editable="bottom">
+                                                    <field name="shock_type" />
+                                                    <field name="shock_event_name" />
+                                                    <field name="method_of_control" />
+                                                    <field name="recovery_input_type" />
+                                                    <field name="recovery_input_name" />
+                                                    <field name="frequency_of_application" />
+                                                </tree>
+                                            </field>
+                                        </page>
+                                    </notebook>
+
+                                    <group>
+                                        <field name="action_taken" invisible="1" />
+                                    </group>
+                                </sheet>
+                            </form>
+                        </field>
+                    </group>
+
+                    <group string="Clustered Details" invisible="not is_clustered">
+                        <field name="production_cluster_line_ids" nolabel="1" colspan="2">
+                            <tree>
+                                <field name="cluster_info_id" string="Cluster ID" domain="[('id', 'in', parent.cluster_info_ids)]" options="{'no_create': True, 'no_open': True}" />
+                                <field name="cluster_name" readonly="1" force_save="1" />
+                                <field name="sowing_status" />
+                                <field name="area_sown" />
+                                <field name="has_pest_disease" widget="boolean_toggle" />
+                                <field name="season_id" readonly="1" force_save="1" />
+                                <field name="cluster_agro_ecological_zone" readonly="1" force_save="1" />
+                                <field name="cluster_area_hectare" readonly="1" force_save="1" />
+                            </tree>
+                            <form string="Cluster Details">
+                                <sheet>
+                                    <group>
+                                        <group>
+                                            <field name="cluster_info_id" string="Cluster ID" domain="[('id', 'in', parent.cluster_info_ids)]" options="{'no_create': True, 'no_open': True}" />
+                                            <field name="cluster_name" readonly="1" force_save="1" />
+                                            <field name="season_id" readonly="1" force_save="1" />
+                                            <field name="cluster_agro_ecological_zone" readonly="1" force_save="1" />
+                                        </group>
+                                        <group>
+                                            <field name="sowing_status" />
+                                            <field name="area_sown" />
+                                            <field name="has_pest_disease" widget="boolean_toggle" />
+                                            <field name="cluster_area_hectare" readonly="1" force_save="1" />
+                                        </group>
+                                    </group>
+
+                                    <group string="Pest / Disease Details" invisible="not has_pest_disease">
+                                        <field name="infestation_incident_ids" nolabel="1" colspan="2">
+                                            <tree>
+                                                <field name="name" />
+                                                <field name="growth_stage" />
+                                                <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
+                                                <field name="severity_level" />
+                                                <field name="is_pest" column_invisible="1" />
+                                                <field name="is_weed" column_invisible="1" />
+                                                <field name="is_disease" column_invisible="1" />
+                                                <field name="is_nutrient" column_invisible="1" />
+                                                <field name="is_climate" column_invisible="1" />
+                                            </tree>
+                                            <form string="Infestation Incident">
+                                                <sheet>
+                                                    <div class="oe_title">
+                                                        <h1><field name="name" /></h1>
+                                                    </div>
+                                                    <group>
+                                                        <group>
+                                                            <field name="crop_name_id" />
+                                                            <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
+                                                            <field name="growth_stage" />
+                                                        </group>
+                                                        <group>
+                                                            <field name="observation_date" />
+                                                            <field name="observation_date_ec" />
+                                                            <field name="severity_level" />
+                                                            <field name="estimated_damage" placeholder="e.g., 50% or 1.5 (for ha)" />
+                                                            <field name="geo_tagged_photo" widget="image" invisible="severity_level != 'high'" required="severity_level == 'high'" />
+                                                        </group>
+                                                    </group>
+
+                                                    <field name="is_pest" invisible="1" />
+                                                    <field name="is_weed" invisible="1" />
+                                                    <field name="is_disease" invisible="1" />
+                                                    <field name="is_nutrient" invisible="1" />
+                                                    <field name="is_climate" invisible="1" />
+                                                    <notebook>
+                                                        <page string="Pest Occurrence" invisible="not is_pest">
+                                                            <field name="pest_line_ids" nolabel="1" colspan="2">
+                                                                <tree editable="bottom">
+                                                                    <field name="pest_type" />
+                                                                    <field name="pest_name" />
+                                                                    <field name="pesticide_method" />
+                                                                    <field name="pesticide_type" readonly="pesticide_method != 'chemical_spray'" />
+                                                                    <field name="pesticide_name" readonly="pesticide_method != 'chemical_spray'" />
+                                                                    <field name="pesticide_frequency" readonly="pesticide_method != 'chemical_spray'" />
+                                                                </tree>
+                                                            </field>
+                                                        </page>
+                                                        <page string="Weed Occurrence" invisible="not is_weed">
+                                                            <field name="weed_line_ids" nolabel="1" colspan="2">
+                                                                <tree editable="bottom">
+                                                                    <field name="weed_type" />
+                                                                    <field name="weed_name" />
+                                                                    <field name="pesticide_method" />
+                                                                    <field name="weedicide_type" readonly="pesticide_method != 'chemical_spray'" />
+                                                                    <field name="weedicide_name" readonly="pesticide_method != 'chemical_spray'" />
+                                                                    <field name="pesticide_frequency" readonly="pesticide_method != 'chemical_spray'" />
+                                                                </tree>
+                                                            </field>
+                                                        </page>
+                                                        <page string="Disease" invisible="not is_disease">
+                                                            <field name="disease_line_ids" nolabel="1" colspan="2">
+                                                                <tree editable="bottom">
+                                                                    <field name="disease_type" />
+                                                                    <field name="disease_name" />
+                                                                    <field name="method_of_control" />
+                                                                    <field name="fungicide_type" readonly="method_of_control != 'chemical_spray'" />
+                                                                    <field name="fungicide_name" readonly="method_of_control != 'chemical_spray'" />
+                                                                    <field name="frequency_of_application" readonly="method_of_control != 'chemical_spray'" />
+                                                                </tree>
+                                                            </field>
+                                                        </page>
+                                                        <page string="Nutrient Deficiency" invisible="not is_nutrient">
+                                                            <field name="nutrient_line_ids" nolabel="1" colspan="2">
+                                                                <tree editable="bottom">
+                                                                    <field name="nutrient_type" />
+                                                                    <field name="nutrient_name" />
+                                                                    <field name="method_of_control" />
+                                                                    <field name="fertilizer_type" readonly="method_of_control != 'foliar_spray'" />
+                                                                    <field name="fertilizer_name" readonly="method_of_control != 'foliar_spray'" />
+                                                                    <field name="frequency_of_application" />
+                                                                </tree>
+                                                            </field>
+                                                        </page>
+                                                        <page string="Climate Shock" invisible="not is_climate">
+                                                            <field name="climate_line_ids" nolabel="1" colspan="2">
+                                                                <tree editable="bottom">
+                                                                    <field name="shock_type" />
+                                                                    <field name="shock_event_name" />
+                                                                    <field name="method_of_control" />
+                                                                    <field name="recovery_input_type" />
+                                                                    <field name="recovery_input_name" />
+                                                                    <field name="frequency_of_application" />
+                                                                </tree>
+                                                            </field>
+                                                        </page>
+                                                    </notebook>
+
+                                                    <group>
+                                                        <field name="action_taken" invisible="1" />
+                                                    </group>
+                                                </sheet>
+                                            </form>
+                                        </field>
+                                    </group>
+                                </sheet>
+                            </form>
+                        </field>
+                    </group>
+                    <group string="Survey Personnel">
+                        <field name="surveyor_name" />
+                        <field name="surveyor_mobile_number" />
+                        <field name="supervisor_name" />
+                        <field name="supervisor_mobile_number" />
+                        <field name="first_approvel_status" invisible="1" />
+                    </group>
+                    </sheet>
+
+                </form>
+
+            </field>
+        </record>
+
+        <record id="view_g2p_crop_production_sowing_tree" model="ir.ui.view">
+            <field name="name">g2p.crop.production.sowing.tree</field>
+            <field name="model">g2p.crop.production</field>
+            <field name="arch" type="xml">
+            <tree>
+                <field name="sync_id" column_invisible="1" force_save="1" />
+                <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start" />
+                <field name="season_id" />
+                <field name="crop_name_id" />
+                <field name="sowing_status" />
+                <field name="cluster_status_ids" widget="many2many_tags" />
+                <field name="area_sown" />
+                <field name="actual_sowing_date" />
+            </tree>
+
+            </field>
+        </record>
+
+        <record id="view_g2p_crop_production_harvesting_form" model="ir.ui.view">
+            <field name="name">g2p.crop.production.harvesting.form</field>
+            <field name="model">g2p.crop.production</field>
+            <field name="arch" type="xml">
+            <form string="Harvesting Details">
+                <sheet>
+                    <field name="sync_id" invisible="1" force_save="1" />
+                    <group string="Harvesting">
+                        <group>
+                            <field name="land_info_id" context="{'show_land_id': True}" readonly="1" force_save="1" />
+                            <field name="cluster_status_ids" widget="many2many_tags" readonly="1" force_save="1" />
+                            <field name="is_clustered" invisible="1" />
+                            <field name="is_independent" invisible="1" />
+                        </group>
+                    </group>
+                    <group string="Independent Harvest" invisible="not is_independent">
+                        <group>
+                            <field name="crop_maturity_status" decoration-success="crop_maturity_status == 'green'" decoration-warning="crop_maturity_status == 'yellow'" />
+                            <field name="harvest_date" />
+                            <field name="area_harvested" />
+                            <field name="qty_harvested" />
+                        </group>
+                        <group>
+                            <field name="post_harvest_loss_pct" />
+                            <field name="qty_stored" />
+                            <field name="qty_sold" />
+                        </group>
+                    </group>
+                    <group string="Production Result (Computed)" invisible="not is_independent">
+                        <group>
+                            <field name="yield_per_ha" readonly="1" />
+                            <field name="yield_performance_pct" readonly="1" />
+                            <field name="fertilizer_efficiency" readonly="1" />
+                        </group>
+                        <group>
+                            <field name="land_utilization_rate" readonly="1" />
+                            <field name="seed_productivity" readonly="1" />
+                        </group>
+                    </group>
+                    <group string="Clustered Harvest" invisible="not is_clustered">
+                        <field name="production_cluster_line_ids" nolabel="1" colspan="2">
+                            <tree editable="bottom" create="false" delete="false">
+                                <field name="cluster_info_id" readonly="1" force_save="1" />
+                                <field name="crop_maturity_status" />
+                                <field name="harvest_date" />
+                                <field name="area_harvested" />
+                                <field name="qty_harvested" />
+                                <field name="post_harvest_loss_pct" />
+                                <field name="qty_stored" />
+                                <field name="qty_sold" />
+                            </tree>
+                        </field>
+                    </group>
+                    <group string="Survey Personnel">
+                        <field name="surveyor_name" />
+                        <field name="surveyor_mobile_number" />
+                        <field name="supervisor_name" />
+                        <field name="supervisor_mobile_number" />
+                        <field name="first_approvel_status" invisible="1" />
+                    </group>
+                    </sheet>
+
+                </form>
+
+            </field>
+        </record>
+
+        <record id="view_g2p_crop_production_harvesting_tree" model="ir.ui.view">
+            <field name="name">g2p.crop.production.harvesting.tree</field>
+            <field name="model">g2p.crop.production</field>
+            <field name="arch" type="xml">
+            <tree>
+                <field name="sync_id" column_invisible="1" force_save="1" />
+                <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start" />
+                <field name="crop_maturity_status" decoration-success="crop_maturity_status == 'green'" decoration-warning="crop_maturity_status == 'yellow'" />
+                <field name="harvest_date" />
+                <field name="area_harvested" />
+                <field name="qty_harvested" />
+                <field name="post_harvest_loss_pct" />
+                <field name="qty_stored" />
+                <field name="qty_sold" />
+                <field name="yield_per_ha" readonly="1" />
+            </tree>
+
+            </field>
+        </record>
+        <record id="view_g2p_crop_registry_form" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.form</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="arch" type="xml">
+                <form string="Crop Sown Registry">
+                    <header>
+                        <field name="can_approve" invisible="1" />
+                        <field name="can_set_draft" invisible="1" />
+                        <field name="lifecycle_stage" widget="statusbar" readonly="1" statusbar_visible="draft,pending_planning,planning_approved,pending_cultivation,cultivation_approved,pending_sowing,sowing_approved,pending_harvesting,harvesting_approved" />
+                    </header>
+                    <sheet>
+                        <field name="lifecycle_stage" invisible="1" />
+                        <field name="state" invisible="1" />
+
+                        <div class="oe_button_box" name="button_box">
+                            <button name="%(action_g2p_crop_edit_request)d" type="action" class="oe_stat_button" icon="fa-commenting-o" context="{'search_default_crop_registry_id': active_id}">
+                                <div class="o_field_widget o_stat_info">
+                                    <span class="o_stat_text">Edit Suggestions</span>
+                                </div>
+                            </button>
+                            <button name="%(action_g2p_crop_change_request)d" type="action" class="oe_stat_button" icon="fa-pencil-square-o" context="{'search_default_crop_registry_id': active_id}">
+                                <div class="o_field_widget o_stat_info">
+                                    <span class="o_stat_text">Update Requests</span>
+                                </div>
+                            </button>
+                        </div>
+                        <field name="rejected_at_stage" invisible="1" />
+                        <field name="actual_crop_area_exceeded" invisible="1" />
+                        <field name="actual_crop_area_warning" invisible="1" />
+                        <group name="farmer_identity" string="Farmer Identity">
+                            <group>
+                                <field name="partner_id" context="{'show_farmer_id': True}" options="{'no_create': True}" />
+                                <field name="fyda_id" readonly="1" force_save="1" />
+                                <field name="farmer_display_id" readonly="1" force_save="1" />
+                                <field name="region_id" readonly="1" force_save="1" />
+                            </group>
+                            <group>
+                                <field name="zone_id" readonly="1" force_save="1" />
+                                <field name="woreda_id" readonly="1" force_save="1" />
+                                <field name="kebele_id" options="{'no_create': True}" readonly="1" force_save="1" />
+                                <field name="gps" readonly="1" force_save="1" />
+                                <field name="rejection_reason" invisible="state != 'rejected'" />
+                            </group>
+                        </group>
+                        <field name="is_da" invisible="1" />
+                        <field name="lifecycle_stage" invisible="1" />
+                        <field name="planning_state" invisible="1" /><notebook>
+                            <page name="page_planning" string="Planning" readonly="lifecycle_stage in ('planning_approved', 'pending_cultivation', 'cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved') and is_da">
+                                <group string="Planned Crops">
+                                    <field name="annual_line_ids" nolabel="1" colspan="2" readonly="lifecycle_stage in ('planning_approved', 'pending_cultivation', 'cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved') and is_da">
+                                        <tree>
+                                            <field name="sync_id" column_invisible="1" force_save="1" />
+                                            <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start" />
+                                            <field name="land_category" width="16%" class="text-start" />
+                                            <field name="season_id" width="16%" class="text-start" />
+                                            <field name="crop_name_id" width="16%" class="text-start" />
+                                            <field name="crop_category_id" width="16%" class="text-start" />
+                                            <field name="crop_variety_id" width="16%" class="text-start" />
+                                        </tree>
+                                        <form>
+                                            <sheet>
+                                                <field name="sync_id" invisible="1" force_save="1" />
+                                                <div class="oe_title mt-2 mb-4" invisible="not land_category">
+                                                    <h1 invisible="land_category != 'annual'" style="color: #017e84;">Annual Input</h1>
+                                                    <h1 invisible="land_category != 'perennial'" style="color: #017e84;">Perennial Input</h1>
+                                                    <h1 invisible="land_category != 'biennial'" style="color: #017e84;">Biennial Input</h1>
+                                                </div>
+
+                                                <group string="Land / Plot Details">
+                                                    <group>
+                                                        <field name="is_plot_not_registered" invisible="land_info_id" />
+                                                        <field name="land_info_id" context="{'show_land_id': True}" domain="[('partner_id', '=', parent.partner_id)]" invisible="is_plot_not_registered" />
+                                                        <field name="temporary_land_id" invisible="not is_plot_not_registered" style="font-style: italic;" />
+                                                        <field name="land_category" />
+                                                    </group>
+                                                    <group>
+                                                        <field name="ownership_type" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="land_area" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="region_name_id" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="zone_name_id" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="woreda_name_id" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="kebele_id" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="soil_fertility" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="gps" readonly="not is_plot_not_registered" force_save="1" />
+                                                    </group>
+                                                </group>
+                                                <group string="Season Details" invisible="not land_category">
+                                                    <group>
+                                                        <field name="season_id" options="{'no_create': True, 'no_open': True}" />
+                                                    </group>
+                                                    <group>
+                                                        <field name="start_gc" readonly="1" force_save="1" />
+                                                        <field name="end_gc" readonly="1" force_save="1" />
+                                                        <field name="start_month" readonly="1" force_save="1" />
+                                                        <field name="start_day" readonly="1" force_save="1" />
+                                                        <field name="end_month" readonly="1" force_save="1" />
+                                                        <field name="end_day" readonly="1" force_save="1" />
+                                                    </group>
+                                                </group>
+                                                <group string="Crop Details" invisible="not land_category">
+                                                    <group>
+                                                        <field name="crop_name_id" />
+                                                        <field name="local_name" />
+                                                        <field name="scientific_name" />
+                                                        <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]" />
+                                                        <field name="cropping_system" />
+                                                        <field name="collected_gc" />
+                                                        <field name="collected_ec" />
+                                                    </group>
+                                                    <group>
+                                                        <field name="crop_category_id" readonly="1" />
+                                                    </group>
+                                                </group>
+
+                                                <group string="Crop Planned Inputs" invisible="not land_category">
+                                                    <group>
+                                                        <field name="crop_growth_duration" />
+                                                        <field name="crop_planned_area" />
+                                                        <field name="crop_expected" />
+                                                    </group>
+                                                </group>
+                                                <group string="Seed Planned Inputs" invisible="not land_category">
+                                                    <group>
+                                                        <field name="seed_planned" />
+                                                        <field name="seed_source" />
+                                                        <field name="seed_planned_qty" />
+                                                        <field name="seed_planned_fertilizer_type" />
+                                                    </group>
+                                                    <group>
+
+                                                        <field name="seed_planned_fertilizer_qty" />
+                                                        <field name="planned_labor" />
+                                                    </group>
+                                                    <field name="water_resource_line_ids" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="water_resource_id" />
+                                                            <field name="method_id" options="{'no_create': True}" />
+                                                            <field name="frequency" />
+                                                        </tree>
+                                                    </field>
+                                                </group>
+                                                 <group invisible="not land_category">
+                                                     <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}" />
+                                                 </group>
+                                                 <field name="cluster_info_ids" invisible="has_cluster_farming != 'yes'" colspan="2" form_view_ref="g2p_crop_registry.view_cluster_information_form" context="{'form_view_ref': 'g2p_crop_registry.view_cluster_information_form'}">
+                                                     <tree>
+                                                         <field name="cluster_id" />
+                                                         <field name="cluster_name" />
+                                                         <field name="cluster_area_hectare" />
+                                                         <field name="season_id" column_invisible="1" />
+                                                     </tree>
+                                                 </field>
+                                            <group string="Survey Personnel">
+                                                <field name="surveyor_name" />
+                                                <field name="surveyor_mobile_number" />
+                                                <field name="supervisor_name" />
+                                                <field name="supervisor_mobile_number" />
+                                                <field name="first_approvel_status" invisible="1" />
+                                            </group>
+                                            </sheet>
+
+                                        </form>
+                                     </field>
+                                </group>
+
+                            </page>
+                            <page name="page_cultivation" string="Cultivation / Land Preparation" invisible="planning_state != 'approved'" readonly="lifecycle_stage in ('cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved')">
+                                <field name="has_no_planning_data" invisible="1" />
+                                <div class="alert alert-warning" role="alert" invisible="not has_no_planning_data" style="margin-bottom: 10px;">
+                                    There is no data in the Planning section. You are creating a cultivation record directly here.
+                                </div>
+                                <div class="alert alert-danger" role="alert" invisible="not actual_crop_area_exceeded" style="margin-bottom: 10px; white-space: pre-wrap; font-weight: bold;">
+                                    <field name="actual_crop_area_warning" readonly="1" />
+                                </div>
+                                <group string="Actual Crops">
+                                    <field name="actual_annual_line_ids" nolabel="1" colspan="2">
+                                        <tree decoration-danger="is_mismatch and not is_manual" decoration-success="not is_mismatch and not is_manual and crop_name_id">
+                                            <field name="sync_id" column_invisible="1" force_save="1" />
+                                            <field name="is_manual" column_invisible="1" />
+                                            <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start" />
+                                            <field name="land_category" width="16%" class="text-start" />
+                                            <field name="season_id" width="16%" class="text-start" />
+                                            <field name="crop_name_id" width="16%" class="text-start" />
+                                            <field name="crop_category_id" width="16%" class="text-start" readonly="1" />
+                                            <field name="crop_variety_id" width="16%" class="text-start" domain="[('crop_id', '=', crop_name_id)]" />
+                                            <field name="collected_gc" column_invisible="1" />
+                                            <field name="collected_ec" column_invisible="1" />
+                                            <field name="is_mismatch" column_invisible="1" />
+                                        </tree>
+                                        <form>
+                                            <sheet>
+                                                <field name="sync_id" invisible="1" force_save="1" />
+                                                <field name="is_manual" invisible="1" />
+                                                <field name="is_planning" invisible="1" />
+                                                <div class="alert alert-warning" role="alert" invisible="is_planning">
+                                                    You are creating a record directly here. This record is not linked to the planning section.
+                                                </div>
+                                                <div class="oe_title mt-2 mb-4" invisible="not land_category">
+                                                    <h1 invisible="land_category != 'annual'" style="color: #017e84;">Actual Annual Input</h1>
+                                                    <h1 invisible="land_category != 'perennial'" style="color: #017e84;">Actual Perennial Input</h1>
+                                                    <h1 invisible="land_category != 'biennial'" style="color: #017e84;">Actual Biennial Input</h1>
+                                                </div>
+                                                <group string="Land / Plot Details">
+                                                    <group>
+                                                        <field name="is_plot_not_registered" invisible="land_info_id" />
+                                                        <field name="land_info_id" context="{'show_land_id': True}" domain="[('partner_id', '=', parent.partner_id)]" readonly="not is_manual" force_save="1" invisible="is_plot_not_registered" />
+<field name="temporary_land_id" invisible="not is_plot_not_registered" style="font-style: italic;" />
+<field name="land_category" readonly="not is_manual" force_save="1" invisible="not is_manual" />
+                                                    </group>
+                                                    <group invisible="not is_manual">
+                                                        <field name="ownership_type" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="land_area" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="region_name_id" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="zone_name_id" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="woreda_name_id" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="kebele_id" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="soil_fertility" readonly="not is_plot_not_registered" force_save="1" />
+                                                        <field name="gps" readonly="not is_plot_not_registered" force_save="1" />
+                                                    </group>
+                                                </group>
+                                                <group string="Season Details" invisible="not land_category">
+                                                    <group>
+                                                        <field name="season_id" options="{'no_create': True, 'no_open': True}" />
+                                                    </group>
+                                                    <group>
+                                                        <field name="start_gc" readonly="1" force_save="1" />
+<field name="end_gc" readonly="1" force_save="1" />
+<field name="start_month" readonly="1" force_save="1" />
+<field name="start_day" readonly="1" force_save="1" />
+<field name="end_month" readonly="1" force_save="1" />
+<field name="end_day" readonly="1" force_save="1" />
+                                                    </group>
+                                                </group>
+                                                <group string="Crop Details" invisible="not land_category">
+                                                    <group>
+                                                        <field name="crop_name_id" />
+                                                        <field name="local_name" />
+                                                        <field name="scientific_name" />
+                                                        <field name="crop_variety_id" domain="[('crop_id', '=', crop_name_id)]" />
+                                                        <field name="cropping_system" />
+                                                        <field name="collected_gc" />
+                                                        <field name="collected_ec" />
+                                                        <field name="is_crop_changed" invisible="1" />
+                                                        <field name="remark" placeholder="Reason for changing the crop" invisible="not is_crop_changed" />
+                                                    </group>
+                                                    <group>
+                                                        <field name="crop_category_id" readonly="1" />
+                                                    </group>
+                                                </group>
+                                                <group string="Crop Actual Inputs" invisible="not land_category">
+                                                    <group>
+                                                        <field name="actual_growth_duration" />
+                                                        <field name="actual_crop_area" />
+                                                        <field name="actual_yield" />
+                                                        <field name="cultivated_by" />
+                                                        <field name="land_prep_method_ids" widget="many2many_tags" />
+                                                    </group>
+                                                </group>
+                                                <group string="Seed Actual Inputs" invisible="not land_category">
+                                                    <group>
+                                                        <field name="actual_seed_class" />
+                                                        <field name="actual_seed_source" />
+                                                        <field name="actual_seed_qty" />
+                                                        <field name="actual_fertilizer_type" />
+                                                    </group>
+                                                    <group>
+
+                                                        <field name="actual_fertilizer_qty" />
+                                                    </group>
+
+                                                    <field name="water_resource_line_ids" colspan="2">
+                                                        <tree editable="bottom">
+                                                            <field name="water_resource_id" />
+                                                            <field name="method_id" options="{'no_create': True}" />
+                                                            <field name="frequency" />
+                                                        </tree>
+                                                    </field>
+                                                </group>
+                                                <group invisible="not is_manual">
+                                                    <field name="has_cluster_farming" widget="radio" options="{'horizontal': true}" />
+                                                </group>
+                                                <field name="cluster_info_ids" invisible="has_cluster_farming != 'yes'" colspan="2" form_view_ref="g2p_crop_registry.view_cluster_information_form" context="{'show_actual': True, 'form_view_ref': 'g2p_crop_registry.view_cluster_information_form'}">
+                                                    <tree>
+                                                        <field name="cluster_id" />
+                                                        <field name="cluster_name" />
+                                                        <field name="cluster_area_hectare" />
+                                                         <field name="season_id" column_invisible="1" />
+                                                    </tree>
+                                                </field>
+                                            <group string="Survey Personnel">
+                                                <field name="surveyor_name" />
+                                                <field name="surveyor_mobile_number" />
+                                                <field name="supervisor_name" />
+                                                <field name="supervisor_mobile_number" />
+                                                <field name="first_approvel_status" invisible="1" />
+                                            </group>
+                                            </sheet>
+                                        </form>
+                                    </field>
+                                </group>
+                            </page>
+                            <page name="page_sowing" string="Sowing" invisible="lifecycle_stage in ('draft', 'pending_planning', 'planning_approved', 'pending_cultivation')" readonly="lifecycle_stage in ('sowing_approved', 'pending_harvesting', 'harvesting_approved')">
+                                <group string="Sowing Crops">
+                                <field name="production_detail_ids" nolabel="1" colspan="2" context="{'tree_view_ref': 'g2p_crop_registry.view_g2p_crop_production_sowing_tree', 'form_view_ref': 'g2p_crop_registry.view_g2p_crop_production_sowing_form'}" />
+                                </group>
+
+                            </page>
+
+                            <page name="page_harvesting" string="Harvesting" invisible="lifecycle_stage in ('draft', 'pending_planning', 'planning_approved', 'pending_cultivation', 'cultivation_approved', 'pending_sowing')" readonly="lifecycle_stage == 'harvesting_approved'">
+                                <group string="Harvesting Crops">
+                                <field name="harvest_detail_ids" nolabel="1" colspan="2" string="Harvesting Details" context="{'tree_view_ref': 'g2p_crop_registry.view_g2p_crop_production_harvesting_tree', 'form_view_ref': 'g2p_crop_registry.view_g2p_crop_production_harvesting_form'}" />
+                                </group>
+
+                            </page>
+
+
+
+
+                        </notebook>
+                                            </sheet>
+                                        </form>
+            </field>
+        </record>
+
+
+        <record id="view_g2p_crop_registry_search" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.search</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="arch" type="xml">
+                <search string="Search Crop Sown Registry">
+
+
+                    <field name="zone_id" />
+                    <field name="woreda_id" />
+                    <field name="kebele_id" />
+                    <field name="land_info_id" context="{'show_land_id': True}" />
+                    <field name="crop_name_id" />
+
+
+                    <filter string="Approved" name="filter_approved" domain="[('state', '=', 'approved')]" />
+                    <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]" />
+                    <filter string="Update Requested" name="filter_update_requested" domain="[('state', '=', 'update_requested')]" />
+
+
+
+                    <group expand="0" string="Group By">
+
+                        <filter string="Zone" name="group_by_zone" context="{'group_by':'zone_id'}" />
+
+                        <filter string="Woreda" name="group_by_woreda" context="{'group_by':'woreda_id'}" />
+
+                        <filter string="Crop" name="group_by_crop" context="{'group_by':'crop_name_id'}" />
+
+
+
+                    </group>
+
+                </search>
+            </field>
+        </record>
+
+
+        <record id="action_g2p_crop_registry" model="ir.actions.act_window">
+            <field name="name">Crop Sown Registry</field>
+            <field name="res_model">g2p.crop.registry</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_crop_registry_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_g2p_crop_registry_form')})]" />
+            <field name="search_view_id" ref="view_g2p_crop_registry_search" />
+        </record>
+
+        <menuitem id="g2p_crop_registry_menu_item_id" name="Crop Sown Registry" />
+
+        <menuitem id="menu_gn_division" name="Crop Sown Registry" parent="g2p_crop_registry_menu_item_id" action="action_g2p_crop_registry" sequence="10" />
+
+
+
+        <!-- ============================================================ -->
+        <!-- PLANNING VIEW -->
+        <!-- ============================================================ -->
+        <record id="view_g2p_crop_planning_tree" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.planning.tree</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="arch" type="xml">
+                <tree string="Crop Planning"
+                      decoration-success="planning_state == 'approved'"
+                      decoration-danger="planning_state == 'rejected'"
+                      decoration-muted="planning_state == 'draft'"
+                      decoration-info="planning_state == 'update_requested'"
+                      decoration-warning="planning_state == 'pending_wah'">
+                    <field name="name" string="Registry No." />
+                    <field name="partner_id" context="{'show_farmer_id': True}" options="{'no_create': True}" string="Farmer ID" />
+                    <field name="primary_land_id" />
+                    <field name="primary_plot_category" />
+                    <field name="primary_season_id" />
+                    <field name="crop_name_id" />
+                    <field name="crop_category_id" />
+                    <field name="crop_variety_id" />
+                    <field name="planning_state" widget="badge"
+                           decoration-danger="planning_state == 'rejected'"
+                           decoration-muted="planning_state == 'draft'"
+                           decoration-info="planning_state == 'update_requested'"
+                           decoration-success="planning_state == 'approved'"
+                           decoration-warning="planning_state == 'pending_wah'" />
+                    <field name="can_approve" column_invisible="1" />
+                    <!-- SMS Buttons -->
+                    <button title="SMS Approve" icon="fa-check" name="action_approve_sms" type="object" class="btn btn-success" groups="g2p_crop_registry.group_woreda_sms" invisible="planning_state != 'draft'" />
+                    <button title="Reject" icon="fa-times" name="action_reject" type="object" class="btn btn-danger" groups="g2p_crop_registry.group_woreda_sms" invisible="planning_state != 'draft'" />
+
+                    <!-- WAH Buttons -->
+                    <button title="WAH Approve" icon="fa-check" name="action_approve_wah" type="object" class="btn btn-success" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="planning_state != 'pending_wah'" />
+                    <button title="Reject" icon="fa-times" name="action_reject" type="object" class="btn btn-danger" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="planning_state != 'pending_wah'" />
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_g2p_crop_planning_form" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.planning.form</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="inherit_id" ref="view_g2p_crop_registry_form" />
+            <field name="mode">primary</field>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <style>
+                        .o_content > .o_form_renderer > .o_form_sheet > .o_notebook > .nav-tabs,
+                        .o_content > .o_form_renderer > .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
+                        .modal .nav-tabs, .o_dialog .nav-tabs { display: flex !important; }
+                    </style>
+                </xpath>
+                <!-- Replace header: show planning_state statusbar only -->
+                <xpath expr="//header" position="replace">
+                    <header>
+                        <field name="can_approve" invisible="1" />
+                        <field name="can_set_draft" invisible="1" />
+                        <field name="state" invisible="1" />
+                        <!-- SMS Buttons -->
+                        <button name="action_approve_sms" string="Approve" type="object" class="btn-success" groups="g2p_crop_registry.group_woreda_sms" invisible="planning_state != 'draft'" />
+                        <button name="action_reject" string="Reject" type="object" class="btn-danger" groups="g2p_crop_registry.group_woreda_sms" invisible="planning_state != 'draft'" />
+                        <button name="action_set_draft" string="Set To Draft" type="object" class="btn-info" groups="g2p_crop_registry.group_woreda_sms" invisible="planning_state == 'draft' or (planning_state == 'rejected' and rejected_at_stage != 'sms')" />
+
+                        <!-- WAH Buttons -->
+                        <button name="action_approve_wah" string="Approve" type="object" class="btn-success" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="planning_state != 'pending_wah'" />
+                        <button name="action_reject" string="Reject" type="object" class="btn-danger" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="planning_state != 'pending_wah'" />
+                        <button name="action_set_draft" string="Set To Draft" type="object" class="btn-info" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="planning_state not in ('approved', 'rejected') or (planning_state == 'rejected' and rejected_at_stage == 'sms')" />
+                        <field name="planning_state" widget="statusbar" readonly="1"
+                               statusbar_visible="draft,pending_wah,rejected,update_requested,approved" />
+                    </header>
+                </xpath>
+                <!-- Show only Planning tab (page[1]); hide all others -->
+                <xpath expr="//page[@name='page_planning']" position="attributes">
+                    <attribute name="invisible">0</attribute>
+                </xpath>
+                <xpath expr="//page[@name='page_cultivation']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='page_sowing']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='page_harvesting']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <!-- rejection_reason visible only when planning_state == rejected -->
+                <xpath expr="//field[@name='rejection_reason']" position="attributes">
+                    <attribute name="invisible">planning_state != 'rejected'</attribute>
+                </xpath>
+                <xpath expr="//group[@name='farmer_identity']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="action_g2p_crop_planning" model="ir.actions.act_window">
+            <field name="name">Crop Planning</field>
+            <field name="res_model">g2p.crop.registry</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'menu_title': 'Planning Details'}</field>
+            <field name="search_view_id" ref="view_g2p_crop_registry_search" />
+            <field name="domain">[('lifecycle_stage', 'in', ('draft', 'pending_planning', 'planning_rejected', 'planning_approved', 'pending_cultivation', 'cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved'))]</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_g2p_crop_planning_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_g2p_crop_planning_form')})]" />
+        </record>
+
+        <menuitem id="menu_g2p_crop_planning" name="Planning"
+                  parent="g2p_crop_registry_menu_item_id"
+                  action="action_g2p_crop_planning"
+                  sequence="20" />
+
+        <!-- ============================================================ -->
+        <!-- CULTIVATION / LAND PREPARATION VIEW -->
+        <!-- ============================================================ -->
+        <record id="view_g2p_crop_cultivation_tree" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.cultivation.tree</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="arch" type="xml">
+                <tree string="Cultivation / Land Preparation"
+                      decoration-success="cultivation_state == 'approved'"
+                      decoration-danger="cultivation_state == 'rejected'"
+                      decoration-muted="cultivation_state == 'draft'"
+                      decoration-info="cultivation_state == 'update_requested'"
+                      decoration-warning="cultivation_state == 'pending_wah'">
+                    <field name="name" string="Registry No." />
+                    <field name="partner_id" context="{'show_farmer_id': True}" options="{'no_create': True}" string="Farmer ID" />
+                    <field name="primary_land_id" />
+                    <field name="primary_plot_category" />
+                    <field name="primary_season_id" />
+                    <field name="crop_name_id" />
+                    <field name="crop_category_id" />
+                    <field name="crop_variety_id" />
+                    <field name="cultivation_state" widget="badge"
+                           decoration-danger="cultivation_state == 'rejected'"
+                           decoration-muted="cultivation_state == 'draft'"
+                           decoration-info="cultivation_state == 'update_requested'"
+                           decoration-success="cultivation_state == 'approved'"
+                           decoration-warning="cultivation_state == 'pending_wah'" />
+                    <field name="can_approve" column_invisible="1" />
+                    <!-- SMS Buttons -->
+                    <button title="SMS Approve" icon="fa-check" name="action_approve_sms" type="object" class="btn btn-success" groups="g2p_crop_registry.group_woreda_sms" invisible="cultivation_state != 'draft'" />
+                    <button title="Reject" icon="fa-times" name="action_reject" type="object" class="btn btn-danger" groups="g2p_crop_registry.group_woreda_sms" invisible="cultivation_state != 'draft'" />
+
+                    <!-- WAH Buttons -->
+                    <button title="WAH Approve" icon="fa-check" name="action_approve_wah" type="object" class="btn btn-success" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="cultivation_state != 'pending_wah'" />
+                    <button title="Reject" icon="fa-times" name="action_reject" type="object" class="btn btn-danger" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="cultivation_state != 'pending_wah'" />
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_g2p_crop_cultivation_form" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.cultivation.form</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="inherit_id" ref="view_g2p_crop_registry_form" />
+            <field name="mode">primary</field>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <style>
+                        .o_content > .o_form_renderer > .o_form_sheet > .o_notebook > .nav-tabs,
+                        .o_content > .o_form_renderer > .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
+                        .modal .nav-tabs, .o_dialog .nav-tabs { display: flex !important; }
+                    </style>
+                </xpath>
+                <!-- Replace header: show cultivation_state statusbar only -->
+                <xpath expr="//header" position="replace">
+                    <header>
+                        <field name="can_approve" invisible="1" />
+                        <field name="can_set_draft" invisible="1" />
+                        <field name="state" invisible="1" />
+                        <!-- SMS Buttons -->
+                        <button name="action_approve_sms" string="Approve" type="object" class="btn-success" groups="g2p_crop_registry.group_woreda_sms" invisible="cultivation_state != 'draft'" />
+                        <button name="action_reject" string="Reject" type="object" class="btn-danger" groups="g2p_crop_registry.group_woreda_sms" invisible="cultivation_state != 'draft'" />
+                        <button name="action_set_draft" string="Set To Draft" type="object" class="btn-info" groups="g2p_crop_registry.group_woreda_sms" invisible="cultivation_state == 'draft' or (cultivation_state == 'rejected' and rejected_at_stage != 'sms')" />
+
+                        <!-- WAH Buttons -->
+                        <button name="action_approve_wah" string="Approve" type="object" class="btn-success" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="cultivation_state != 'pending_wah'" />
+                        <button name="action_reject" string="Reject" type="object" class="btn-danger" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="cultivation_state != 'pending_wah'" />
+                        <button name="action_set_draft" string="Set To Draft" type="object" class="btn-info" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="cultivation_state not in ('approved', 'rejected') or (cultivation_state == 'rejected' and rejected_at_stage == 'sms')" />
+                        <field name="cultivation_state" widget="statusbar" readonly="1"
+                               statusbar_visible="draft,pending_wah,rejected,update_requested,approved" />
+                    </header>
+                </xpath>
+                <!-- Planning tab: readonly (reference), Cultivation tab: active, hide Sowing/Harvesting/Survey -->
+                <xpath expr="//page[@name='page_planning']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='page_cultivation']" position="attributes">
+                    <attribute name="invisible">0</attribute>
+                </xpath>
+                <xpath expr="//page[@name='page_sowing']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='page_harvesting']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <!-- rejection_reason visible only when cultivation_state == rejected -->
+                <xpath expr="//field[@name='rejection_reason']" position="attributes">
+                    <attribute name="invisible">cultivation_state != 'rejected'</attribute>
+                </xpath>
+                <xpath expr="//group[@name='farmer_identity']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+            </field>
+        </record>
+
+        <record id="action_g2p_crop_cultivation" model="ir.actions.act_window">
+            <field name="name">Cultivation / Land Preparation</field>
+            <field name="res_model">g2p.crop.registry</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'menu_title': 'Cultivation Details'}</field>
+            <field name="search_view_id" ref="view_g2p_crop_registry_search" />
+            <field name="domain">[('lifecycle_stage', 'in', ('planning_approved', 'pending_cultivation', 'cultivation_rejected', 'cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved'))]</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_g2p_crop_cultivation_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_g2p_crop_cultivation_form')})]" />
+        </record>
+
+        <menuitem id="menu_g2p_crop_cultivation" name="Cultivation / Land Preparation"
+                  parent="g2p_crop_registry_menu_item_id"
+                  action="action_g2p_crop_cultivation"
+                  sequence="30" />
+
+        <!-- ============================================================ -->
+        <!-- SOWING VIEW -->
+        <!-- ============================================================ -->
+        <record id="view_g2p_crop_sowing_tree" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.sowing.tree</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="arch" type="xml">
+                <tree string="Sowing"
+                      decoration-success="sowing_state == 'approved'"
+                      decoration-danger="sowing_state == 'rejected'"
+                      decoration-muted="sowing_state == 'draft'"
+                      decoration-info="sowing_state == 'update_requested'"
+                      decoration-warning="sowing_state == 'pending_wah'">
+                    <field name="name" string="Registry No." />
+                    <field name="partner_id" context="{'show_farmer_id': True}" options="{'no_create': True}" string="Farmer ID" />
+                    <field name="primary_land_id" />
+                    <field name="primary_plot_category" />
+                    <field name="primary_season_id" />
+                    <field name="crop_name_id" />
+                    <field name="crop_category_id" />
+                    <field name="crop_variety_id" />
+                    <field name="sowing_state" widget="badge"
+                           decoration-danger="sowing_state == 'rejected'"
+                           decoration-muted="sowing_state == 'draft'"
+                           decoration-info="sowing_state == 'update_requested'"
+                           decoration-success="sowing_state == 'approved'"
+                           decoration-warning="sowing_state == 'pending_wah'" />
+                    <field name="can_approve" column_invisible="1" />
+                    <!-- SMS Buttons -->
+                    <button title="SMS Approve" icon="fa-check" name="action_approve_sms" type="object" class="btn btn-success" groups="g2p_crop_registry.group_woreda_sms" invisible="sowing_state != 'draft'" />
+                    <button title="Reject" icon="fa-times" name="action_reject" type="object" class="btn btn-danger" groups="g2p_crop_registry.group_woreda_sms" invisible="sowing_state != 'draft'" />
+
+                    <!-- WAH Buttons -->
+                    <button title="WAH Approve" icon="fa-check" name="action_approve_wah" type="object" class="btn btn-success" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="sowing_state != 'pending_wah'" />
+                    <button title="Reject" icon="fa-times" name="action_reject" type="object" class="btn btn-danger" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="sowing_state != 'pending_wah'" />
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_g2p_crop_sowing_form" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.sowing.form</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="inherit_id" ref="view_g2p_crop_registry_form" />
+            <field name="mode">primary</field>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <style>
+                        .o_content > .o_form_renderer > .o_form_sheet > .o_notebook > .nav-tabs,
+                        .o_content > .o_form_renderer > .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
+                        .modal .nav-tabs, .o_dialog .nav-tabs { display: flex !important; }
+                    </style>
+                </xpath>
+                <!-- Replace header: show sowing_state statusbar only -->
+                <xpath expr="//header" position="replace">
+                    <header>
+                        <field name="can_approve" invisible="1" />
+                        <field name="can_set_draft" invisible="1" />
+                        <field name="state" invisible="1" />
+                        <!-- SMS Buttons -->
+                        <button name="action_approve_sms" string="Approve" type="object" class="btn-success" groups="g2p_crop_registry.group_woreda_sms" invisible="sowing_state != 'draft'" />
+                        <button name="action_reject" string="Reject" type="object" class="btn-danger" groups="g2p_crop_registry.group_woreda_sms" invisible="sowing_state != 'draft'" />
+                        <button name="action_set_draft" string="Set To Draft" type="object" class="btn-info" groups="g2p_crop_registry.group_woreda_sms" invisible="sowing_state == 'draft' or (sowing_state == 'rejected' and rejected_at_stage != 'sms')" />
+
+                        <!-- WAH Buttons -->
+                        <button name="action_approve_wah" string="Approve" type="object" class="btn-success" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="sowing_state != 'pending_wah'" />
+                        <button name="action_reject" string="Reject" type="object" class="btn-danger" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="sowing_state != 'pending_wah'" />
+                        <button name="action_set_draft" string="Set To Draft" type="object" class="btn-info" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="sowing_state not in ('approved', 'rejected') or (sowing_state == 'rejected' and rejected_at_stage == 'sms')" />
+                        <field name="sowing_state" widget="statusbar" readonly="1"
+                               statusbar_visible="draft,pending_wah,rejected,update_requested,approved" />
+                    </header>
+                </xpath>
+                <!-- Hide Planning, Cultivation, Harvesting, Survey tabs; show only Sowing -->
+                <xpath expr="//page[@name='page_planning']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='page_cultivation']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='page_sowing']" position="attributes">
+                    <attribute name="invisible">0</attribute>
+                </xpath>
+                <xpath expr="//page[@name='page_harvesting']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//group[@name='farmer_identity']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+            </field>
+        </record>
+
+        <record id="action_g2p_crop_sowing" model="ir.actions.act_window">
+            <field name="name">Sowing</field>
+            <field name="res_model">g2p.crop.registry</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'menu_title': 'Sowing Details'}</field>
+            <field name="search_view_id" ref="view_g2p_crop_registry_search" />
+            <field name="domain">[('lifecycle_stage', 'in', ('cultivation_approved', 'pending_sowing', 'sowing_rejected', 'sowing_approved', 'pending_harvesting', 'harvesting_approved'))]</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_g2p_crop_sowing_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_g2p_crop_sowing_form')})]" />
+        </record>
+
+        <menuitem id="menu_g2p_crop_sowing" name="Sowing"
+                  parent="g2p_crop_registry_menu_item_id"
+                  action="action_g2p_crop_sowing"
+                  sequence="40" />
+
+        <!-- ============================================================ -->
+        <!-- HARVESTING VIEW -->
+        <!-- ============================================================ -->
+        <record id="view_g2p_crop_harvesting_tree" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.harvesting.tree</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="arch" type="xml">
+                <tree string="Harvesting"
+                      decoration-success="harvesting_state == 'approved'"
+                      decoration-danger="harvesting_state == 'rejected'"
+                      decoration-muted="harvesting_state == 'draft'"
+                      decoration-info="harvesting_state == 'update_requested'"
+                      decoration-warning="harvesting_state == 'pending_wah'">
+                    <field name="name" string="Registry No." />
+                    <field name="partner_id" context="{'show_farmer_id': True}" options="{'no_create': True}" string="Farmer ID" />
+                    <field name="primary_land_id" />
+                    <field name="primary_plot_category" />
+                    <field name="primary_season_id" />
+                    <field name="crop_name_id" />
+                    <field name="crop_category_id" />
+                    <field name="crop_variety_id" />
+                    <field name="harvesting_state" widget="badge"
+                           decoration-danger="harvesting_state == 'rejected'"
+                           decoration-muted="harvesting_state == 'draft'"
+                           decoration-info="harvesting_state == 'update_requested'"
+                           decoration-success="harvesting_state == 'approved'"
+                           decoration-warning="harvesting_state == 'pending_wah'" />
+                    <field name="can_approve" column_invisible="1" />
+                    <!-- SMS Buttons -->
+                    <button title="SMS Approve" icon="fa-check" name="action_approve_sms" type="object" class="btn btn-success" groups="g2p_crop_registry.group_woreda_sms" invisible="harvesting_state != 'draft'" />
+                    <button title="Reject" icon="fa-times" name="action_reject" type="object" class="btn btn-danger" groups="g2p_crop_registry.group_woreda_sms" invisible="harvesting_state != 'draft'" />
+
+                    <!-- WAH Buttons -->
+                    <button title="WAH Approve" icon="fa-check" name="action_approve_wah" type="object" class="btn btn-success" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="harvesting_state != 'pending_wah'" />
+                    <button title="Reject" icon="fa-times" name="action_reject" type="object" class="btn btn-danger" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="harvesting_state != 'pending_wah'" />
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_g2p_crop_harvesting_form" model="ir.ui.view">
+            <field name="name">g2p.crop.registry.harvesting.form</field>
+            <field name="model">g2p.crop.registry</field>
+            <field name="inherit_id" ref="view_g2p_crop_registry_form" />
+            <field name="mode">primary</field>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <style>
+                        .o_content > .o_form_renderer > .o_form_sheet > .o_notebook > .nav-tabs,
+                        .o_content > .o_form_renderer > .o_form_sheet > div > .o_notebook > .nav-tabs { display: none !important; }
+                        .modal .nav-tabs, .o_dialog .nav-tabs { display: flex !important; }
+                    </style>
+                </xpath>
+                <!-- Replace header: show harvesting_state statusbar only -->
+                <xpath expr="//header" position="replace">
+                    <header>
+                        <field name="can_approve" invisible="1" />
+                        <field name="can_set_draft" invisible="1" />
+                        <field name="state" invisible="1" />
+                        <!-- SMS Buttons -->
+                        <button name="action_approve_sms" string="Approve" type="object" class="btn-success" groups="g2p_crop_registry.group_woreda_sms" invisible="harvesting_state != 'draft'" />
+                        <button name="action_reject" string="Reject" type="object" class="btn-danger" groups="g2p_crop_registry.group_woreda_sms" invisible="harvesting_state != 'draft'" />
+                        <button name="action_set_draft" string="Set To Draft" type="object" class="btn-info" groups="g2p_crop_registry.group_woreda_sms" invisible="harvesting_state == 'draft' or (harvesting_state == 'rejected' and rejected_at_stage != 'sms')" />
+
+                        <!-- WAH Buttons -->
+                        <button name="action_approve_wah" string="Approve" type="object" class="btn-success" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="harvesting_state != 'pending_wah'" />
+                        <button name="action_reject" string="Reject" type="object" class="btn-danger" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="harvesting_state != 'pending_wah'" />
+                        <button name="action_set_draft" string="Set To Draft" type="object" class="btn-info" groups="g2p_crop_registry.group_woreda_agri_office_head" invisible="harvesting_state not in ('approved', 'rejected') or (harvesting_state == 'rejected' and rejected_at_stage == 'sms')" />
+                        <field name="harvesting_state" widget="statusbar" readonly="1"
+                               statusbar_visible="draft,pending_wah,rejected,update_requested,approved" />
+                    </header>
+                </xpath>
+                <!-- Show Planning(readonly), Cultivation(readonly), Sowing(readonly), Harvesting(active); hide Survey -->
+                <xpath expr="//page[@name='page_planning']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='page_cultivation']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='page_sowing']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='page_harvesting']" position="attributes">
+                    <attribute name="invisible">0</attribute>
+                </xpath>
+                <xpath expr="//group[@name='farmer_identity']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+            </field>
+        </record>
+
+        <record id="action_g2p_crop_harvesting" model="ir.actions.act_window">
+            <field name="name">Harvesting</field>
+            <field name="res_model">g2p.crop.registry</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'menu_title': 'Harvesting Details'}</field>
+            <field name="search_view_id" ref="view_g2p_crop_registry_search" />
+            <field name="domain">[('lifecycle_stage', 'in', ('sowing_approved', 'pending_harvesting', 'harvesting_rejected', 'harvesting_approved'))]</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_g2p_crop_harvesting_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_g2p_crop_harvesting_form')})]" />
+        </record>
+
+        <menuitem id="menu_g2p_crop_harvesting" name="Harvesting"
+                  parent="g2p_crop_registry_menu_item_id"
+                  action="action_g2p_crop_harvesting"
+                  sequence="50" />
+
+
+    </data>
+
+
+<menuitem id="menu_g2p_crop_edit_suggestions" name="Edit Suggestions" parent="g2p_crop_registry_menu_item_id" action="action_g2p_crop_edit_request" sequence="60" groups="g2p_crop_registry.group_woreda_agri_office_head,g2p_crop_registry.group_woreda_sms" />
+
+<menuitem id="menu_g2p_crop_change_requests" name="Update Requests" parent="g2p_crop_registry_menu_item_id" action="action_g2p_crop_change_request" sequence="70" groups="g2p_crop_registry.group_woreda_agri_office_head,g2p_crop_registry.group_woreda_sms" />
+
+</odoo>

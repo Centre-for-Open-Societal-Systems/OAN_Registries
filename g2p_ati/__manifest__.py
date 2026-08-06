@@ -7,7 +7,7 @@
     "author": "OpenG2P",
     "website": "https://openg2p.org",
     "license": "LGPL-3",
-    "depends": ["g2p_social_registry", "g2p_registry_documents", "g2p_enumerator"],
+    "depends": ["g2p_social_registry", "g2p_social_registry_model", "g2p_registry_documents", "g2p_enumerator"],
     "external_dependencies": {},
     "data": [
         "security/groups.xml",
@@ -39,6 +39,7 @@
         "views/cooperations.xml",
         "views/region.xml",
         "views/zone.xml",
+        "views/region.xml",
         "views/woreda.xml",
         "views/kebele.xml",
         "views/lang.xml",

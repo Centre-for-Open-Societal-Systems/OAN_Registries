@@ -74,6 +74,6 @@
         action="g2p_region_view_tree_action"
         name="Regions"
         sequence="10"
-        parent="menu_g2p_location_root"
+        parent="g2p_ati.menu_g2p_location_root"
     />
 </odoo>
