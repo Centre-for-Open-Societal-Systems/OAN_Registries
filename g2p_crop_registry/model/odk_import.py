@@ -26,14 +26,12 @@ class OdkImport(models.Model):
 
     target_registry = fields.Selection(
         selection_add=[
-            ('g2p.crop.registry', 'Crop Registry'),
             ('g2p.crop.registry.planning', 'Crop Registry - Planning'),
             ('g2p.crop.registry.cultivation', 'Crop Registry - Cultivation'),
             ('g2p.crop.registry.sowing_harvesting', 'Crop Registry - Sowing'),
             ('g2p.crop.registry.harvesting', 'Crop Registry - Harvesting'),
         ],
         ondelete={
-            'g2p.crop.registry': 'cascade',
             'g2p.crop.registry.planning': 'cascade',
             'g2p.crop.registry.cultivation': 'cascade',
             'g2p.crop.registry.sowing_harvesting': 'cascade',
@@ -44,7 +42,6 @@ class OdkImport(models.Model):
 
     def process_records(self, instance_id=None, last_sync_time=None):
         if self.target_registry in [
-            'g2p.crop.registry',
             'g2p.crop.registry.planning',
             'g2p.crop.registry.cultivation',
             'g2p.crop.registry.sowing_harvesting',
@@ -91,11 +88,29 @@ class OdkImport(models.Model):
             elif k in ['geo_tagged_photo', 'image_1920', 'photo'] and isinstance(v, str) and v and len(v) < 255 and not v.startswith('http') and not v.startswith('data:'):
                 try:
                     import base64
-                    attachm = self.odk_config.download_attachment(current_instance_id, v)
-                    if attachm:
+                    import requests
+
+                    # Instead of self.odk_config.download_attachment which has a 10s timeout,
+                    # we do the request manually here with a 60s timeout for large images.
+                    url = (
+                        f"{self.odk_config.base_url}/v1/projects/{self.odk_config.project}/forms/{self.odk_config.form_id}/"
+                        f"submissions/{current_instance_id}/attachments/{v}"
+                    )
+                    headers = {"Authorization": f"Bearer {self.odk_config.login_get_session_token()}"}
+                    response = requests.get(url, headers=headers, timeout=60)
+
+                    if response.status_code == 200:
+                        attachm = response.content
                         data_dict[k] = base64.b64encode(attachm).decode('utf-8')
+                    elif response.status_code == 404:
+                        _logger.warning("Attachment %s not found on ODK server.", v)
+                        data_dict[k] = False
+                    else:
+                        response.raise_for_status()
                 except Exception as e:
                     _logger.error("Failed to download attachment %s: %s", v, e)
+                    # Clear the value so we don't save garbage base64 strings
+                    data_dict[k] = False
 
     def _process_crop_registry_records(self, instance_id=None, last_sync_time=None):
         self.ensure_one()
@@ -104,6 +119,13 @@ class OdkImport(models.Model):
             instance_id=instance_id,
             last_sync_time=last_sync_time
         )
+        if not data.get('value') and last_sync_time and not instance_id:
+            _logger.info("No records found with last_sync_time %s. Falling back to full download...", last_sync_time)
+            data = self.odk_config.download_records(
+                instance_id=instance_id,
+                last_sync_time=None
+            )
+
         partner_count = 0
         for member in data['value']:
             self._normalize_raw_odk_member(member)
@@ -125,13 +147,29 @@ class OdkImport(models.Model):
 
             current_instance_id = member.get('__id') or member.get('meta', {}).get('instanceID') or member.get('__system', {}).get('instanceID') or instance_id
             if current_instance_id:
+                # Download media in both mapped_json AND raw member so that
+                # _auto_enrich_production_and_incidents (which reads from member)
+                # gets base64 data instead of raw filenames.
                 self._download_media_recursive(mapped_json, current_instance_id)
+                self._download_media_recursive(member, current_instance_id)
 
             def _flatten_dict(d):
                 flattened = {}
                 for k, v in d.items():
                     if isinstance(v, dict):
-                        flattened.update(_flatten_dict(v))
+                        if k in ('gps', 'polygon_data', 'geoshape', 'geotrace') or ('type' in v and 'coordinates' in v):
+                            # Convert GeoJSON dict to string format "lon,lat; lon,lat"
+                            coords = v.get('coordinates', [])
+                            def extract_pts(c):
+                                if not c: return []
+                                if isinstance(c[0], (int, float)): return [f"{c[0]},{c[1]}"]
+                                res = []
+                                for x in c: res.extend(extract_pts(x))
+                                return res
+                            pts = extract_pts(coords)
+                            flattened[k] = "; ".join(pts)
+                        else:
+                            flattened.update(_flatten_dict(v))
                     else:
                         if isinstance(v, str):
                             v = v.strip("'\"")
@@ -192,9 +230,25 @@ class OdkImport(models.Model):
                         if farmer_cmds:
                             merged_cluster['cluster_farmer_line_ids'] = farmer_cmds
 
-                    for loc_field in ['region', 'zone', 'woreda', 'kebele', 'region_name_id', 'zone_name_id', 'woreda_name_id', 'kebele_id']:
+                    for loc_field in ['gps', 'region', 'zone', 'woreda', 'kebele', 'region_name_id', 'zone_name_id', 'woreda_name_id', 'kebele_id']:
                         if loc_field in raw_line and not merged_cluster.get(loc_field):
-                            merged_cluster[loc_field] = raw_line[loc_field]
+                            val = raw_line[loc_field]
+                            # If it's a raw GeoJSON dictionary here, format it too
+                            if loc_field == 'gps' and isinstance(val, dict) and 'coordinates' in val:
+                                coords = val.get('coordinates', [])
+                                def extract_pts(c):
+                                    if not c: return []
+                                    if isinstance(c[0], (int, float)): return [f"{c[0]},{c[1]}"]
+                                    res = []
+                                    for x in c: res.extend(extract_pts(x))
+                                    return res
+                                pts = extract_pts(coords)
+                                val = "; ".join(pts)
+
+                            if loc_field == 'gps':
+                                merged_cluster['gps_location'] = val
+                            else:
+                                merged_cluster[loc_field] = val
 
                     if isinstance(cluster_water, list) and cluster_water:
                         c_water_cmds = [(5, 0, 0)]
@@ -238,26 +292,16 @@ class OdkImport(models.Model):
                     flat_line = _flatten_dict(raw_line)
                     category = flat_line.get('land_category')
 
-                    if category == 'perennial':
-                        perennial_cmds.append((0, 0, flat_line))
-                    elif category == 'biennial':
-                        biennial_cmds.append((0, 0, flat_line))
-                    else:
-                        # Default to annual
-                        annual_cmds.append((0, 0, flat_line))
+                    # Store all lines in annual_cmds since crop registry only has annual_line_ids to hold them
+                    annual_cmds.append((0, 0, flat_line))
 
-            _logger.info("=== ODK IMPORT DEBUG: PLANNING LINES SORTED ===")
-            _logger.info("annual_cmds count: %s, perennial_cmds count: %s, biennial_cmds count: %s",
-                         len(annual_cmds)-1, len(perennial_cmds)-1, len(biennial_cmds)-1)
+            _logger.info("=== ODK IMPORT DEBUG: PLANNING LINES PROCESSED ===")
+            _logger.info("annual_cmds count: %s", len(annual_cmds)-1)
             if len(annual_cmds) > 1:
                 mapped_json['annual_line_ids'] = annual_cmds
                 _logger.info("SET mapped_json['annual_line_ids'] with %s lines", len(annual_cmds)-1)
             else:
                 _logger.info("NOT setting annual_line_ids (no lines)")
-            if len(perennial_cmds) > 1:
-                mapped_json['perennial_line_ids'] = perennial_cmds
-            if len(biennial_cmds) > 1:
-                mapped_json['biennial_line_ids'] = biennial_cmds
 
             if self.target_registry not in ['g2p.crop.registry.planning', 'g2p.crop.registry.harvesting']:
                 cultivation_key = next((k for k in ['cultivation', 'cultivation_land_prep'] if k in mapped_json), None)
@@ -281,10 +325,15 @@ class OdkImport(models.Model):
                 sowing_key = next((k for k in ['sowing_harvesting', 'sowing', 'sown_harvest', 'sowing_details'] if k in mapped_json), None)
                 if sowing_key:
                     sowing_val = mapped_json.pop(sowing_key)
+
                     if isinstance(sowing_val, list):
                         mapped_json['production_detail_ids'] = [(0, 0, _flatten_dict(line)) for line in sowing_val if isinstance(line, dict)]
+                        _logger.info("SOWING VAL EXTRACTED: %s", sowing_val)
+                        _logger.info("PRODUCTION DETAIL IDS: %s", mapped_json["production_detail_ids"])
                     elif isinstance(sowing_val, dict):
                         mapped_json['production_detail_ids'] = [(0, 0, _flatten_dict(sowing_val))]
+                        _logger.info("SOWING VAL EXTRACTED: %s", sowing_val)
+                        _logger.info("PRODUCTION DETAIL IDS: %s", mapped_json["production_detail_ids"])
 
             if self.target_registry not in ['g2p.crop.registry.planning', 'g2p.crop.registry.cultivation']:
                 harvest_keys = [k for k in ['harvest_detail_ids', 'harvest_details', 'harvesting_details', 'harvesting', 'harvest', 'independant_harvest'] if k in mapped_json]
@@ -399,8 +448,85 @@ class OdkImport(models.Model):
             if partner:
                 # ---- Farmer Found: auto-populate identity & geo from existing farmer ----
                 mapped_json['partner_id'] = partner.id
-                if not mapped_json.get('farmer_display_id'):
+
+                # Check if we should update the existing farmer (if it's a placeholder or missing data)
+                update_vals = {}
+                if partner.name == 'Unknown Farmer (Temp)':
+                    new_name = mapped_json.get('farmer_display_id') or mapped_json.get('farmer_name')
+                    if new_name:
+                        update_vals['name'] = new_name
+                        mapped_json['farmer_display_id'] = new_name
+                elif not mapped_json.get('farmer_display_id'):
                     mapped_json['farmer_display_id'] = partner.name
+
+                _logger.info("=== GEO EXTRACTION DEBUG ===")
+                _logger.info("Raw mapped_json Region: %s", mapped_json.get('region_display_id') or mapped_json.get('region_id') or mapped_json.get('region'))
+                _logger.info("Raw mapped_json Zone: %s", mapped_json.get('zone_display_id') or mapped_json.get('zone_id') or mapped_json.get('zone'))
+
+                for field_name, odk_key, model_name in [
+                    ('region', 'region_display_id', 'g2p.region'),
+                    ('zone', 'zone_display_id', 'g2p.zone'),
+                    ('woreda', 'woreda_id', 'g2p.woreda'),
+                    ('kebele', 'kebele_id', 'g2p.kebele')
+                ]:
+                    val = mapped_json.get(odk_key) or mapped_json.get(field_name + '_id') or mapped_json.get(field_name)
+                    if val and not getattr(partner, field_name, False):
+                        if isinstance(val, int):
+                            update_vals[field_name] = val
+                        elif isinstance(val, str) and val.strip() and val.strip().lower() not in ('none', 'false', 'null'):
+                            val_str = val.strip()
+                            # Search by exact code or name
+                            domain = ['|', ('code', '=ilike', val_str), ('name', '=ilike', val_str)]
+                            rec = self.env[model_name].sudo().search(domain, limit=1)
+                            if not rec:
+                                # Search by partial code or name
+                                domain_partial = ['|', ('code', '=ilike', f'%{val_str}%'), ('name', '=ilike', f'%{val_str}%')]
+                                rec = self.env[model_name].sudo().search(domain_partial, limit=1)
+                            if rec:
+                                update_vals[field_name] = rec.id
+                            else:
+                                _logger.warning("ODK Import: Could not find %s matching '%s' in %s", field_name, val, model_name)
+
+                # Handle GPS
+                gps_val = mapped_json.get('gps')
+                if gps_val:
+                    if isinstance(gps_val, dict) and 'coordinates' in gps_val:
+                        coords = gps_val['coordinates']
+                        if len(coords) >= 2:
+                            # Convert dict to a clean string for the crop registry record (Longitude, Latitude)
+                            mapped_json['gps'] = f"{coords[0]}, {coords[1]}"
+                            # Update partner if missing
+                            if not partner.partner_latitude or not partner.partner_longitude:
+                                update_vals['partner_longitude'] = float(coords[0])
+                                update_vals['partner_latitude'] = float(coords[1])
+                    elif isinstance(gps_val, str) and gps_val.strip().lower() not in ('none', 'false', 'null', ''):
+                        # Extract the first valid coordinate pair
+                        first_coord = gps_val.split(';')[0].strip()
+                        if ',' in first_coord:
+                            parts = [p.strip() for p in first_coord.split(',')]
+                            if len(parts) >= 2:
+                                try:
+                                    if not partner.partner_latitude or not partner.partner_longitude:
+                                        update_vals['partner_longitude'] = float(parts[0])
+                                        update_vals['partner_latitude'] = float(parts[1])
+                                except ValueError:
+                                    pass
+                        else:
+                            parts = first_coord.split()
+                            if len(parts) >= 2:
+                                try:
+                                    # ODK string format is usually "latitude longitude altitude accuracy"
+                                    # If it's a point, we swap it for mapped_json['gps']
+                                    if ';' not in gps_val:
+                                        mapped_json['gps'] = f"{parts[1]}, {parts[0]}"
+                                    if not partner.partner_latitude or not partner.partner_longitude:
+                                        update_vals['partner_latitude'] = float(parts[0])
+                                        update_vals['partner_longitude'] = float(parts[1])
+                                except ValueError:
+                                    pass
+
+                if update_vals:
+                    partner.sudo().write(update_vals)
 
                 # Sync Fayda ID from farmer if the payload has a placeholder
                 if partner.reg_ids and (not fayda_val or fayda_val == 'FAN-0000000000000000'):
@@ -410,21 +536,12 @@ class OdkImport(models.Model):
                         if fayda_reg:
                             mapped_json['fyda_id'] = fayda_reg[0].value
 
-                # Auto-populate geographic fields (replicates _onchange_partner_id_details)
-                if not mapped_json.get('region_id') and hasattr(partner, 'region') and partner.region:
-                    mapped_json['region_id'] = partner.region.id
-                if not mapped_json.get('zone_id') and hasattr(partner, 'zone') and partner.zone:
-                    mapped_json['zone_id'] = partner.zone.id
-                if not mapped_json.get('woreda_id') and hasattr(partner, 'woreda') and partner.woreda:
-                    mapped_json['woreda_id'] = partner.woreda.id
-                if not mapped_json.get('kebele_id') and hasattr(partner, 'kebele') and partner.kebele:
-                    mapped_json['kebele_id'] = partner.kebele.id
-                reg_gps = mapped_json.get('gps')
-                if reg_gps and str(reg_gps).strip().lower() in ('none', 'false', 'null', ''):
-                    reg_gps = None
-                    mapped_json['gps'] = None
+                # Auto-populate geographic fields to mapped_json if they were updated or exist
+                for field_name in ['region', 'zone', 'woreda', 'kebele']:
+                    if not mapped_json.get(f"{field_name}_id") and hasattr(partner, field_name) and getattr(partner, field_name):
+                        mapped_json[f"{field_name}_id"] = getattr(partner, field_name).id
 
-                if not reg_gps:
+                if not mapped_json.get('gps'):
                     if hasattr(partner, 'partner_latitude') and hasattr(partner, 'partner_longitude'):
                         if partner.partner_latitude and partner.partner_longitude:
                             mapped_json['gps'] = f"{partner.partner_latitude}, {partner.partner_longitude}"
@@ -478,9 +595,18 @@ class OdkImport(models.Model):
                                             line_vals['soil_fertility'] = land.soil_fertility.lower() if isinstance(land.soil_fertility, str) else land.soil_fertility
                                         # GPS: prefer ODK-submitted value, fall back to land record, sync both ways
                                         odk_gps = line_vals.get('gps')
-                                        # Clean invalid GPS values
-                                        if odk_gps and str(odk_gps).strip().lower() in ('none', 'false', 'null', ''):
-                                            odk_gps = None
+                                        if odk_gps:
+                                            if isinstance(odk_gps, dict) and 'coordinates' in odk_gps:
+                                                c = odk_gps['coordinates']
+                                                if len(c) >= 2:
+                                                    odk_gps = f"{c[0]}, {c[1]}"
+                                            elif isinstance(odk_gps, str):
+                                                if str(odk_gps).strip().lower() in ('none', 'false', 'null', ''):
+                                                    odk_gps = None
+                                                elif ';' not in odk_gps and ',' not in odk_gps:
+                                                    parts = odk_gps.split()
+                                                    if len(parts) >= 2 and parts[0].replace('.','',1).isdigit():
+                                                        odk_gps = f"{parts[1]}, {parts[0]}"
                                         land_gps = getattr(land, 'polygon_data', None)
                                         if odk_gps:
                                             line_vals['gps'] = odk_gps
@@ -506,11 +632,36 @@ class OdkImport(models.Model):
                                         if not land_rec:
                                             # Clean GPS before using it for land record
                                             line_gps = line_vals.get('gps')
-                                            if line_gps and str(line_gps).strip().lower() in ('none', 'false', 'null', ''):
-                                                line_gps = None
-                                            if not line_gps and mapped_json.get('gps') and str(mapped_json['gps']).strip().lower() not in ('none', 'false', 'null', ''):
-                                                line_gps = mapped_json['gps']
+                                            if line_gps:
+                                                if isinstance(line_gps, dict) and 'coordinates' in line_gps:
+                                                    c = line_gps['coordinates']
+                                                    if len(c) >= 2:
+                                                        line_gps = f"{c[0]}, {c[1]}"
+                                                elif isinstance(line_gps, str):
+                                                    if str(line_gps).strip().lower() in ('none', 'false', 'null', ''):
+                                                        line_gps = None
+                                                    elif ';' not in line_gps and ',' not in line_gps:
+                                                        parts = line_gps.split()
+                                                        if len(parts) >= 2 and parts[0].replace('.','',1).isdigit():
+                                                            line_gps = f"{parts[1]}, {parts[0]}"
+
                                                 line_vals['gps'] = line_gps
+
+                                            if not line_gps and mapped_json.get('gps'):
+                                                # Root mapped_json['gps'] might still be a GeoJSON dict because of raw payload extraction
+                                                mg = mapped_json['gps']
+                                                if isinstance(mg, dict) and 'coordinates' in mg:
+                                                    c = mg['coordinates']
+                                                    if len(c) >= 2:
+                                                        mg = f"{c[0]}, {c[1]}"
+                                                elif isinstance(mg, str) and str(mg).strip().lower() not in ('none', 'false', 'null', ''):
+                                                    if ';' not in mg and ',' not in mg:
+                                                        parts = mg.split()
+                                                        if len(parts) >= 2 and parts[0].replace('.','',1).isdigit():
+                                                            mg = f"{parts[1]}, {parts[0]}"
+                                                if isinstance(mg, str) and str(mg).strip().lower() not in ('none', 'false', 'null', ''):
+                                                    line_gps = mg
+                                                    line_vals['gps'] = line_gps
                                             land_vals = {
                                                 'partner_id': partner.id,
                                                 'land_id': str(land_ref).strip() if (land_ref and str(land_ref).strip() not in ('False', 'None', '')) else f"Plot {partner.id}-1",
@@ -537,12 +688,72 @@ class OdkImport(models.Model):
                 temp_id = f"TEMP-{int(_time.time())}"
 
                 partner_vals = {
-                    'name': mapped_json.get('farmer_display_id') or 'Unknown Farmer (Temp)',
+                    'name': mapped_json.get('farmer_display_id') or mapped_json.get('farmer_name') or 'Unknown Farmer (Temp)',
                     'is_farmer': 'yes',
                     'farmer_id': temp_id,
                     'is_registrant': True,
                     'is_group': False,
                 }
+
+                # Extract and assign Geo fields (Region, Zone, Woreda, Kebele)
+                for field_name, odk_key, model_name in [
+                    ('region', 'region_display_id', 'g2p.region'),
+                    ('zone', 'zone_display_id', 'g2p.zone'),
+                    ('woreda', 'woreda_id', 'g2p.woreda'),
+                    ('kebele', 'kebele_id', 'g2p.kebele')
+                ]:
+                    # Use fallback to 'region_id' etc. in case jq maps them to that
+                    val = mapped_json.get(odk_key) or mapped_json.get(field_name + '_id') or mapped_json.get(field_name)
+                    if val:
+                        if isinstance(val, int):
+                            partner_vals[field_name] = val
+                        elif isinstance(val, str) and val.strip() and val.strip().lower() not in ('none', 'false', 'null'):
+                            val_str = val.strip()
+                            domain = ['|', ('code', '=ilike', val_str), ('name', '=ilike', val_str)]
+                            rec = self.env[model_name].sudo().search(domain, limit=1)
+                            if not rec:
+                                domain_partial = ['|', ('code', '=ilike', f'%{val_str}%'), ('name', '=ilike', f'%{val_str}%')]
+                                rec = self.env[model_name].sudo().search(domain_partial, limit=1)
+                            if rec:
+                                partner_vals[field_name] = rec.id
+                            else:
+                                _logger.warning("ODK Import: Could not find %s matching '%s' in %s", field_name, val, model_name)
+
+                # Extract and assign GPS
+                gps_val = mapped_json.get('gps')
+                if gps_val:
+                    if isinstance(gps_val, dict) and 'coordinates' in gps_val:
+                        # GeoJSON format: {'type': 'Point', 'coordinates': [longitude, latitude, altitude]}
+                        coords = gps_val['coordinates']
+                        if len(coords) >= 2:
+                            # Note: GeoJSON stores coordinates as [longitude, latitude]
+                            partner_vals['partner_longitude'] = float(coords[0])
+                            partner_vals['partner_latitude'] = float(coords[1])
+                    elif isinstance(gps_val, str) and gps_val.strip().lower() not in ('none', 'false', 'null', ''):
+                        # Extract the first valid coordinate pair
+                        first_coord = gps_val.split(';')[0].strip()
+                        if ',' in first_coord:
+                            parts = [p.strip() for p in first_coord.split(',')]
+                            if len(parts) >= 2:
+                                try:
+                                    partner_vals['partner_longitude'] = float(parts[0])
+                                    partner_vals['partner_latitude'] = float(parts[1])
+                                except ValueError:
+                                    pass
+                        else:
+                            parts = first_coord.split()
+                            if len(parts) >= 2:
+                                try:
+                                    # ODK string format is usually "latitude longitude altitude accuracy"
+                                    partner_vals['partner_latitude'] = float(parts[0])
+                                    partner_vals['partner_longitude'] = float(parts[1])
+                                except ValueError:
+                                    pass
+
+                # Debug log to see exactly what we are saving
+                _logger.info("=== SAVING NEW FARMER ===")
+                _logger.info("Mapped JSON farmer_display_id: %s", mapped_json.get('farmer_display_id'))
+                _logger.info("Partner Vals: %s", partner_vals)
 
                 # Save Fayda ID as a reg_id on the new partner
                 if fayda_val and fayda_val != 'FAN-0000000000000000':
@@ -554,10 +765,27 @@ class OdkImport(models.Model):
                             'status': 'valid'
                          })]
 
+                # Convert GPS dict to string for the new farmer creation scenario
+                gps_val = mapped_json.get('gps')
+                if gps_val and isinstance(gps_val, dict) and 'coordinates' in gps_val:
+                    coords = gps_val['coordinates']
+                    if len(coords) >= 2:
+                        mapped_json['gps'] = f"{coords[0]}, {coords[1]}"
+
                 new_partner = self.env['res.partner'].sudo().create(partner_vals)
                 mapped_json['partner_id'] = new_partner.id
                 if not mapped_json.get('farmer_display_id'):
                     mapped_json['farmer_display_id'] = new_partner.name
+
+                # Propagate geographic IDs to mapped_json so the Crop Registry also gets them
+                if hasattr(new_partner, 'region') and new_partner.region and not mapped_json.get('region_id'):
+                    mapped_json['region_id'] = new_partner.region.id
+                if hasattr(new_partner, 'zone') and new_partner.zone and not mapped_json.get('zone_id'):
+                    mapped_json['zone_id'] = new_partner.zone.id
+                if hasattr(new_partner, 'woreda') and new_partner.woreda and not mapped_json.get('woreda_id'):
+                    mapped_json['woreda_id'] = new_partner.woreda.id
+                if hasattr(new_partner, 'kebele') and new_partner.kebele and not mapped_json.get('kebele_id'):
+                    mapped_json['kebele_id'] = new_partner.kebele.id
 
                 # Create land records on the new farmer from ODK planning/cultivation lines
                 seen_land_ids = set()
@@ -736,6 +964,7 @@ class OdkImport(models.Model):
                 if prod_adds:
                     if not isinstance(mapped_json.get('production_detail_ids'), list):
                         mapped_json['production_detail_ids'] = []
+                    _logger.info("PRODUCTION DETAIL IDS (before extend): %s", mapped_json["production_detail_ids"])
                     mapped_json['production_detail_ids'].extend(prod_adds)
 
             # Auto-populate sowing/production/harvesting lines from cultivation/sowing data by matching land_info_id
@@ -747,6 +976,24 @@ class OdkImport(models.Model):
                         if not isinstance(prod_vals, dict):
                             continue
                         prod_land_id = prod_vals.get('land_info_id')
+                        if not prod_land_id:
+                            # Try to infer prod_land_id if there is only one cultivation line in payload
+                            cult_cmds = mapped_json.get('actual_annual_line_ids', [])
+                            if isinstance(cult_cmds, list):
+                                valid_cults = [cmd[2] for cmd in cult_cmds if isinstance(cmd, (list, tuple)) and len(cmd) == 3 and cmd[0] in [0, 1] and isinstance(cmd[2], dict) and cmd[2].get('land_info_id')]
+                                if len(valid_cults) == 1:
+                                    prod_land_id = valid_cults[0].get('land_info_id')
+                                    prod_vals['land_info_id'] = prod_land_id
+
+                            # Fallback to existing registry if it has exactly one cultivation/planning line
+                            if not prod_land_id and existing:
+                                if len(existing.actual_annual_line_ids) == 1 and existing.actual_annual_line_ids[0].land_info_id:
+                                    prod_land_id = existing.actual_annual_line_ids[0].land_info_id.id
+                                    prod_vals['land_info_id'] = prod_land_id
+                                elif len(existing.annual_line_ids) == 1 and existing.annual_line_ids[0].land_info_id:
+                                    prod_land_id = existing.annual_line_ids[0].land_info_id.id
+                                    prod_vals['land_info_id'] = prod_land_id
+
                         if not prod_land_id:
                             continue
 
@@ -929,10 +1176,13 @@ class OdkImport(models.Model):
                             elif str(prod_vals.get('is_sown', '')).strip().lower() in ('yes', 'true', '1', 'sown'):
                                 prod_vals['sowing_status'] = 'sown'
 
-                        # Auto-populate cluster_status_ids if not set
-                        if not prod_vals.get('cluster_status_ids'):
+                        # Normalize cluster_status_ids (ODK sends raw strings like 'clustered independent')
+                        c_status = prod_vals.get('cluster_status_ids')
+                        if isinstance(c_status, str) or not isinstance(c_status, list):
                             is_cl = False
-                            if isinstance(cluster_lines, list) and len(cluster_lines) > 0:
+                            if isinstance(c_status, str) and 'clustered' in c_status.lower():
+                                is_cl = True
+                            elif isinstance(cluster_lines, list) and len(cluster_lines) > 0:
                                 is_cl = True
                             elif str(prod_vals.get('has_cluster_farming', '')).strip().lower() in ('yes', 'true', '1'):
                                 is_cl = True
@@ -955,6 +1205,8 @@ class OdkImport(models.Model):
                             status_val = self._resolve_cluster_status_id(is_cl)
                             if status_val:
                                 prod_vals['cluster_status_ids'] = status_val
+                            else:
+                                prod_vals.pop('cluster_status_ids', None)
 
                         # Validate harvest_date: must be after actual_sowing_date
                         harvest_dt = prod_vals.get('harvest_date')
@@ -1012,6 +1264,8 @@ class OdkImport(models.Model):
                 if prod_adds:
                     if not isinstance(mapped_json.get('production_detail_ids'), list):
                         mapped_json['production_detail_ids'] = []
+                        _logger.info("SOWING VAL EXTRACTED: %s", sowing_val)
+                        _logger.info("PRODUCTION DETAIL IDS: %s", mapped_json["production_detail_ids"])
                     mapped_json['production_detail_ids'].extend(prod_adds)
 
             # Filter out invalid lines from annual_line_ids and actual_annual_line_ids
@@ -1272,6 +1526,20 @@ class OdkImport(models.Model):
                     _logger.warning("SQL cleanup of production cluster lines failed: %s", e)
                 _logger.info("MAPPED JSON GPS BEFORE WRITE: %s", mapped_json.get("gps"))
 
+                # 1. Protect existing Farmer Identity fields from being overwritten
+                farmer_identity_fields = ['partner_id', 'farmer_id', 'fyda_id', 'farmer_display_id', 'farmer_name', 'region_display_id', 'zone_display_id', 'woreda_id', 'kebele_id', 'region_id', 'zone_id', 'gps']
+                for f in farmer_identity_fields:
+                    val = getattr(existing, f, False)
+                    if val and f in mapped_json:
+                        mapped_json.pop(f, None)
+
+                # 2. Protect Land/Plot details (planning lines) from being overwritten
+                planning_fields = ['annual_line_ids', 'perennial_line_ids', 'biennial_line_ids']
+                for p in planning_fields:
+                    val = getattr(existing, p, False)
+                    if val and len(val) > 0 and p in mapped_json:
+                        mapped_json.pop(p, None)
+
                 existing.with_context(tracking_disable=True, skip_date_validation=True).write(mapped_json)
                 _logger.info("POST-WRITE: annual_line_ids count=%s", len(existing.annual_line_ids))
             else:
@@ -1420,23 +1688,10 @@ class OdkImport(models.Model):
                     for old_f, new_f in field_mappings.items():
                         if old_f in clean_item and not clean_item.get(new_f):
                             clean_item[new_f] = clean_item.pop(old_f)
-                if target_model and clean_item:
-                    try:
-                        t_model = self.env[target_model]
-                        for fk, fv in list(clean_item.items()):
-                            if fv and fk in t_model._fields and t_model._fields[fk].type == 'selection':
-                                f_obj = t_model._fields[fk]
-                                curr_sel = getattr(f_obj, 'selection', []) or []
-                                existing_keys = {str(k) for k, _ in curr_sel} if isinstance(curr_sel, list) else set()
-                                if str(fv) not in existing_keys:
-                                    new_item = (str(fv), str(fv))
-                                    if isinstance(curr_sel, list):
-                                        curr_sel.append(new_item)
-                                    else:
-                                        curr_sel = [new_item]
-                                    f_obj.selection = curr_sel
-                    except Exception as e:
-                        pass
+                # NOTE: Do NOT patch selection fields here with raw values.
+                # Invalid keys like 'contact_herbicide' would be stored in the DB
+                # but not recognized after a server restart (only 'contact' is valid).
+                # Let _map_aliases_recursive handle proper selection normalization later.
                 if clean_item:
                     cmds.append((0, 0, clean_item))
             return cmds
@@ -1597,15 +1852,20 @@ class OdkImport(models.Model):
                 elif str(line_vals.get('is_sown', '')).strip().lower() in ('yes', 'true', '1', 'sown'):
                     line_vals['sowing_status'] = 'sown'
 
-            if not line_vals.get('cluster_status_ids'):
+            c_status = line_vals.get('cluster_status_ids')
+            if isinstance(c_status, str) or not isinstance(c_status, list):
                 is_cl = False
-                if cluster_cmds:
+                if isinstance(c_status, str) and 'clustered' in c_status.lower():
+                    is_cl = True
+                elif cluster_cmds:
                     is_cl = True
                 elif str(line_vals.get('has_cluster_farming', '')).strip().lower() in ('yes', 'true', '1'):
                     is_cl = True
                 status_val = self._resolve_cluster_status_id(is_cl)
                 if status_val:
                     line_vals['cluster_status_ids'] = status_val
+                else:
+                    line_vals.pop('cluster_status_ids', None)
 
     def _auto_populate_ec_dates_recursive(self, vals):
         if not isinstance(vals, dict):
@@ -1981,7 +2241,7 @@ class OdkImport(models.Model):
                                     break
                         if not matched_key:
                             # Try with suffix stripping
-                            for suffix in ['_crop', '_type', '_class', '_share']:
+                            for suffix in ['_crop', '_type', '_class', '_share', '_herbicide', '_pesticide', '_fungicide']:
                                 if normalized.endswith(suffix):
                                     stripped = normalized[:-len(suffix)]
                                     stripped_clean = clean_str(stripped)
@@ -2010,9 +2270,15 @@ class OdkImport(models.Model):
         invalid_keys = [k for k in vals if k not in valid_fields]
         for k in invalid_keys:
             vals.pop(k, None)
-        for k, v in vals.items():
+        for k, v in list(vals.items()):
             if isinstance(v, str):
                 vals[k] = v.strip("'\"")
+
+            if k in valid_fields:
+                field = model._fields[k]
+                if field.type == 'many2one' and isinstance(vals[k], str):
+                    _logger.warning("ODK Import: Stripping unresolved Many2one string value for field %s in %s: %s", k, model_name, vals[k])
+                    vals.pop(k)
 
         # Recurse into relational fields
         for field_name, field in model._fields.items():
@@ -2251,12 +2517,16 @@ class OdkImport(models.Model):
                     val['land_prep_method_ids'] = False
 
             m2os = {
+                'region': 'g2p.region',
                 'region_id': 'g2p.region',
                 'region_name_id': 'g2p.region',
+                'zone': 'g2p.zone',
                 'zone_id': 'g2p.zone',
                 'zone_name_id': 'g2p.zone',
+                'woreda': 'g2p.woreda',
                 'woreda_id': 'g2p.woreda',
                 'woreda_name_id': 'g2p.woreda',
+                'kebele': 'g2p.kebele',
                 'kebele_id': 'g2p.kebele',
                 'crop_name_id': 'g2p.crop',
                 'crop_category_id': 'g2p.crop.category',
