@@ -6,7 +6,7 @@
     "website": "https://openg2p.org",
     "license": "LGPL-3",
     "depends": [
-        'web','base','mail','g2p_odk_importer_ati', 'g2p_ati_integrations'
+        'web','mail','g2p_odk_importer_ati', 'g2p_ati_integrations','g2p_registry_base',
     ],
     "data": [
         'security/groups.xml',
@@ -28,6 +28,7 @@
     ],
     "demo": [],
     "images": [],
+    "application": True,
     "installable": True,
     "assets": {
         "web.assets_backend": [
