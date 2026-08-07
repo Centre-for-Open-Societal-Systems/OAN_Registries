@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Minimal quick-create form for Technicians (AI / Breeding).
+         Used ONLY via context on technician_id / ai_technician_id fields —
+         does not replace the standard Contact form anywhere else. -->
+    <record id="view_technician_partner_form_minimal" model="ir.ui.view">
+        <field name="name">res.partner.form.technician.minimal</field>
+        <field name="model">res.partner</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <form string="Technician">
+                <sheet>
+                    <group>
+                        <field name="name" placeholder="Technician's full name"/>
+                        <field name="phone" placeholder="Phone number"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>
