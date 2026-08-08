@@ -210,7 +210,6 @@
                                                     </div>
                                                     <group>
                                                         <group>
-                                                            <field name="crop_name_id" />
                                                             <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
                                                             <field name="growth_stage" />
                                                         </group>
