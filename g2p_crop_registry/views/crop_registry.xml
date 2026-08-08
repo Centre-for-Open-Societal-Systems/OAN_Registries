@@ -408,6 +408,9 @@
             <tree>
                 <field name="sync_id" column_invisible="1" force_save="1" />
                 <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start" />
+                <field name="season_id" />
+                <field name="crop_name_id" />
+                <field name="cluster_status_ids" widget="many2many_tags" string="Cluster Status" />
                 <field name="crop_maturity_status" decoration-success="crop_maturity_status == 'green'" decoration-warning="crop_maturity_status == 'yellow'" />
                 <field name="harvest_date" />
                 <field name="area_harvested" />
@@ -465,11 +468,16 @@
                             </group>
                         </group>
                         <field name="is_da" invisible="1" />
+                        <field name="is_sms" invisible="1" />
+                        <field name="is_wah" invisible="1" />
                         <field name="lifecycle_stage" invisible="1" />
-                        <field name="planning_state" invisible="1" /><notebook>
-                            <page name="page_planning" string="Planning" readonly="lifecycle_stage in ('planning_approved', 'pending_cultivation', 'cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved') and is_da">
+                        <field name="planning_state" invisible="1" />
+                        <field name="cultivation_state" invisible="1" />
+                        <field name="sowing_state" invisible="1" />
+                        <field name="harvesting_state" invisible="1" /><notebook>
+                            <page name="page_planning" string="Planning">
                                 <group string="Planned Crops">
-                                    <field name="annual_line_ids" nolabel="1" colspan="2" readonly="lifecycle_stage in ('planning_approved', 'pending_cultivation', 'cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved') and is_da">
+                                    <field name="annual_line_ids" nolabel="1" colspan="2" readonly="0">
                                         <tree>
                                             <field name="sync_id" column_invisible="1" force_save="1" />
                                             <field name="land_info_id" context="{'show_land_id': True}" string="Land ID" width="11%" class="text-start" />
@@ -586,7 +594,7 @@
                                 </group>
 
                             </page>
-                            <page name="page_cultivation" string="Cultivation / Land Preparation" invisible="planning_state != 'approved'" readonly="lifecycle_stage in ('cultivation_approved', 'pending_sowing', 'sowing_approved', 'pending_harvesting', 'harvesting_approved')">
+                            <page name="page_cultivation" string="Cultivation / Land Preparation" invisible="planning_state not in ('approved', 'update_requested')">
                                 <field name="has_no_planning_data" invisible="1" />
                                 <div class="alert alert-warning" role="alert" invisible="not has_no_planning_data" style="margin-bottom: 10px;">
                                     There is no data in the Planning section. You are creating a cultivation record directly here.
@@ -595,7 +603,7 @@
                                     <field name="actual_crop_area_warning" readonly="1" />
                                 </div>
                                 <group string="Actual Crops">
-                                    <field name="actual_annual_line_ids" nolabel="1" colspan="2">
+                                    <field name="actual_annual_line_ids" nolabel="1" colspan="2" readonly="0">
                                         <tree decoration-danger="is_mismatch and not is_manual" decoration-success="not is_mismatch and not is_manual and crop_name_id">
                                             <field name="sync_id" column_invisible="1" force_save="1" />
                                             <field name="is_manual" column_invisible="1" />
@@ -721,16 +729,16 @@
                                     </field>
                                 </group>
                             </page>
-                            <page name="page_sowing" string="Sowing" invisible="lifecycle_stage in ('draft', 'pending_planning', 'planning_approved', 'pending_cultivation')" readonly="lifecycle_stage in ('sowing_approved', 'pending_harvesting', 'harvesting_approved')">
+                            <page name="page_sowing" string="Sowing" invisible="cultivation_state not in ('approved', 'update_requested')">
                                 <group string="Sowing Crops">
-                                <field name="production_detail_ids" nolabel="1" colspan="2" context="{'tree_view_ref': 'g2p_crop_registry.view_g2p_crop_production_sowing_tree', 'form_view_ref': 'g2p_crop_registry.view_g2p_crop_production_sowing_form'}" />
+                                <field name="production_detail_ids" nolabel="1" colspan="2" context="{'tree_view_ref': 'g2p_crop_registry.view_g2p_crop_production_sowing_tree', 'form_view_ref': 'g2p_crop_registry.view_g2p_crop_production_sowing_form'}" readonly="0" />
                                 </group>
 
                             </page>
 
-                            <page name="page_harvesting" string="Harvesting" invisible="lifecycle_stage in ('draft', 'pending_planning', 'planning_approved', 'pending_cultivation', 'cultivation_approved', 'pending_sowing')" readonly="lifecycle_stage == 'harvesting_approved'">
+                            <page name="page_harvesting" string="Harvesting" invisible="sowing_state not in ('approved', 'update_requested')">
                                 <group string="Harvesting Crops">
-                                <field name="harvest_detail_ids" nolabel="1" colspan="2" string="Harvesting Details" context="{'tree_view_ref': 'g2p_crop_registry.view_g2p_crop_production_harvesting_tree', 'form_view_ref': 'g2p_crop_registry.view_g2p_crop_production_harvesting_form'}" />
+                                <field name="harvest_detail_ids" nolabel="1" colspan="2" string="Harvesting Details" context="{'tree_view_ref': 'g2p_crop_registry.view_g2p_crop_production_harvesting_tree', 'form_view_ref': 'g2p_crop_registry.view_g2p_crop_production_harvesting_form'}" readonly="0" />
                                 </group>
 
                             </page>
@@ -805,7 +813,7 @@
             <field name="name">g2p.crop.registry.planning.tree</field>
             <field name="model">g2p.crop.registry</field>
             <field name="arch" type="xml">
-                <tree string="Crop Planning"
+                <tree string="Crop Planning" create="false"
                       decoration-success="planning_state == 'approved'"
                       decoration-danger="planning_state == 'rejected'"
                       decoration-muted="planning_state == 'draft'"
@@ -843,6 +851,9 @@
             <field name="inherit_id" ref="view_g2p_crop_registry_form" />
             <field name="mode">primary</field>
             <field name="arch" type="xml">
+                <xpath expr="//form" position="attributes">
+                    <attribute name="create">false</attribute>
+                </xpath>
                 <xpath expr="//form" position="inside">
                     <style>
                         .o_content > .o_form_renderer > .o_form_sheet > .o_notebook > .nav-tabs,
@@ -872,6 +883,10 @@
                 <!-- Show only Planning tab (page[1]); hide all others -->
                 <xpath expr="//page[@name='page_planning']" position="attributes">
                     <attribute name="invisible">0</attribute>
+                    <attribute name="readonly">0</attribute>
+                </xpath>
+                <xpath expr="//field[@name='annual_line_ids']" position="attributes">
+                    <attribute name="readonly">0</attribute>
                 </xpath>
                 <xpath expr="//page[@name='page_cultivation']" position="attributes">
                     <attribute name="invisible">1</attribute>
@@ -916,7 +931,7 @@
             <field name="name">g2p.crop.registry.cultivation.tree</field>
             <field name="model">g2p.crop.registry</field>
             <field name="arch" type="xml">
-                <tree string="Cultivation / Land Preparation"
+                <tree string="Cultivation / Land Preparation" create="false"
                       decoration-success="cultivation_state == 'approved'"
                       decoration-danger="cultivation_state == 'rejected'"
                       decoration-muted="cultivation_state == 'draft'"
@@ -954,6 +969,9 @@
             <field name="inherit_id" ref="view_g2p_crop_registry_form" />
             <field name="mode">primary</field>
             <field name="arch" type="xml">
+                <xpath expr="//form" position="attributes">
+                    <attribute name="create">false</attribute>
+                </xpath>
                 <xpath expr="//form" position="inside">
                     <style>
                         .o_content > .o_form_renderer > .o_form_sheet > .o_notebook > .nav-tabs,
@@ -986,6 +1004,10 @@
                 </xpath>
                 <xpath expr="//page[@name='page_cultivation']" position="attributes">
                     <attribute name="invisible">0</attribute>
+                    <attribute name="readonly">0</attribute>
+                </xpath>
+                <xpath expr="//field[@name='actual_annual_line_ids']" position="attributes">
+                    <attribute name="readonly">0</attribute>
                 </xpath>
                 <xpath expr="//page[@name='page_sowing']" position="attributes">
                     <attribute name="invisible">1</attribute>
@@ -1028,7 +1050,7 @@
             <field name="name">g2p.crop.registry.sowing.tree</field>
             <field name="model">g2p.crop.registry</field>
             <field name="arch" type="xml">
-                <tree string="Sowing"
+                <tree string="Sowing" create="false"
                       decoration-success="sowing_state == 'approved'"
                       decoration-danger="sowing_state == 'rejected'"
                       decoration-muted="sowing_state == 'draft'"
@@ -1066,6 +1088,9 @@
             <field name="inherit_id" ref="view_g2p_crop_registry_form" />
             <field name="mode">primary</field>
             <field name="arch" type="xml">
+                <xpath expr="//form" position="attributes">
+                    <attribute name="create">false</attribute>
+                </xpath>
                 <xpath expr="//form" position="inside">
                     <style>
                         .o_content > .o_form_renderer > .o_form_sheet > .o_notebook > .nav-tabs,
@@ -1101,6 +1126,10 @@
                 </xpath>
                 <xpath expr="//page[@name='page_sowing']" position="attributes">
                     <attribute name="invisible">0</attribute>
+                    <attribute name="readonly">0</attribute>
+                </xpath>
+                <xpath expr="//field[@name='production_detail_ids']" position="attributes">
+                    <attribute name="readonly">0</attribute>
                 </xpath>
                 <xpath expr="//page[@name='page_harvesting']" position="attributes">
                     <attribute name="invisible">1</attribute>
@@ -1136,7 +1165,7 @@
             <field name="name">g2p.crop.registry.harvesting.tree</field>
             <field name="model">g2p.crop.registry</field>
             <field name="arch" type="xml">
-                <tree string="Harvesting"
+                <tree string="Harvesting" create="false"
                       decoration-success="harvesting_state == 'approved'"
                       decoration-danger="harvesting_state == 'rejected'"
                       decoration-muted="harvesting_state == 'draft'"
@@ -1174,6 +1203,9 @@
             <field name="inherit_id" ref="view_g2p_crop_registry_form" />
             <field name="mode">primary</field>
             <field name="arch" type="xml">
+                <xpath expr="//form" position="attributes">
+                    <attribute name="create">false</attribute>
+                </xpath>
                 <xpath expr="//form" position="inside">
                     <style>
                         .o_content > .o_form_renderer > .o_form_sheet > .o_notebook > .nav-tabs,
@@ -1212,10 +1244,15 @@
                 </xpath>
                 <xpath expr="//page[@name='page_harvesting']" position="attributes">
                     <attribute name="invisible">0</attribute>
+                    <attribute name="readonly">0</attribute>
+                </xpath>
+                <xpath expr="//field[@name='harvest_detail_ids']" position="attributes">
+                    <attribute name="readonly">0</attribute>
                 </xpath>
                 <xpath expr="//group[@name='farmer_identity']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
+
 
             </field>
         </record>

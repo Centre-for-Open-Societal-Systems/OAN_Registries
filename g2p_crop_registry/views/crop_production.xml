@@ -16,7 +16,7 @@
             <field name="name">g2p.crop.production.tree</field>
             <field name="model">g2p.crop.production</field>
             <field name="arch" type="xml">
-                <tree string="Production" create="0">
+                <tree string="Production" create="false">
                     <field name="name" />
                     <field name="reg_farmer_id" />
                     <field name="reg_farmer_display_id" />
@@ -41,7 +41,7 @@
             <field name="name">g2p.crop.production.form</field>
             <field name="model">g2p.crop.production</field>
             <field name="arch" type="xml">
-                <form string="Production">
+                <form string="Production" create="false">
                     <sheet>
 
 
@@ -438,6 +438,20 @@
             <field name="name">Production</field>
             <field name="res_model">g2p.crop.production</field>
             <field name="view_mode">tree,form</field>
+        </record>
+
+        <record id="action_g2p_crop_production_tree" model="ir.actions.act_window.view">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="g2p_crop_registry.view_crop_production_tree"/>
+            <field name="act_window_id" ref="action_g2p_crop_production"/>
+        </record>
+
+        <record id="action_g2p_crop_production_form" model="ir.actions.act_window.view">
+            <field name="sequence" eval="2"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="g2p_crop_registry.view_crop_production_form"/>
+            <field name="act_window_id" ref="action_g2p_crop_production"/>
         </record>
 
 

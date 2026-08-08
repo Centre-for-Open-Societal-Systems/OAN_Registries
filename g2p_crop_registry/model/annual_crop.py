@@ -4,6 +4,7 @@ from datetime import date
 import re
 from odoo.addons.g2p_ati.models.utils import eth_date
 import uuid
+from odoo.tools import float_compare
 
 
 def is_date_in_season(test_date, start_date, end_date):
@@ -82,18 +83,11 @@ class G2PAnnualLine(models.Model):
         return result
 
     def unlink(self):
+        from odoo.exceptions import AccessError
         for line in self:
-            if line.sync_id and line.crop_registry_id:
-                actuals = line.crop_registry_id.actual_annual_line_ids.filtered(
-                    lambda l: l.sync_id == line.sync_id and not l.is_manual
-                )
-                if actuals:
-                    actuals.unlink()
-                prods = line.crop_registry_id.production_detail_ids.filtered(
-                    lambda p: p.sync_id == line.sync_id
-                )
-                if prods:
-                    prods.unlink()
+            if line.crop_registry_id and line.crop_registry_id.planning_state == 'approved':
+                if not self.env.user.has_group('g2p_crop_registry.group_woreda_agri_office_head'):
+                    raise AccessError("Only the Woreda Agriculture Office Head (WAH) can delete an approved record.")
         return super().unlink()
 
     crop_registry_id = fields.Many2one("g2p.crop.registry", string="Crop Registry", ondelete="cascade")
@@ -237,28 +231,78 @@ class G2PAnnualLine(models.Model):
                 rec.seed_planned_fertilizer_sack = 0.0
 
 
-    @api.onchange('crop_planned_area')
+    @api.onchange('crop_planned_area', 'land_info_id')
     def _onchange_crop_planned_area(self):
-        if self.crop_registry_id and self.crop_planned_area and self.land_info_id:
-            same_land_lines = self.crop_registry_id.annual_line_ids.filtered(lambda l: l.land_info_id == self.land_info_id)
-            total_planned = sum(same_land_lines.mapped('crop_planned_area'))
-            max_area = self.land_info_id.total_land_area
-            if total_planned > max_area:
-                attempted_area = self.crop_planned_area
-                allocated_area = total_planned - attempted_area
-                remaining_area = max_area - allocated_area
+        if not self.land_info_id:
+            return
+        total_land = self.land_info_id.total_land_area
+        if self.crop_registry_id:
+            all_annual_lines = self.crop_registry_id.annual_line_ids
+        else:
+            all_annual_lines = self.env['g2p.annual.line'].browse()
+            if self.env.context.get('annual_line_ids'):
+                all_annual_lines = self.env['g2p.annual.line'].browse(self.env.context.get('annual_line_ids'))
 
-                # If they already messed up other lines, don't let it go negative in the message
-                if remaining_area < 0:
-                    remaining_area = 0.0
+        other_records = all_annual_lines.filtered(
+            lambda l: l.land_info_id == self.land_info_id and l != self
+        )
 
-                self.crop_planned_area = 0.0
-                return {
-                    'warning': {
-                        'title': "Area Exceeded",
-                        'message': "You entered %.2f ha, but only %.2f ha is remaining out of the total %.2f ha (%.2f ha is already allocated to other crops)." % (attempted_area, remaining_area, max_area, allocated_area)
-                    }
+        other_crop_used = sum(other_records.mapped('crop_planned_area'))
+        other_cluster_used = sum(sum(c.cluster_area_hectare for c in r.cluster_info_ids) for r in other_records)
+        remaining_before_record = total_land - (other_crop_used + other_cluster_used)
+
+        current_cluster_area = sum(self.cluster_info_ids.mapped('cluster_area_hectare'))
+
+        # Check if total exceeds
+        if float_compare(self.crop_planned_area + current_cluster_area, remaining_before_record, precision_digits=2) > 0:
+            # Reset the crop area so it doesn't stay invalid
+            attempted_crop = self.crop_planned_area
+            self.crop_planned_area = 0.0
+
+            return {
+                'warning': {
+                    'title': "Area Limit Exceeded",
+                    'message': f"You entered {attempted_crop:.2f} ha for the crop, but only {remaining_before_record:.2f} ha is remaining on this land.\n\n"
+                               f"Total Land: {total_land:.2f} ha\n"
+                               f"Already Used: {other_crop_used + other_cluster_used:.2f} ha"
                 }
+            }
+
+    @api.constrains('crop_planned_area', 'cluster_info_ids', 'land_info_id')
+    def _check_land_area_allocation(self):
+        for rec in self:
+            if not rec.land_info_id or not getattr(rec, 'crop_registry_id', False):
+                continue
+
+            # 1. Total available land
+            total_land = rec.land_info_id.total_land_area
+
+            # 2. Get other records on this same land plot (excluding the current one)
+            other_records = rec.crop_registry_id.annual_line_ids.filtered(
+                lambda l: l.land_info_id == rec.land_info_id and l.id != rec.id
+            )
+
+            # 3. Sum used areas from other records
+            other_crop_used = sum(other_records.mapped('crop_planned_area'))
+            other_cluster_used = sum(sum(c.cluster_area_hectare for c in r.cluster_info_ids) for r in other_records)
+            remaining_before_record = total_land - (other_crop_used + other_cluster_used)
+
+            # Define current cluster area BEFORE the zero-check
+            current_cluster_area = sum(rec.cluster_info_ids.mapped('cluster_area_hectare'))
+
+            # Zero Remaining Check
+            if float_compare(remaining_before_record, 0.0, precision_digits=2) <= 0:
+                if float_compare(rec.crop_planned_area, 0.0, precision_digits=2) > 0 or float_compare(current_cluster_area, 0.0, precision_digits=2) > 0:
+                    raise ValidationError("No remaining area available for this land.")
+
+            # Step 1: Crop Area Check
+            if float_compare(rec.crop_planned_area, remaining_before_record, precision_digits=2) > 0:
+                raise ValidationError(f"Crop area exceeds remaining land available ({remaining_before_record:.2f} ha remaining).")
+
+            # Step 2: Cluster Area Check
+            remaining_after_crop = remaining_before_record - rec.crop_planned_area
+            if float_compare(current_cluster_area, remaining_after_crop, precision_digits=2) > 0:
+                raise ValidationError(f"Cluster area exceeds remaining land after crop allocation ({remaining_after_crop:.2f} ha remaining).")
 
 
     @api.onchange('season_id')
@@ -380,6 +424,20 @@ class G2PAnnualActualLine(models.Model):
     def write(self, vals):
         result = super().write(vals)
         return result
+
+    def unlink(self):
+        from odoo.exceptions import AccessError
+        for line in self:
+            if line.crop_registry_id and (
+                line.crop_registry_id.planning_state == 'approved' or
+                line.crop_registry_id.cultivation_state == 'approved' or
+                line.crop_registry_id.sowing_state == 'approved' or
+                line.crop_registry_id.harvesting_state == 'approved' or
+                line.crop_registry_id.state == 'approved'
+            ):
+                if not self.env.user.has_group('g2p_crop_registry.group_woreda_agri_office_head'):
+                    raise AccessError("Only the Woreda Agriculture Office Head (WAH) can delete an approved record.")
+        return super().unlink()
     @api.constrains('actual_yield')
     def _check_actual_yield(self):
         for rec in self:

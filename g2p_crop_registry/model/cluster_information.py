@@ -1,5 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
+from odoo.tools import float_compare
 
 class G2PClusterFarmerLine(models.Model):
     _name = "g2p.cluster.farmer.line"
@@ -179,38 +180,76 @@ class G2PClusterInformation(models.Model):
         for rec in self:
             rec.cluster_area_hectare = rec.cluster_area_timad * 0.25
 
-    @api.onchange('cluster_area_timad')
-    def _onchange_cluster_area_timad(self):
+    @api.onchange('cluster_area_timad', 'cluster_area_hectare')
+    def _onchange_cluster_area(self):
+        # Force compute hectare value based on timad input
         if self.cluster_area_timad:
-            attempted_area = self.cluster_area_timad * 0.25
-            parent_line = None
-            max_area = 0.0
-            allocated_area = 0.0
+            self.cluster_area_hectare = self.cluster_area_timad * 0.25
 
-            if self.annual_line_id:
-                parent_line = self.annual_line_id
-                max_area = parent_line.crop_planned_area
-            elif self.actual_annual_line_id:
-                parent_line = self.actual_annual_line_id
-                max_area = parent_line.actual_crop_area
+        parent_line = self.annual_line_id or self.actual_annual_line_id
 
-            if parent_line:
-                for l in parent_line.cluster_info_ids:
-                    if l.id != self.id:
-                        allocated_area += l.cluster_area_hectare
+        # Fallback to context or parent record if inverse field isn't set on new cluster popup
+        if not parent_line:
+            parent_line = self.env.context.get('default_annual_line_id') or self.env.context.get('default_actual_annual_line_id')
+            if isinstance(parent_line, int):
+                parent_line = self.env['g2p.annual.line'].browse(parent_line)
 
-                if (allocated_area + attempted_area) > max_area:
-                    remaining_area = max_area - allocated_area
-                    if remaining_area < 0:
-                        remaining_area = 0.0
+        if not parent_line or not getattr(parent_line, 'land_info_id', False):
+            return
 
-                    self.cluster_area_timad = 0.0
-                    return {
-                        'warning': {
-                            'title': "Area Exceeded",
-                            'message': "You entered %.2f ha, but only %.2f ha is remaining out of the total %.2f ha allocated to this crop (%.2f ha is already allocated to other clusters)." % (attempted_area, remaining_area, max_area, allocated_area)
-                        }
-                    }
+        # Determine if we are working with planned or actual records
+        is_actual = bool(getattr(parent_line, '_name', '') == 'g2p.annual.actual.line')
+        crop_area_field = 'actual_crop_area' if is_actual else 'crop_planned_area'
+
+        # Retrieve all annual lines on this form/registry session
+        crop_reg = parent_line.crop_registry_id or getattr(getattr(parent_line, '_origin', parent_line), 'crop_registry_id', False)
+        if not crop_reg:
+            registry_id = self.env.context.get('default_crop_registry_id') or self.env.context.get('active_id')
+            if registry_id and isinstance(registry_id, int):
+                crop_reg = self.env['g2p.crop.registry'].browse(registry_id)
+
+        if crop_reg:
+            all_annual_lines = crop_reg.actual_annual_line_ids if is_actual else crop_reg.annual_line_ids
+        else:
+            all_annual_lines = parent_line.env['g2p.annual.line'].browse()
+            if self.env.context.get('annual_line_ids'):
+                all_annual_lines = parent_line.env['g2p.annual.line'].browse(self.env.context.get('annual_line_ids'))
+
+        parent_origin = getattr(parent_line, '_origin', parent_line)
+        other_records = all_annual_lines.filtered(
+            lambda l: l.land_info_id == parent_line.land_info_id and l != parent_line and getattr(l, '_origin', l) != parent_origin
+        )
+
+        total_land = parent_line.land_info_id.total_land_area
+        other_crop_used = sum(other_records.mapped(crop_area_field))
+        other_cluster_used = sum(sum(c.cluster_area_hectare for c in r.cluster_info_ids) for r in other_records)
+        remaining_before_record = total_land - (other_crop_used + other_cluster_used)
+
+        # Exclude self from sibling cluster calculations
+        other_sibling_clusters = parent_line.cluster_info_ids.filtered(lambda c: c != self)
+        other_sibling_cluster_area = sum(other_sibling_clusters.mapped('cluster_area_hectare'))
+
+        # Calculate what is left specifically for this new cluster input
+        current_crop_area = getattr(parent_line, crop_area_field, 0.0)
+        remaining_after_crop_and_siblings = remaining_before_record - current_crop_area - other_sibling_cluster_area
+
+        # Check if this specific cluster input exceeds remaining land available
+        if float_compare(self.cluster_area_hectare, remaining_after_crop_and_siblings, precision_digits=2) > 0:
+            attempted = self.cluster_area_hectare
+            self.cluster_area_timad = 0.0
+            self.cluster_area_hectare = 0.0
+
+            return {
+                'warning': {
+                    'title': "Cluster Area Exceeded",
+                    'message': f"You entered {attempted:.2f} ha ({attempted / 0.25:.2f} Timad) for this cluster, but only {remaining_after_crop_and_siblings:.2f} ha remains after crop and other cluster allocations on this land.\n\n"
+                               f"Total Land: {total_land:.2f} ha\n"
+                               f"Planned Crop Area: {current_crop_area:.2f} ha\n"
+                               f"Other Records Used: {other_crop_used + other_cluster_used:.2f} ha\n"
+                               f"Remaining Available: {remaining_after_crop_and_siblings:.2f} ha"
+                }
+            }
+
     @api.onchange('cluster_farmer_line_ids', 'cluster_smallholders')
     def _onchange_farmer_count(self):
         if self.cluster_smallholders > 0 and len(self.cluster_farmer_line_ids) > self.cluster_smallholders:
@@ -236,9 +275,112 @@ class G2PClusterInformation(models.Model):
                 vals['cluster_id'] = self.env['ir.sequence'].next_by_code('g2p.cluster') or 'New'
         return super(G2PClusterInformation, self).create(vals_list)
 
-    @api.constrains('cluster_plan', 'cluster_area_hectare')
+    @api.onchange('cluster_plan')
+    def _onchange_cluster_plan(self):
+        if self.cluster_plan > self.cluster_area_hectare:
+            attempted = self.cluster_plan
+            self.cluster_plan = 0.0
+            return {
+                'warning': {
+                    'title': "Plan Area Exceeded",
+                    'message': f"Plan (ha) ({attempted}) cannot be greater than Total Cultivated Area (ha) ({self.cluster_area_hectare})."
+                }
+            }
+
+    @api.onchange('actual_cluster_plan')
+    def _onchange_actual_cluster_plan(self):
+        if self.actual_cluster_plan > self.cluster_area_hectare:
+            attempted = self.actual_cluster_plan
+            self.actual_cluster_plan = 0.0
+            return {
+                'warning': {
+                    'title': "Actual Plan Area Exceeded",
+                    'message': f"Actual Plan (ha) ({attempted}) cannot be greater than Total Cultivated Area (ha) ({self.cluster_area_hectare})."
+                }
+            }
+
+    @api.onchange('collected_land_quintal', 'cluster_collected_quintal', 'collected_by_combiner')
+    def _onchange_collected_limits(self):
+        if self.collected_land_quintal > self.cluster_plan:
+            attempted = self.collected_land_quintal
+            self.collected_land_quintal = 0.0
+            return {
+                'warning': {
+                    'title': "Invalid Value",
+                    'message': f"Collected Land (Quintal) ({attempted}) cannot be greater than Plan (ha) ({self.cluster_plan})."
+                }
+            }
+        if self.cluster_collected_quintal > self.cluster_plan:
+            attempted = self.cluster_collected_quintal
+            self.cluster_collected_quintal = 0.0
+            return {
+                'warning': {
+                    'title': "Invalid Value",
+                    'message': f"Collected Quintal ({attempted}) cannot be greater than Plan (ha) ({self.cluster_plan})."
+                }
+            }
+        if self.collected_by_combiner > self.cluster_plan:
+            attempted = self.collected_by_combiner
+            self.collected_by_combiner = 0.0
+            return {
+                'warning': {
+                    'title': "Invalid Value",
+                    'message': f"Collected by Combiner (ha) ({attempted}) cannot be greater than Plan (ha) ({self.cluster_plan})."
+                }
+            }
+
+    @api.onchange('actual_collected_land_quintal', 'actual_cluster_collected_quintal', 'actual_collected_by_combiner')
+    def _onchange_actual_collected_limits(self):
+        if self.actual_collected_land_quintal > self.actual_cluster_plan:
+            attempted = self.actual_collected_land_quintal
+            self.actual_collected_land_quintal = 0.0
+            return {
+                'warning': {
+                    'title': "Invalid Value",
+                    'message': f"Actual Collected Land (Quintal) ({attempted}) cannot be greater than Actual Plan (ha) ({self.actual_cluster_plan})."
+                }
+            }
+        if self.actual_cluster_collected_quintal > self.actual_cluster_plan:
+            attempted = self.actual_cluster_collected_quintal
+            self.actual_cluster_collected_quintal = 0.0
+            return {
+                'warning': {
+                    'title': "Invalid Value",
+                    'message': f"Actual Collected Quintal ({attempted}) cannot be greater than Actual Plan (ha) ({self.actual_cluster_plan})."
+                }
+            }
+        if self.actual_collected_by_combiner > self.actual_cluster_plan:
+            attempted = self.actual_collected_by_combiner
+            self.actual_collected_by_combiner = 0.0
+            return {
+                'warning': {
+                    'title': "Invalid Value",
+                    'message': f"Actual Collected by Combiner (ha) ({attempted}) cannot be greater than Actual Plan (ha) ({self.actual_cluster_plan})."
+                }
+            }
+
+    @api.constrains(
+        'cluster_plan', 'actual_cluster_plan', 'cluster_area_hectare',
+        'collected_land_quintal', 'cluster_collected_quintal', 'collected_by_combiner',
+        'actual_collected_land_quintal', 'actual_cluster_collected_quintal', 'actual_collected_by_combiner'
+    )
     def _check_cluster_plan(self):
         for rec in self:
-            if rec.cluster_plan and rec.cluster_area_hectare:
-                if rec.cluster_plan > rec.cluster_area_hectare:
-                    raise ValidationError(f"Plan (ha) ({rec.cluster_plan}) cannot be greater than Total Cultivated Area (ha) ({rec.cluster_area_hectare}).")
+            if rec.cluster_plan > rec.cluster_area_hectare:
+                raise ValidationError(f"Plan (ha) ({rec.cluster_plan}) cannot be greater than Total Cultivated Area (ha) ({rec.cluster_area_hectare}).")
+            if rec.actual_cluster_plan > rec.cluster_area_hectare:
+                raise ValidationError(f"Actual Plan (ha) ({rec.actual_cluster_plan}) cannot be greater than Total Cultivated Area (ha) ({rec.cluster_area_hectare}).")
+
+            if rec.collected_land_quintal > rec.cluster_plan:
+                raise ValidationError(f"Collected Land (Quintal) ({rec.collected_land_quintal}) cannot be greater than Plan (ha) ({rec.cluster_plan}).")
+            if rec.cluster_collected_quintal > rec.cluster_plan:
+                raise ValidationError(f"Collected Quintal ({rec.cluster_collected_quintal}) cannot be greater than Plan (ha) ({rec.cluster_plan}).")
+            if rec.collected_by_combiner > rec.cluster_plan:
+                raise ValidationError(f"Collected by Combiner (ha) ({rec.collected_by_combiner}) cannot be greater than Plan (ha) ({rec.cluster_plan}).")
+
+            if rec.actual_collected_land_quintal > rec.actual_cluster_plan:
+                raise ValidationError(f"Actual Collected Land (Quintal) ({rec.actual_collected_land_quintal}) cannot be greater than Actual Plan (ha) ({rec.actual_cluster_plan}).")
+            if rec.actual_cluster_collected_quintal > rec.actual_cluster_plan:
+                raise ValidationError(f"Actual Collected Quintal ({rec.actual_cluster_collected_quintal}) cannot be greater than Actual Plan (ha) ({rec.actual_cluster_plan}).")
+            if rec.actual_collected_by_combiner > rec.actual_cluster_plan:
+                raise ValidationError(f"Actual Collected by Combiner (ha) ({rec.actual_collected_by_combiner}) cannot be greater than Actual Plan (ha) ({rec.actual_cluster_plan}).")

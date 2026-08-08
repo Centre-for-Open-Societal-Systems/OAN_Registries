@@ -162,6 +162,41 @@ class G2PCropInfestationIncident(models.Model):
                 except Exception:
                     pass # Ignore if they are still typing or typed an invalid date
 
+    @api.onchange('estimated_damage')
+    def _onchange_estimated_damage(self):
+        if self.estimated_damage:
+            val_str = self.estimated_damage.strip().lower()
+            try:
+                if '%' in val_str:
+                    val = float(val_str.replace('%', '').strip())
+                    if val < 0 or val > 100:
+                        self.estimated_damage = ""
+                        return {
+                            'warning': {
+                                'title': "Invalid Percentage",
+                                'message': "Damage percentage must be between 0 and 100."
+                            }
+                        }
+                else:
+                    val = float(val_str.replace('ha', '').replace('hectares', '').strip())
+                    max_area = self.production_id.area_sown if self.production_id else (self.cluster_line_id.area_sown if self.cluster_line_id else 0.0)
+                    if val < 0 or val > max_area:
+                        self.estimated_damage = ""
+                        return {
+                            'warning': {
+                                'title': "Invalid Area",
+                                'message': f"Damage area ({val} ha) cannot exceed the Sown Area ({max_area} ha)."
+                            }
+                        }
+            except ValueError:
+                self.estimated_damage = ""
+                return {
+                    'warning': {
+                        'title': "Invalid Format",
+                        'message': "Invalid format for Estimated Crop Damage. Use a number, e.g., '50%' or '1.5 ha'."
+                    }
+                }
+
     @api.constrains('estimated_damage', 'production_id', 'cluster_line_id')
     def _check_estimated_damage(self):
         for rec in self:
@@ -426,25 +461,46 @@ class G2PCropProduction(models.Model):
                     }
                 }
 
-    @api.constrains('area_harvested', 'actual_crop_area')
+    @api.constrains('area_harvested', 'area_sown')
     def _check_area_harvested(self):
         for rec in self:
-            if rec.area_harvested > rec.actual_crop_area:
+            if rec.area_harvested > rec.area_sown:
                 raise ValidationError(
                     f"Area Harvested ({rec.area_harvested} ha) cannot exceed "
-                    f"Actual Crop Area ({rec.actual_crop_area} ha) in Cultivation."
+                    f"Area Sown ({rec.area_sown} ha) in Sowing."
                 )
 
     @api.onchange('area_harvested')
     def _onchange_area_harvested(self):
-        if self.area_harvested > self.actual_crop_area:
+        if self.area_harvested > self.area_sown:
             warning = {
                 'title': "Invalid Area Harvested",
                 'message': f"Area Harvested ({self.area_harvested} ha) cannot exceed "
+                           f"Area Sown ({self.area_sown} ha) in Sowing."
+            }
+            self.area_harvested = self.area_sown
+            return {'warning': warning}
+
+    @api.constrains('area_sown', 'actual_crop_area')
+    def _check_area_sown(self):
+        for rec in self:
+            if rec.area_sown > rec.actual_crop_area:
+                raise ValidationError(
+                    f"Area Sown ({rec.area_sown} ha) cannot exceed "
+                    f"Actual Crop Area ({rec.actual_crop_area} ha) in Cultivation."
+                )
+
+    @api.onchange('area_sown')
+    def _onchange_area_sown(self):
+        if self.area_sown > self.actual_crop_area:
+            warning = {
+                'title': "Invalid Area Sown",
+                'message': f"Area Sown ({self.area_sown} ha) cannot exceed "
                            f"Actual Crop Area ({self.actual_crop_area} ha) in Cultivation."
             }
-            self.area_harvested = self.actual_crop_area
+            self.area_sown = self.actual_crop_area
             return {'warning': warning}
+
 
 
 
@@ -587,7 +643,7 @@ class CropProductionClusterLine(models.Model):
     _description = 'Crop Production Cluster Line'
 
     production_id = fields.Many2one('g2p.crop.production', string="Production Record", ondelete='cascade')
-    cluster_info_id = fields.Many2one('g2p.cluster.information', string="Cluster ID", required=True)
+    cluster_info_id = fields.Many2one('g2p.cluster.information', string="Cluster ID", required=True, ondelete='cascade')
     cluster_name = fields.Char(related='cluster_info_id.cluster_name', string="Cluster Name", readonly=True)
 
     sowing_status = fields.Selection([
@@ -619,3 +675,57 @@ class CropProductionClusterLine(models.Model):
     post_harvest_loss_pct = fields.Float(string="Post-harvest Loss (%)")
     qty_stored = fields.Float(string="Quantity Stored")
     qty_sold = fields.Float(string="Quantity Sold")
+
+    @api.constrains('area_sown', 'cluster_info_id')
+    def _check_area_sown(self):
+        for rec in self:
+            if rec.area_sown > rec.cluster_area_hectare:
+                raise ValidationError(
+                    f"Area Sown ({rec.area_sown} ha) cannot exceed "
+                    f"Total Cultivated Area ({rec.cluster_area_hectare} ha) in Cluster."
+                )
+
+    @api.onchange('area_sown')
+    def _onchange_area_sown(self):
+        if self.area_sown > self.cluster_area_hectare:
+            warning = {
+                'title': "Invalid Area Sown",
+                'message': f"Area Sown ({self.area_sown} ha) cannot exceed "
+                           f"Total Cultivated Area ({self.cluster_area_hectare} ha) in Cluster."
+            }
+            self.area_sown = self.cluster_area_hectare
+            return {'warning': warning}
+
+    @api.constrains('area_harvested', 'area_sown')
+    def _check_area_harvested(self):
+        for rec in self:
+            if rec.area_harvested > rec.area_sown:
+                raise ValidationError(
+                    f"Area Harvested ({rec.area_harvested} ha) cannot exceed "
+                    f"Area Sown ({rec.area_sown} ha) in Cluster Sowing."
+                )
+
+    @api.onchange('area_harvested')
+    def _onchange_area_harvested(self):
+        if self.area_harvested > self.area_sown:
+            warning = {
+                'title': "Invalid Area Harvested",
+                'message': f"Area Harvested ({self.area_harvested} ha) cannot exceed "
+                           f"Area Sown ({self.area_sown} ha) in Cluster Sowing."
+            }
+            self.area_harvested = self.area_sown
+            return {'warning': warning}
+
+    def unlink(self):
+        from odoo.exceptions import AccessError
+        for rec in self:
+            if rec.crop_registry_id:
+                # Check if the registry stage associated with this record is approved
+                if (rec.crop_registry_id.planning_state == 'approved' or
+                    rec.crop_registry_id.cultivation_state == 'approved' or
+                    rec.crop_registry_id.sowing_state == 'approved' or
+                    rec.crop_registry_id.harvesting_state == 'approved'):
+
+                    if not self.env.user.has_group('g2p_crop_registry.group_woreda_agri_office_head'):
+                        raise AccessError("Only the Woreda Agriculture Office Head (WAH) can delete an approved record.")
+        return super().unlink()

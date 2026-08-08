@@ -120,6 +120,7 @@ class TestCropProduction(TransactionCase):
                 'crop_name_id': self.crop.id,
                 'season_id': self.season.id,
                 'actual_crop_area': 10.0,
+                'area_sown': 10.0,
                 'area_harvested': 15.0,
             })
 
@@ -129,6 +130,7 @@ class TestCropProduction(TransactionCase):
             'crop_name_id': self.crop.id,
             'season_id': self.season.id,
             'actual_crop_area': 10.0,
+            'area_sown': 10.0,
             'area_harvested': 8.0,
         })
         self.assertTrue(production.id)
@@ -137,6 +139,7 @@ class TestCropProduction(TransactionCase):
         production = self.env['g2p.crop.production'].new({
             'crop_registry_id': self.crop_registry.id,
             'actual_crop_area': 10.0,
+            'area_sown': 10.0,
         })
         production.area_harvested = 15.0
         res = production._onchange_area_harvested()
@@ -154,6 +157,7 @@ class TestCropProduction(TransactionCase):
             'crop_name_id': self.crop.id,
             'season_id': self.season.id,
             'actual_crop_area': 12.0,
+            'area_sown': 12.0,
             'qty_harvested': 50.0,          # 50 quintals = 5000 kg
             'area_harvested': 10.0,         # 10 ha
             'expected_yield': 60.0,
@@ -181,7 +185,10 @@ class TestCropProduction(TransactionCase):
             'actual_crop_area': 10.0,
         })
 
-        cluster_info = self.env['g2p.cluster.information'].create({'cluster_name': 'Test Cluster'})
+        cluster_info = self.env['g2p.cluster.information'].create({
+            'cluster_name': 'Test Cluster',
+            'cluster_area_timad': 40.0,
+        })
         # Add cluster line
         cluster_line = self.env['g2p.crop.production.cluster.line'].create({
             'production_id': production.id,
@@ -191,6 +198,27 @@ class TestCropProduction(TransactionCase):
         self.assertTrue(cluster_line.id)
         self.assertEqual(len(production.production_cluster_line_ids), 1)
         self.assertEqual(production.production_cluster_line_ids.area_sown, 5.0)
+
+        # Test cluster line area harvested constraint
+        with self.assertRaises(ValidationError):
+            self.env['g2p.crop.production.cluster.line'].create({
+                'production_id': production.id,
+                'cluster_info_id': cluster_info.id,
+                'area_sown': 5.0,
+                'area_harvested': 6.0,
+            })
+
+        # Test cluster line area harvested onchange
+        cluster_line_new = self.env['g2p.crop.production.cluster.line'].new({
+            'production_id': production.id,
+            'cluster_info_id': cluster_info.id,
+            'area_sown': 5.0,
+        })
+        cluster_line_new.area_harvested = 6.0
+        res = cluster_line_new._onchange_area_harvested()
+        self.assertEqual(cluster_line_new.area_harvested, 5.0)
+        self.assertIn('warning', res)
+        self.assertEqual(res['warning']['title'], 'Invalid Area Harvested')
 
     # ------------------------------------------------------------------
     # Cluster Information Computes & Constraints

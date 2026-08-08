@@ -103,7 +103,19 @@ class G2PCrop(models.Model):
         "g2p.crop.production",
         "crop_registry_id",
         string="Harvesting Details",
+        compute="_compute_harvest_detail_ids",
+        inverse="_inverse_harvest_detail_ids",
     )
+
+    @api.depends('production_detail_ids')
+    def _compute_harvest_detail_ids(self):
+        for rec in self:
+            rec.harvest_detail_ids = rec.production_detail_ids
+
+    def _inverse_harvest_detail_ids(self):
+        for rec in self:
+            rec.production_detail_ids = rec.harvest_detail_ids
+
 
     # =======================================
     # UI Fields: Survey Personnel
@@ -188,10 +200,20 @@ class G2PCrop(models.Model):
     edit_suggestion_ids = fields.One2many("g2p.crop.edit.request", "crop_registry_id", string="Edit Suggestions")
 
     is_da = fields.Boolean(compute='_compute_is_da', string="Is Development Agent")
+    is_sms = fields.Boolean(compute='_compute_is_sms', string="Is SMS")
+    is_wah = fields.Boolean(compute='_compute_is_wah', string="Is Woreda Agriculture Office Head")
 
     def _compute_is_da(self):
         for record in self:
             record.is_da = self.env.user.has_group('g2p_crop_registry.group_development_agent')
+
+    def _compute_is_sms(self):
+        for record in self:
+            record.is_sms = self.env.user.has_group('g2p_crop_registry.group_woreda_sms')
+
+    def _compute_is_wah(self):
+        for record in self:
+            record.is_wah = self.env.user.has_group('g2p_crop_registry.group_woreda_agri_office_head')
 
     rejection_reason = fields.Text(string="Rejection Reason", readonly=True)
     can_approve = fields.Boolean(compute='_compute_can_approve', string="Can Approve")
@@ -259,24 +281,32 @@ class G2PCrop(models.Model):
             menu_title = self.env.context.get('menu_title', '')
             if 'Planning' in menu_title or record.lifecycle_stage in ['draft', 'pending_planning', 'planning_rejected']:
                 if record.planning_state in ['draft', 'rejected']:
-                    record.planning_state = 'pending_wah'
-                    record.lifecycle_stage = 'pending_planning'
-                    record.state = 'pending_wah'
+                    record.with_context(bypass_write=True).write({
+                        'planning_state': 'pending_wah',
+                        'lifecycle_stage': 'pending_planning',
+                        'state': 'pending_wah'
+                    })
             elif 'Cultivation' in menu_title or record.lifecycle_stage in ['planning_approved', 'pending_cultivation', 'cultivation_rejected']:
                 if record.cultivation_state in ['draft', 'rejected']:
-                    record.cultivation_state = 'pending_wah'
-                    record.lifecycle_stage = 'pending_cultivation'
-                    record.state = 'pending_wah'
+                    record.with_context(bypass_write=True).write({
+                        'cultivation_state': 'pending_wah',
+                        'lifecycle_stage': 'pending_cultivation',
+                        'state': 'pending_wah'
+                    })
             elif 'Sowing' in menu_title or record.lifecycle_stage in ['cultivation_approved', 'pending_sowing', 'sowing_rejected']:
                 if record.sowing_state in ['draft', 'rejected']:
-                    record.sowing_state = 'pending_wah'
-                    record.lifecycle_stage = 'pending_sowing'
-                    record.state = 'pending_wah'
+                    record.with_context(bypass_write=True).write({
+                        'sowing_state': 'pending_wah',
+                        'lifecycle_stage': 'pending_sowing',
+                        'state': 'pending_wah'
+                    })
             elif 'Harvesting' in menu_title or record.lifecycle_stage in ['sowing_approved', 'pending_harvesting', 'harvesting_rejected']:
                 if record.harvesting_state in ['draft', 'rejected']:
-                    record.harvesting_state = 'pending_wah'
-                    record.lifecycle_stage = 'pending_harvesting'
-                    record.state = 'pending_wah'
+                    record.with_context(bypass_write=True).write({
+                        'harvesting_state': 'pending_wah',
+                        'lifecycle_stage': 'pending_harvesting',
+                        'state': 'pending_wah'
+                    })
 
     def action_approve_wah(self):
         user = self.env.user
@@ -289,34 +319,49 @@ class G2PCrop(models.Model):
             menu_title = self.env.context.get('menu_title', '')
             if 'Planning' in menu_title or record.lifecycle_stage in ['draft', 'pending_planning', 'planning_rejected']:
                 if record.planning_state in ['pending_wah', 'rejected']:
-                    record.planning_state = 'approved'
-                    record.lifecycle_stage = 'planning_approved'
-                    record.cultivation_state = 'draft'
-                    record.state = 'draft'
+                    record.with_context(bypass_write=True).write({
+                        'planning_state': 'approved',
+                        'lifecycle_stage': 'planning_approved',
+                        'cultivation_state': 'draft',
+                        'state': 'draft'
+                    })
                     record._sync_planned_to_actual_backend()
             elif 'Cultivation' in menu_title or record.lifecycle_stage in ['planning_approved', 'pending_cultivation', 'cultivation_rejected']:
                 if record.cultivation_state in ['pending_wah', 'rejected']:
-                    record.cultivation_state = 'approved'
-                    record.lifecycle_stage = 'cultivation_approved'
-                    record.sowing_state = 'draft'
-                    record.state = 'draft'
+                    record.with_context(bypass_write=True).write({
+                        'cultivation_state': 'approved',
+                        'lifecycle_stage': 'cultivation_approved',
+                        'sowing_state': 'draft',
+                        'state': 'draft'
+                    })
                     record._sync_actual_to_production_backend()
             elif 'Sowing' in menu_title or record.lifecycle_stage in ['cultivation_approved', 'pending_sowing', 'sowing_rejected']:
                 if record.sowing_state in ['pending_wah', 'rejected']:
-                    record.sowing_state = 'approved'
-                    record.lifecycle_stage = 'sowing_approved'
-                    record.harvesting_state = 'draft'
-                    record.state = 'draft'
+                    record.with_context(bypass_write=True).write({
+                        'sowing_state': 'approved',
+                        'lifecycle_stage': 'sowing_approved',
+                        'harvesting_state': 'draft',
+                        'state': 'draft'
+                    })
+                    record._sync_actual_to_production_backend()
+                    record._sync_cluster_status_to_production()
             elif 'Harvesting' in menu_title or record.lifecycle_stage in ['sowing_approved', 'pending_harvesting', 'harvesting_rejected']:
                 if record.harvesting_state in ['pending_wah', 'rejected']:
-                    record.harvesting_state = 'approved'
-                    record.lifecycle_stage = 'harvesting_approved'
-                    record.state = 'approved'
+                    record.with_context(bypass_write=True).write({
+                        'harvesting_state': 'approved',
+                        'lifecycle_stage': 'harvesting_approved',
+                        'state': 'approved'
+                    })
 
     def _advance_lifecycle(self):
         pass
 
     def action_set_draft(self):
+        user = self.env.user
+        is_sms = user.has_group('g2p_crop_registry.group_woreda_sms') or user.has_group('g2p_crop_registry.group_development_agent')
+        is_wah = user.has_group('g2p_crop_registry.group_woreda_agri_office_head')
+        is_admin = self.env.is_superuser()
+
         for record in self:
             rejected_stage = record.rejected_at_stage
             record.rejected_at_stage = False
@@ -343,8 +388,14 @@ class G2PCrop(models.Model):
                 else:
                     stage = 'planning'
 
+            # SMS directly resets to draft. WAH / Admin can reset to pending_wah (Approval Level 1) if approved.
+            if is_sms and not is_wah and not is_admin:
+                is_wah_override = False
+            else:
+                is_wah_override = True
+
             if stage == 'planning':
-                if record.planning_state == 'approved' or (record.planning_state == 'rejected' and rejected_stage == 'wah'):
+                if is_wah_override and (record.planning_state == 'approved' or (record.planning_state == 'rejected' and rejected_stage == 'wah')):
                     record.with_context(bypass_write=True).write({
                         'planning_state': 'pending_wah',
                         'lifecycle_stage': 'pending_planning',
@@ -358,7 +409,7 @@ class G2PCrop(models.Model):
                     })
 
             elif stage == 'cultivation':
-                if record.cultivation_state == 'approved' or (record.cultivation_state == 'rejected' and rejected_stage == 'wah'):
+                if is_wah_override and (record.cultivation_state == 'approved' or (record.cultivation_state == 'rejected' and rejected_stage == 'wah')):
                     record.with_context(bypass_write=True).write({
                         'cultivation_state': 'pending_wah',
                         'lifecycle_stage': 'pending_cultivation',
@@ -372,7 +423,7 @@ class G2PCrop(models.Model):
                     })
 
             elif stage == 'sowing':
-                if record.sowing_state == 'approved' or (record.sowing_state == 'rejected' and rejected_stage == 'wah'):
+                if is_wah_override and (record.sowing_state == 'approved' or (record.sowing_state == 'rejected' and rejected_stage == 'wah')):
                     record.with_context(bypass_write=True).write({
                         'sowing_state': 'pending_wah',
                         'lifecycle_stage': 'pending_sowing',
@@ -386,7 +437,7 @@ class G2PCrop(models.Model):
                     })
 
             elif stage == 'harvesting':
-                if record.harvesting_state == 'approved' or (record.harvesting_state == 'rejected' and rejected_stage == 'wah'):
+                if is_wah_override and (record.harvesting_state == 'approved' or (record.harvesting_state == 'rejected' and rejected_stage == 'wah')):
                     record.with_context(bypass_write=True).write({
                         'harvesting_state': 'pending_wah',
                         'lifecycle_stage': 'pending_harvesting',
@@ -470,6 +521,49 @@ class G2PCrop(models.Model):
         }
 
     def write(self, vals):
+        if 'annual_line_ids' in vals and isinstance(vals['annual_line_ids'], list):
+            actual_deletes = []
+            prod_deletes = []
+            for cmd in vals['annual_line_ids']:
+                if isinstance(cmd, (list, tuple)) and len(cmd) > 0:
+                    cmd_type = getattr(cmd[0], 'value', cmd[0])
+                    try:
+                        cmd_type = int(cmd_type)
+                    except (ValueError, TypeError):
+                        pass
+                    if cmd_type == 2 and len(cmd) > 1:
+                        line_id = cmd[1]
+                        line_rec = self.env['g2p.annual.line'].browse(line_id)
+                        if line_rec.exists() and line_rec.sync_id:
+                            actuals = self.actual_annual_line_ids.filtered(
+                                lambda l: l.sync_id == line_rec.sync_id and not l.is_manual
+                            )
+                            for act in actuals:
+                                if isinstance(act.id, int):
+                                    actual_deletes.append((2, act.id))
+                            prods = self.production_detail_ids.filtered(
+                                lambda p: p.sync_id == line_rec.sync_id
+                            )
+                            for prod in prods:
+                                if isinstance(prod.id, int):
+                                    prod_deletes.append((2, prod.id))
+                    elif cmd_type == 5:
+                        for act in self.actual_annual_line_ids:
+                            if not act.is_manual and isinstance(act.id, int):
+                                actual_deletes.append((2, act.id))
+                        for prod in self.production_detail_ids:
+                            if isinstance(prod.id, int):
+                                prod_deletes.append((2, prod.id))
+
+            if actual_deletes:
+                if 'actual_annual_line_ids' not in vals:
+                    vals['actual_annual_line_ids'] = []
+                vals['actual_annual_line_ids'].extend(actual_deletes)
+            if prod_deletes:
+                if 'production_detail_ids' not in vals:
+                    vals['production_detail_ids'] = []
+                vals['production_detail_ids'].extend(prod_deletes)
+
         if self.env.context.get('bypass_write'):
             return super(G2PCrop, self).write(vals)
 
@@ -483,8 +577,69 @@ class G2PCrop(models.Model):
             for record in self:
                 editing_planning = any(f in vals for f in ['annual_line_ids'])
                 editing_cultivation = any(f in vals for f in ['actual_annual_line_ids'])
-                editing_sowing = any(f in vals for f in ['production_detail_ids'])
-                editing_harvesting = any(f in vals for f in ['harvest_detail_ids'])
+
+                sowing_subfields = {
+                    'sowing_status', 'area_sown', 'has_pest_disease', 'infestation_incident_ids',
+                    'actual_sowing_date', 'actual_fertilizer_type', 'actual_fertilizer_qty',
+                    'actual_seed_class', 'cultivated_by',
+                    'crop_name_id', 'temporary_land_id', 'is_plot_not_registered'
+                }
+                harvesting_subfields = {
+                    'crop_maturity_status', 'harvest_date', 'area_harvested', 'qty_harvested',
+                    'post_harvest_loss_pct', 'qty_stored', 'qty_sold'
+                }
+                cluster_sowing_fields = {'sowing_status', 'area_sown', 'has_pest_disease', 'infestation_incident_ids'}
+                cluster_harvesting_fields = {'crop_maturity_status', 'harvest_date', 'area_harvested', 'qty_harvested', 'post_harvest_loss_pct', 'qty_stored', 'qty_sold'}
+
+                editing_sowing = False
+                editing_harvesting = False
+
+                for field_name in ['production_detail_ids', 'harvest_detail_ids']:
+                    if field_name in vals:
+                        commands = vals[field_name]
+                        if isinstance(commands, list):
+                            for cmd in commands:
+                                if isinstance(cmd, (list, tuple)) and len(cmd) > 0:
+                                    cmd_type = getattr(cmd[0], 'value', cmd[0])
+                                    try:
+                                        cmd_type = int(cmd_type)
+                                    except (ValueError, TypeError):
+                                        pass
+                                    if cmd_type in (0, 1) and len(cmd) > 2 and isinstance(cmd[2], dict):
+                                        val_keys = cmd[2].keys()
+                                        if any(k in sowing_subfields for k in val_keys):
+                                            editing_sowing = True
+                                        if any(k in harvesting_subfields for k in val_keys):
+                                            editing_harvesting = True
+                                        if 'production_cluster_line_ids' in val_keys:
+                                            cluster_cmds = cmd[2]['production_cluster_line_ids']
+                                            if isinstance(cluster_cmds, list):
+                                                for cl_cmd in cluster_cmds:
+                                                    if isinstance(cl_cmd, (list, tuple)) and len(cl_cmd) > 0:
+                                                        cl_cmd_type = getattr(cl_cmd[0], 'value', cl_cmd[0])
+                                                        try:
+                                                            cl_cmd_type = int(cl_cmd_type)
+                                                        except (ValueError, TypeError):
+                                                            pass
+                                                        if cl_cmd_type in (0, 1) and len(cl_cmd) > 2 and isinstance(cl_cmd[2], dict):
+                                                            cl_val_keys = cl_cmd[2].keys()
+                                                            if any(k in cluster_sowing_fields for k in cl_val_keys):
+                                                                editing_sowing = True
+                                                            if any(k in cluster_harvesting_fields for k in cl_val_keys):
+                                                                editing_harvesting = True
+                                                        elif cl_cmd_type in (2, 3, 5):
+                                                            editing_sowing = True
+                                                        elif cl_cmd_type == 6 and len(cl_cmd) > 2 and isinstance(cl_cmd[2], list):
+                                                            editing_sowing = True
+                                        if cmd_type == 0 and not any(k in harvesting_subfields for k in val_keys):
+                                            editing_sowing = True
+                                    elif cmd_type in (2, 3, 5):
+                                        editing_sowing = True
+                                    elif cmd_type == 6 and len(cmd) > 2 and isinstance(cmd[2], list):
+                                        new_ids = set(cmd[2])
+                                        old_ids = set(record.production_detail_ids.ids)
+                                        if new_ids != old_ids:
+                                            editing_sowing = True
 
                 is_planning_locked = record.planning_state in ['approved', 'update_requested'] and (editing_planning or record.lifecycle_stage in ['draft', 'pending_planning'])
                 is_cultivation_locked = record.cultivation_state in ['approved', 'update_requested'] and (editing_cultivation or record.lifecycle_stage in ['planning_approved', 'pending_cultivation'])
@@ -505,13 +660,13 @@ class G2PCrop(models.Model):
                         'requested_by': user.id
                     })
                     update_vals = {'state': 'update_requested'}
-                    if is_planning_locked or record.lifecycle_stage in ['draft', 'pending_planning']:
+                    if editing_planning and record.planning_state in ['approved', 'update_requested']:
                         update_vals['planning_state'] = 'update_requested'
-                    if is_cultivation_locked or record.lifecycle_stage in ['planning_approved', 'pending_cultivation']:
+                    if editing_cultivation and record.cultivation_state in ['approved', 'update_requested']:
                         update_vals['cultivation_state'] = 'update_requested'
-                    if is_sowing_locked or record.lifecycle_stage in ['cultivation_approved', 'pending_sowing']:
+                    if editing_sowing and record.sowing_state in ['approved', 'update_requested']:
                         update_vals['sowing_state'] = 'update_requested'
-                    if is_harvesting_locked or record.lifecycle_stage in ['sowing_approved', 'pending_harvesting']:
+                    if editing_harvesting and record.harvesting_state in ['approved', 'update_requested']:
                         update_vals['harvesting_state'] = 'update_requested'
                     record.with_context(bypass_write=True).write(update_vals)
                 else:
@@ -868,7 +1023,7 @@ class G2PCrop(models.Model):
                 rec.actual_annual_line_ids -= orphaned_annual_actual
 
             # Cleanup orphaned production details (Sowing & Harvesting)
-            valid_sync_ids = planned_annual_sync_ids + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual]
+            valid_sync_ids = planned_annual_sync_ids + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id]
             orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
             if orphaned_prod:
                 rec.production_detail_ids -= orphaned_prod
@@ -1053,7 +1208,7 @@ class G2PCrop(models.Model):
             # Cleanup orphaned actual lines
             planned_annual_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id]
             valid_sync_ids = planned_annual_sync_ids + \
-                             [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual]
+                             [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id]
 
             orphaned_annual_actual = rec.actual_annual_line_ids.filtered(lambda l: l.sync_id and not l.is_manual and l.sync_id not in planned_annual_sync_ids)
             if orphaned_annual_actual:
@@ -1118,7 +1273,7 @@ class G2PCrop(models.Model):
                     })
                     rec.production_detail_ids += new_prod
             # Cleanup orphaned production details when actual is deleted
-            valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual]
+            valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id]
             orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
             if orphaned_prod:
                 rec.production_detail_ids -= orphaned_prod
@@ -1172,11 +1327,42 @@ class G2PCrop(models.Model):
                         'planned_area': planned_area,
                         'qty_harvested': actual_line.actual_yield if actual_line.actual_yield else 0.0,
                     })
-            valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual]
+            valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id]
             orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
             if orphaned_prod:
                 rec.production_detail_ids -= orphaned_prod
         rec.harvest_detail_ids = rec.production_detail_ids
+
+    def _sync_cluster_status_to_production(self):
+        """After sowing approval, auto-set cluster_status_ids and production_cluster_line_ids
+        on each g2p.crop.production record based on its actual_annual_line cluster_info_ids."""
+        ClusterStatus = self.env['g2p.cluster.status'].sudo()
+        for rec in self:
+            for prod in rec.production_detail_ids:
+                actual_lines = rec.actual_annual_line_ids.filtered(lambda l: l.sync_id == prod.sync_id)
+                actual = actual_lines[0] if actual_lines else None
+                has_clusters = bool(actual and actual.cluster_info_ids)
+
+                status_names = ['Clustered', 'Independent'] if has_clusters else ['Independent']
+                status_recs = ClusterStatus.search([('name', 'in', status_names)])
+                for sname in status_names:
+                    if sname not in status_recs.mapped('name'):
+                        status_recs |= ClusterStatus.create({'name': sname})
+
+                prod.cluster_status_ids = [(6, 0, status_recs.ids)]
+
+                if has_clusters:
+                    existing_cluster_ids = prod.production_cluster_line_ids.mapped('cluster_info_id.id')
+                    for cinfo in actual.cluster_info_ids:
+                        if cinfo.id not in existing_cluster_ids:
+                            prod.write({
+                                'production_cluster_line_ids': [(0, 0, {'cluster_info_id': cinfo.id})]
+                            })
+                    obsolete = prod.production_cluster_line_ids.filtered(
+                        lambda l: l.cluster_info_id.id not in actual.cluster_info_ids.ids
+                    )
+                    if obsolete:
+                        prod.write({'production_cluster_line_ids': [(2, l.id, False) for l in obsolete]})
 
     @api.onchange('production_detail_ids', 'harvest_detail_ids')
     def _onchange_sync_production_to_actual(self):
@@ -1186,7 +1372,7 @@ class G2PCrop(models.Model):
                     continue
                 actual_annual = rec.actual_annual_line_ids.filtered(lambda l: l.sync_id == prod_line.sync_id)
 
-            valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id and l.is_manual]
+            valid_sync_ids = [l.sync_id for l in rec.annual_line_ids if l.sync_id] + [l.sync_id for l in rec.actual_annual_line_ids if l.sync_id]
             orphaned_prod = rec.production_detail_ids.filtered(lambda p: p.sync_id and p.sync_id not in valid_sync_ids)
             if orphaned_prod:
                 rec.production_detail_ids -= orphaned_prod
@@ -1400,3 +1586,16 @@ class G2PLandInformationInherit(models.Model):
             domain = ['|', ('land_id', operator, name), ('partner_id.name', operator, name)] + args
             return self.search(domain, limit=limit).name_get()
         return super().name_search(name, args=args, operator=operator, limit=limit)
+
+    def unlink(self):
+        from odoo.exceptions import AccessError
+        for record in self:
+            if (record.planning_state == 'approved' or
+                record.cultivation_state == 'approved' or
+                record.sowing_state == 'approved' or
+                record.harvesting_state == 'approved' or
+                record.state == 'approved'):
+
+                if not self.env.user.has_group('g2p_crop_registry.group_woreda_agri_office_head'):
+                    raise AccessError("Only the Woreda Agriculture Office Head (WAH) can delete an approved record.")
+        return super(G2PCrop, self.with_context(deleting_crop_registry=True)).unlink()
