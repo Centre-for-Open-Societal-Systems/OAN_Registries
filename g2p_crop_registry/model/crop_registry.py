@@ -37,6 +37,35 @@ class G2PCrop(models.Model):
     )
     gps = fields.Char(string="GPS")
 
+    @api.onchange('partner_id')
+    def _onchange_partner_id(self):
+        if self.partner_id:
+            domain = [('partner_id', '=', self.partner_id.id)]
+            if self._origin and self._origin.id:
+                domain.append(('id', '!=', self._origin.id))
+            existing_record = self.env['g2p.crop.registry'].search(domain, limit=1)
+            if existing_record:
+                return {
+                    'warning': {
+                        'title': 'Duplicate Record Found',
+                        'message': 'There is already a crop record for this farmer ID. You can go and add a new crop record there or else choose another.'
+                    }
+                }
+
+    @api.constrains('partner_id')
+    def _check_unique_farmer_id(self):
+        for rec in self:
+            if rec.partner_id:
+                existing_record = self.env['g2p.crop.registry'].search([
+                    ('partner_id', '=', rec.partner_id.id),
+                    ('id', '!=', rec.id)
+                ], limit=1)
+                if existing_record:
+                    raise ValidationError(
+                        f"There is already a crop record for the farmer ID '{rec.partner_id.name}'. "
+                        "You can go and add a new crop record there or else choose another farmer."
+                    )
+
     # =======================================
     # UI Fields: Planning
     # =======================================

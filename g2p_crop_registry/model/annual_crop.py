@@ -236,19 +236,33 @@ class G2PAnnualLine(models.Model):
         if not self.land_info_id:
             return
         total_land = self.land_info_id.total_land_area
+        land_id = self.land_info_id.id
+        db_lines = self.env['g2p.annual.line'].search([('land_info_id', '=', land_id)]) if land_id else self.env['g2p.annual.line'].browse()
         if self.crop_registry_id:
-            all_annual_lines = self.crop_registry_id.annual_line_ids
+            reg_lines = self.crop_registry_id.annual_line_ids
+            all_annual_lines = db_lines | reg_lines
         else:
-            all_annual_lines = self.env['g2p.annual.line'].browse()
+            all_annual_lines = db_lines
             if self.env.context.get('annual_line_ids'):
-                all_annual_lines = self.env['g2p.annual.line'].browse(self.env.context.get('annual_line_ids'))
+                all_annual_lines = all_annual_lines | self.env['g2p.annual.line'].browse(self.env.context.get('annual_line_ids'))
 
-        other_records = all_annual_lines.filtered(
-            lambda l: l.land_info_id == self.land_info_id and l != self
-        )
+        self_origin = getattr(self, '_origin', self)
 
-        other_crop_used = sum(other_records.mapped('crop_planned_area'))
-        other_cluster_used = sum(sum(c.cluster_area_hectare for c in r.cluster_info_ids) for r in other_records)
+        # Deduplicate by origin to avoid counting same line twice (DB vs NewId)
+        grouped = {}
+        for l in all_annual_lines:
+            origin = getattr(l, '_origin', l)
+            origin_id = origin.id or l.id
+            if origin_id not in grouped or not isinstance(l.id, int):
+                grouped[origin_id] = l
+
+        other_records = [
+            l for l in grouped.values()
+            if l.land_info_id == self.land_info_id and l != self and getattr(l, '_origin', l) != self_origin
+        ]
+
+        other_crop_used = sum(l.crop_planned_area for l in other_records)
+        other_cluster_used = sum(sum(c.cluster_area_hectare for c in l.cluster_info_ids) for l in other_records)
         remaining_before_record = total_land - (other_crop_used + other_cluster_used)
 
         current_cluster_area = sum(self.cluster_info_ids.mapped('cluster_area_hectare'))

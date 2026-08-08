@@ -180,6 +180,11 @@ class G2PClusterInformation(models.Model):
         for rec in self:
             rec.cluster_area_hectare = rec.cluster_area_timad * 0.25
 
+    @api.onchange('cluster_farmer_line_ids', 'cluster_smallholders')
+    def _onchange_farmer_count(self):
+        if self.cluster_smallholders > 0 and len(self.cluster_farmer_line_ids) > self.cluster_smallholders:
+            self.cluster_farmer_line_ids = self.cluster_farmer_line_ids[:-1]
+
     @api.onchange('cluster_area_timad', 'cluster_area_hectare')
     def _onchange_cluster_area(self):
         # Force compute hectare value based on timad input
@@ -190,9 +195,12 @@ class G2PClusterInformation(models.Model):
 
         # Fallback to context or parent record if inverse field isn't set on new cluster popup
         if not parent_line:
-            parent_line = self.env.context.get('default_annual_line_id') or self.env.context.get('default_actual_annual_line_id')
-            if isinstance(parent_line, int):
-                parent_line = self.env['g2p.annual.line'].browse(parent_line)
+            default_actual = self.env.context.get('default_actual_annual_line_id')
+            default_planned = self.env.context.get('default_annual_line_id')
+            if default_actual:
+                parent_line = self.env['g2p.annual.actual.line'].browse(default_actual) if isinstance(default_actual, (int, str)) else default_actual
+            elif default_planned:
+                parent_line = self.env['g2p.annual.line'].browse(default_planned) if isinstance(default_planned, (int, str)) else default_planned
 
         if not parent_line or not getattr(parent_line, 'land_info_id', False):
             return
@@ -200,8 +208,13 @@ class G2PClusterInformation(models.Model):
         # Determine if we are working with planned or actual records
         is_actual = bool(getattr(parent_line, '_name', '') == 'g2p.annual.actual.line')
         crop_area_field = 'actual_crop_area' if is_actual else 'crop_planned_area'
+        line_model = 'g2p.annual.actual.line' if is_actual else 'g2p.annual.line'
 
-        # Retrieve all annual lines on this form/registry session
+        # 1. Search all saved lines in DB for this specific land plot
+        land_id = parent_line.land_info_id.id
+        db_lines = self.env[line_model].search([('land_info_id', '=', land_id)]) if land_id else self.env[line_model].browse()
+
+        # 2. Retrieve all annual lines on this form/registry session
         crop_reg = parent_line.crop_registry_id or getattr(getattr(parent_line, '_origin', parent_line), 'crop_registry_id', False)
         if not crop_reg:
             registry_id = self.env.context.get('default_crop_registry_id') or self.env.context.get('active_id')
@@ -209,20 +222,31 @@ class G2PClusterInformation(models.Model):
                 crop_reg = self.env['g2p.crop.registry'].browse(registry_id)
 
         if crop_reg:
-            all_annual_lines = crop_reg.actual_annual_line_ids if is_actual else crop_reg.annual_line_ids
+            reg_lines = crop_reg.actual_annual_line_ids if is_actual else crop_reg.annual_line_ids
+            all_annual_lines = db_lines | reg_lines
         else:
-            all_annual_lines = parent_line.env['g2p.annual.line'].browse()
+            all_annual_lines = db_lines
             if self.env.context.get('annual_line_ids'):
-                all_annual_lines = parent_line.env['g2p.annual.line'].browse(self.env.context.get('annual_line_ids'))
+                all_annual_lines = all_annual_lines | parent_line.env[line_model].browse(self.env.context.get('annual_line_ids'))
 
         parent_origin = getattr(parent_line, '_origin', parent_line)
-        other_records = all_annual_lines.filtered(
-            lambda l: l.land_info_id == parent_line.land_info_id and l != parent_line and getattr(l, '_origin', l) != parent_origin
-        )
+
+        # Deduplicate by origin to avoid counting same line twice (DB vs NewId)
+        grouped = {}
+        for l in all_annual_lines:
+            origin = getattr(l, '_origin', l)
+            origin_id = origin.id or l.id
+            if origin_id not in grouped or not isinstance(l.id, int):
+                grouped[origin_id] = l
+
+        other_records = [
+            l for l in grouped.values()
+            if l.land_info_id == parent_line.land_info_id and l != parent_line and getattr(l, '_origin', l) != parent_origin
+        ]
 
         total_land = parent_line.land_info_id.total_land_area
-        other_crop_used = sum(other_records.mapped(crop_area_field))
-        other_cluster_used = sum(sum(c.cluster_area_hectare for c in r.cluster_info_ids) for r in other_records)
+        other_crop_used = sum(l[crop_area_field] for l in other_records)
+        other_cluster_used = sum(sum(c.cluster_area_hectare for c in l.cluster_info_ids) for l in other_records)
         remaining_before_record = total_land - (other_crop_used + other_cluster_used)
 
         # Exclude self from sibling cluster calculations
@@ -250,16 +274,6 @@ class G2PClusterInformation(models.Model):
                 }
             }
 
-    @api.onchange('cluster_farmer_line_ids', 'cluster_smallholders')
-    def _onchange_farmer_count(self):
-        if self.cluster_smallholders > 0 and len(self.cluster_farmer_line_ids) > self.cluster_smallholders:
-            self.cluster_farmer_line_ids = self.cluster_farmer_line_ids[:-1]
-            return {
-                'warning': {
-                    'title': 'Limit Exceeded',
-                    'message': f'You can only add {self.cluster_smallholders} farmers based on the Number of Smallholders field.'
-                }
-            }
 
     @api.constrains('cluster_smallholders', 'cluster_farmer_line_ids')
     def _check_farmer_count(self):
@@ -384,3 +398,6 @@ class G2PClusterInformation(models.Model):
                 raise ValidationError(f"Actual Collected Quintal ({rec.actual_cluster_collected_quintal}) cannot be greater than Actual Plan (ha) ({rec.actual_cluster_plan}).")
             if rec.actual_collected_by_combiner > rec.actual_cluster_plan:
                 raise ValidationError(f"Actual Collected by Combiner (ha) ({rec.actual_collected_by_combiner}) cannot be greater than Actual Plan (ha) ({rec.actual_cluster_plan}).")
+
+
+
