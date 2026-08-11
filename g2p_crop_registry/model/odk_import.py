@@ -91,11 +91,29 @@ class OdkImport(models.Model):
             elif k in ['geo_tagged_photo', 'image_1920', 'photo'] and isinstance(v, str) and v and len(v) < 255 and not v.startswith('http') and not v.startswith('data:'):
                 try:
                     import base64
-                    attachm = self.odk_config.download_attachment(current_instance_id, v)
-                    if attachm:
+                    import requests
+
+                    # Instead of self.odk_config.download_attachment which has a 10s timeout,
+                    # we do the request manually here with a 60s timeout for large images.
+                    url = (
+                        f"{self.odk_config.base_url}/v1/projects/{self.odk_config.project}/forms/{self.odk_config.form_id}/"
+                        f"submissions/{current_instance_id}/attachments/{v}"
+                    )
+                    headers = {"Authorization": f"Bearer {self.odk_config.login_get_session_token()}"}
+                    response = requests.get(url, headers=headers, timeout=60)
+
+                    if response.status_code == 200:
+                        attachm = response.content
                         data_dict[k] = base64.b64encode(attachm).decode('utf-8')
+                    elif response.status_code == 404:
+                        _logger.warning("Attachment %s not found on ODK server.", v)
+                        data_dict[k] = False
+                    else:
+                        response.raise_for_status()
                 except Exception as e:
                     _logger.error("Failed to download attachment %s: %s", v, e)
+                    # Clear the value so we don't save garbage base64 strings
+                    data_dict[k] = False
 
     def _process_crop_registry_records(self, instance_id=None, last_sync_time=None):
         self.ensure_one()
@@ -104,6 +122,13 @@ class OdkImport(models.Model):
             instance_id=instance_id,
             last_sync_time=last_sync_time
         )
+        if not data.get('value') and last_sync_time and not instance_id:
+            _logger.info("No records found with last_sync_time %s. Falling back to full download...", last_sync_time)
+            data = self.odk_config.download_records(
+                instance_id=instance_id,
+                last_sync_time=None
+            )
+
         partner_count = 0
         for member in data['value']:
             self._normalize_raw_odk_member(member)

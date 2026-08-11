@@ -67,10 +67,10 @@ class G2PCropChangeRequest(models.Model):
         user = self.env.user
         is_sms = user.has_group('g2p_crop_registry.group_woreda_sms')
         is_wah = user.has_group('g2p_crop_registry.group_woreda_agri_office_head')
-        
+
         for request in self:
             requester_is_da = request.requested_by.has_group('g2p_crop_registry.group_development_agent')
-            
+
             if is_sms and not is_wah and requester_is_da:
                 # Forward to WAH
                 original_da_name = request.requested_by.name
@@ -89,6 +89,10 @@ class G2PCropChangeRequest(models.Model):
                         new_vals['planning_state'] = 'approved'
                     if request.crop_registry_id.cultivation_state == 'update_requested':
                         new_vals['cultivation_state'] = 'approved'
+                    if request.crop_registry_id.sowing_state == 'update_requested':
+                        new_vals['sowing_state'] = 'approved'
+                    if request.crop_registry_id.harvesting_state == 'update_requested':
+                        new_vals['harvesting_state'] = 'approved'
 
                     # Write new values
                     request.crop_registry_id.with_context(bypass_write=True).sudo().write(new_vals)
@@ -109,4 +113,13 @@ class G2PCropChangeRequest(models.Model):
         for request in self:
             request.state = 'rejected'
             request.validator = self.env.user
-            request.crop_registry_id.with_context(bypass_write=True).sudo().write({'state': 'approved'})
+            reset_vals = {'state': 'approved'}
+            if request.crop_registry_id.planning_state == 'update_requested':
+                reset_vals['planning_state'] = 'approved'
+            if request.crop_registry_id.cultivation_state == 'update_requested':
+                reset_vals['cultivation_state'] = 'approved'
+            if request.crop_registry_id.sowing_state == 'update_requested':
+                reset_vals['sowing_state'] = 'approved'
+            if request.crop_registry_id.harvesting_state == 'update_requested':
+                reset_vals['harvesting_state'] = 'approved'
+            request.crop_registry_id.with_context(bypass_write=True).sudo().write(reset_vals)
