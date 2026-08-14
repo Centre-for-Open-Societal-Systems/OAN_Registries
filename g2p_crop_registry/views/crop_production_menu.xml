@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- PRODUCTION: Tree View (Sowing/Harvesting) -->
+    <record id="view_g2p_crop_production_menu_tree" model="ir.ui.view">
+        <field name="name">g2p.crop.production.menu.tree</field>
+        <field name="model">g2p.crop.production</field>
+        <field name="arch" type="xml">
+            <tree string="Sowing and Harvesting" create="false" delete="false">
+                <field name="crop_registry_id" string="Registry No." />
+                <field name="land_info_id" string="Land ID" />
+                <field name="season_id" />
+                <field name="crop_name_id" />
+                <field name="sowing_status" invisible="context.get('is_harvesting')" />
+                <field name="area_sown" invisible="context.get('is_harvesting')" />
+                <field name="crop_maturity_status" invisible="not context.get('is_harvesting')" />
+                <field name="harvest_date" invisible="not context.get('is_harvesting')" />
+                <field name="qty_harvested" invisible="not context.get('is_harvesting')" />
+                <field name="registry_lifecycle_stage" invisible="1" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- PRODUCTION: Form View -->
+    <record id="view_g2p_crop_production_menu_form" model="ir.ui.view">
+        <field name="name">g2p.crop.production.menu.form</field>
+        <field name="model">g2p.crop.production</field>
+        <field name="arch" type="xml">
+            <form string="Production Details" create="false" delete="false">
+                <header>
+                    <button name="action_approve_sms" type="object" string="Approve" class="btn-success" invisible="not can_approve" groups="g2p_crop_registry.group_woreda_sms" />
+                    <button name="action_approve_wah" type="object" string="Approve" class="btn-success" invisible="not can_approve" groups="g2p_crop_registry.group_woreda_agri_office_head" />
+                    <button name="action_reject" type="object" string="Reject" class="btn-danger" invisible="not can_approve" groups="g2p_crop_registry.group_woreda_sms,g2p_crop_registry.group_woreda_agri_office_head" />
+
+                    <button name="action_set_draft" string="Set To Draft" type="object" class="btn-info" invisible="not can_set_draft" groups="g2p_crop_registry.group_woreda_sms,g2p_crop_registry.group_woreda_agri_office_head" />
+
+                    <button name="action_suggest_edit" type="object" string="Suggest Edit" class="btn-warning" invisible="((context.get('is_harvesting') and registry_harvesting_state != 'approved') or (not context.get('is_harvesting') and registry_sowing_state != 'approved'))" groups="g2p_crop_registry.group_development_agent,g2p_crop_registry.group_woreda_sms" />
+
+                    <field name="registry_sowing_state" widget="statusbar" statusbar_visible="draft,pending_wah,update_requested,approved" invisible="context.get('is_harvesting')" />
+                    <field name="registry_harvesting_state" widget="statusbar" statusbar_visible="draft,pending_wah,update_requested,approved" invisible="not context.get('is_harvesting')" />
+                    <field name="can_approve" invisible="1" />
+                    <field name="can_set_draft" invisible="1" />
+                    <field name="registry_lifecycle_stage" invisible="1" />
+                </header>
+                <sheet>
+                    <field name="is_clustered" invisible="1" />
+                    <field name="is_independent" invisible="1" />
+                    <field name="cluster_info_ids" invisible="1" />
+
+                    <div class="oe_title mt-2 mb-4">
+                        <h1 style="color: #017e84;">
+                            <field name="menu_title" readonly="1" nolabel="1" />
+                        </h1>
+                    </div>
+
+                    <!-- SOWING SECTION (visible only in sowing stage) -->
+                    <group string="Sowing" invisible="context.get('is_harvesting')">
+                        <group>
+                            <field name="land_info_id" readonly="registry_sowing_state != 'draft'" force_save="1" context="{'show_land_id': True}" />
+                            <field name="cluster_status_ids" widget="many2many_tags" readonly="registry_sowing_state != 'draft'" />
+                        </group>
+                    </group>
+
+                    <group string="Independent Details" invisible="context.get('is_harvesting') or not is_independent">
+                        <group>
+                            <field name="sowing_status" readonly="registry_sowing_state != 'draft'" />
+                            <field name="area_sown" readonly="registry_sowing_state != 'draft'" />
+                            <field name="has_pest_disease" widget="boolean_toggle" readonly="registry_sowing_state != 'draft'" />
+                        </group>
+                        <group>
+                            <field name="season_id" readonly="1" force_save="1" />
+                            <field name="crop_name_id" string="Actual Crop name" readonly="1" force_save="1" />
+                            <field name="actual_sowing_date" readonly="1" force_save="1" />
+                            <field name="actual_fertilizer_type" readonly="1" force_save="1" />
+                            <field name="actual_fertilizer_qty" readonly="1" force_save="1" />
+                        </group>
+                    </group>
+
+                    <group string="Pest / Disease Details" invisible="context.get('is_harvesting') or not is_independent or not has_pest_disease">
+                        <field name="infestation_incident_ids" nolabel="1" colspan="2" readonly="registry_sowing_state != 'draft'">
+                            <tree>
+                                <field name="name" />
+                                <field name="growth_stage" />
+                                <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]"/>
+                                <field name="severity_level" />
+                                <field name="is_pest" column_invisible="1" />
+                                <field name="is_weed" column_invisible="1" />
+                                <field name="is_disease" column_invisible="1" />
+                                <field name="is_nutrient" column_invisible="1" />
+                                <field name="is_climate" column_invisible="1" />
+                            </tree>
+                            <form string="Infestation Incident">
+                                <sheet>
+                                    <div class="oe_title">
+                                        <h1><field name="name" /></h1>
+                                    </div>
+                                    <group>
+                                        <group>
+                                            <field name="crop_name_id" />
+                                            <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
+                                            <field name="growth_stage" />
+                                        </group>
+                                        <group>
+                                            <field name="observation_date" />
+                                            <field name="observation_date_ec" />
+                                            <field name="severity_level" />
+                                            <field name="estimated_damage" placeholder="e.g., 50% or 1.5 (for ha)" />
+                                            <field name="geo_tagged_photo" widget="image" invisible="severity_level != 'high'" required="severity_level == 'high'" />
+                                        </group>
+                                    </group>
+
+                                    <field name="is_pest" invisible="1" />
+                                    <field name="is_weed" invisible="1" />
+                                    <field name="is_disease" invisible="1" />
+                                    <field name="is_nutrient" invisible="1" />
+                                    <field name="is_climate" invisible="1" />
+                                    <notebook>
+                                        <page string="Pest Occurrence" invisible="not is_pest">
+                                            <field name="pest_line_ids" nolabel="1" colspan="2">
+                                                 <tree editable="bottom">
+                                                    <field name="pest_type" />
+                                                    <field name="pest_name" />
+                                                    <field name="pesticide_method" />
+                                                    <field name="pesticide_type" readonly="pesticide_method != 'chemical_spray'" />
+                                                    <field name="pesticide_name" readonly="pesticide_method != 'chemical_spray'" />
+                                                    <field name="pesticide_frequency" readonly="pesticide_method != 'chemical_spray'" />
+                                                </tree>
+                                            </field>
+                                        </page>
+                                        <page string="Weed Occurrence" invisible="not is_weed">
+                                            <field name="weed_line_ids" nolabel="1" colspan="2">
+                                                <tree editable="bottom">
+                                                    <field name="weed_type" />
+                                                    <field name="weed_name" />
+                                                    <field name="pesticide_method" />
+                                                    <field name="weedicide_type" readonly="pesticide_method != 'chemical_spray'" />
+                                                    <field name="weedicide_name" readonly="pesticide_method != 'chemical_spray'" />
+                                                    <field name="pesticide_frequency" readonly="pesticide_method != 'chemical_spray'" />
+                                                </tree>
+                                            </field>
+                                        </page>
+                                        <page string="Disease" invisible="not is_disease">
+                                            <field name="disease_line_ids" nolabel="1" colspan="2">
+                                                <tree editable="bottom">
+                                                    <field name="disease_type" />
+                                                    <field name="disease_name" />
+                                                    <field name="method_of_control" />
+                                                    <field name="fungicide_type" readonly="method_of_control != 'chemical_spray'" />
+                                                    <field name="fungicide_name" readonly="method_of_control != 'chemical_spray'" />
+                                                    <field name="frequency_of_application" readonly="method_of_control != 'chemical_spray'" />
+                                                </tree>
+                                            </field>
+                                        </page>
+                                        <page string="Nutrient Deficiency" invisible="not is_nutrient">
+                                            <field name="nutrient_line_ids" nolabel="1" colspan="2">
+                                                <tree editable="bottom">
+                                                    <field name="nutrient_type" />
+                                                    <field name="nutrient_name" />
+                                                    <field name="method_of_control" />
+                                                    <field name="fertilizer_type" readonly="method_of_control != 'foliar_spray'" />
+                                                    <field name="fertilizer_name" readonly="method_of_control != 'foliar_spray'" />
+                                                    <field name="frequency_of_application" />
+                                                </tree>
+                                            </field>
+                                        </page>
+                                        <page string="Climate Shock" invisible="not is_climate">
+                                            <field name="climate_line_ids" nolabel="1" colspan="2">
+                                                <tree editable="bottom">
+                                                    <field name="shock_type" />
+                                                    <field name="shock_event_name" />
+                                                    <field name="method_of_control" />
+                                                    <field name="recovery_input_type" />
+                                                    <field name="recovery_input_name" />
+                                                    <field name="frequency_of_application" />
+                                                </tree>
+                                            </field>
+                                        </page>
+                                    </notebook>
+
+                                    <group>
+                                        <field name="action_taken" invisible="1" />
+                                    </group>
+                                </sheet>
+                            </form>
+                        </field>
+                    </group>
+
+                    <group string="Clustered Details" invisible="context.get('is_harvesting') or not is_clustered">
+                        <field name="production_cluster_line_ids" nolabel="1" colspan="2" readonly="registry_sowing_state != 'draft'">
+                            <tree editable="bottom" create="false" delete="false">
+                                <field name="cluster_info_id" string="Cluster ID" domain="[('id', 'in', parent.cluster_info_ids)]" options="{'no_create': True, 'no_open': True}" readonly="1" force_save="1" />
+                                <field name="cluster_name" readonly="1" force_save="1" />
+                                <field name="sowing_status" />
+                                <field name="area_sown" />
+                                <field name="has_pest_disease" widget="boolean_toggle" />
+                                <field name="season_id" readonly="1" force_save="1" column_invisible="1" />
+                                <field name="cluster_agro_ecological_zone" readonly="1" force_save="1" />
+                                <field name="cluster_area_hectare" readonly="1" force_save="1" />
+                            </tree>
+                            <form string="Cluster Details">
+                                <sheet>
+                                    <group>
+                                        <group>
+                                            <field name="cluster_info_id" string="Cluster ID" domain="[('id', 'in', parent.cluster_info_ids)]" options="{'no_create': True, 'no_open': True}" />
+                                            <field name="cluster_name" readonly="1" force_save="1" />
+                                            <field name="season_id" readonly="1" force_save="1" />
+                                            <field name="cluster_agro_ecological_zone" readonly="1" force_save="1" />
+                                        </group>
+                                        <group>
+                                            <field name="sowing_status" />
+                                            <field name="area_sown" />
+                                            <field name="has_pest_disease" widget="boolean_toggle" />
+                <field name="cluster_area_hectare" readonly="1" force_save="1" />
+                                        </group>
+                                    </group>
+
+                                    <group string="Pest / Disease Details" invisible="not has_pest_disease">
+                                        <field name="infestation_incident_ids" nolabel="1" colspan="2">
+                                            <tree>
+                                                <field name="name" />
+                                                <field name="growth_stage" />
+                                                <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
+                                                <field name="severity_level" />
+                                                <field name="is_pest" column_invisible="1" />
+                                                <field name="is_weed" column_invisible="1" />
+                                                <field name="is_disease" column_invisible="1" />
+                                                <field name="is_nutrient" column_invisible="1" />
+                                                <field name="is_climate" column_invisible="1" />
+                                            </tree>
+                                            <form string="Infestation Incident">
+                                                <sheet>
+                                                    <div class="oe_title">
+                                                        <h1><field name="name" /></h1>
+                                                    </div>
+                                                    <group>
+                                                        <group>
+                                                            <field name="infestation_type_ids" widget="many2many_tags" domain="[('code','not in',('nutrient','climate'))]" />
+                                                            <field name="growth_stage" />
+                                                        </group>
+                                                        <group>
+                                                            <field name="observation_date" />
+                                                            <field name="observation_date_ec" />
+                                                            <field name="severity_level" />
+                                                            <field name="estimated_damage" placeholder="e.g., 50% or 1.5 (for ha)" />
+                                                            <field name="geo_tagged_photo" widget="image" invisible="severity_level != 'high'" required="severity_level == 'high'" />
+                                                        </group>
+                                                    </group>
+
+                                                    <field name="is_pest" invisible="1" />
+                                                    <field name="is_weed" invisible="1" />
+                                                    <field name="is_disease" invisible="1" />
+                                                    <field name="is_nutrient" invisible="1" />
+                                                    <field name="is_climate" invisible="1" />
+                                                    <notebook>
+                                                        <page string="Pest Occurrence" invisible="not is_pest">
+                                                            <field name="pest_line_ids" nolabel="1" colspan="2">
+                                                                <tree editable="bottom">
+                                                                    <field name="pest_type" />
+                                                                    <field name="pest_name" />
+                                                                    <field name="pesticide_method" />
+                                                                    <field name="pesticide_type" readonly="pesticide_method != 'chemical_spray'" />
+                                                                    <field name="pesticide_name" readonly="pesticide_method != 'chemical_spray'" />
+                                                                    <field name="pesticide_frequency" readonly="pesticide_method != 'chemical_spray'" />
+                                                                </tree>
+                                                            </field>
+                                                        </page>
+                                                        <page string="Weed Occurrence" invisible="not is_weed">
+                                                            <field name="weed_line_ids" nolabel="1" colspan="2">
+                                                                <tree editable="bottom">
+                                                                    <field name="weed_type" />
+                                                                    <field name="weed_name" />
+                                                                    <field name="pesticide_method" />
+                                                                    <field name="weedicide_type" readonly="pesticide_method != 'chemical_spray'" />
+                                                                    <field name="weedicide_name" readonly="pesticide_method != 'chemical_spray'" />
+                                                                    <field name="pesticide_frequency" readonly="pesticide_method != 'chemical_spray'" />
+                                                                </tree>
+                                                            </field>
+                                                        </page>
+                                                        <page string="Disease" invisible="not is_disease">
+                                                            <field name="disease_line_ids" nolabel="1" colspan="2">
+                                                                <tree editable="bottom">
+                                                                    <field name="disease_type" />
+                                                                    <field name="disease_name" />
+                                                                    <field name="method_of_control" />
+                                                                    <field name="fungicide_type" readonly="method_of_control != 'chemical_spray'" />
+                                                                    <field name="fungicide_name" readonly="method_of_control != 'chemical_spray'" />
+                                                                    <field name="frequency_of_application" readonly="method_of_control != 'chemical_spray'" />
+                                                                </tree>
+                                                            </field>
+                                                        </page>
+                                                        <page string="Nutrient Deficiency" invisible="not is_nutrient">
+                                                            <field name="nutrient_line_ids" nolabel="1" colspan="2">
+                                                                <tree editable="bottom">
+                                                                    <field name="nutrient_type" />
+                                                                    <field name="nutrient_name" />
+                                                                    <field name="method_of_control" />
+                                                                    <field name="fertilizer_type" readonly="method_of_control != 'foliar_spray'" />
+                                                                    <field name="fertilizer_name" readonly="method_of_control != 'foliar_spray'" />
+                                                                    <field name="frequency_of_application" />
+                                                                </tree>
+                                                            </field>
+                                                        </page>
+                                                        <page string="Climate Shock" invisible="not is_climate">
+                                                            <field name="climate_line_ids" nolabel="1" colspan="2">
+                                                                <tree editable="bottom">
+                                                                    <field name="shock_type" />
+                                                                    <field name="shock_event_name" />
+                                                                    <field name="method_of_control" />
+                                                                    <field name="recovery_input_type" />
+                                                                    <field name="recovery_input_name" />
+                                                                    <field name="frequency_of_application" />
+                                                                </tree>
+                                                            </field>
+                                                        </page>
+                                                    </notebook>
+
+                                                    <group>
+                                                        <field name="action_taken" invisible="1" />
+                                                    </group>
+                                                </sheet>
+                                            </form>
+                                        </field>
+                                    </group>
+                                </sheet>
+                            </form>
+                        </field>
+                    </group>
+
+                    <!-- HARVESTING SECTION (visible only in harvesting stage) -->
+                    <group string="Harvesting" invisible="not context.get('is_harvesting')">
+                        <group>
+                            <field name="land_info_id" readonly="registry_harvesting_state != 'draft'" force_save="1" context="{'show_land_id': True}" />
+                            <field name="cluster_status_ids" widget="many2many_tags" readonly="1" force_save="1" />
+                        </group>
+                        <group>
+                            <field name="season_id" readonly="1" />
+                            <field name="crop_name_id" readonly="1" />
+                        </group>
+                    </group>
+
+                    <group string="Independent Harvest" invisible="not context.get('is_harvesting') or not is_independent">
+                        <group>
+                            <field name="crop_maturity_status" decoration-success="crop_maturity_status == 'green'" decoration-warning="crop_maturity_status == 'yellow'" readonly="registry_harvesting_state != 'draft'" />
+                            <field name="harvest_date" readonly="registry_harvesting_state != 'draft'" />
+                            <field name="area_harvested" readonly="registry_harvesting_state != 'draft'" />
+                            <field name="qty_harvested" readonly="registry_harvesting_state != 'draft'" />
+                        </group>
+                        <group>
+                            <field name="post_harvest_loss_pct" readonly="registry_harvesting_state != 'draft'" />
+                            <field name="qty_stored" readonly="registry_harvesting_state != 'draft'" />
+                            <field name="qty_sold" readonly="registry_harvesting_state != 'draft'" />
+                        </group>
+                    </group>
+
+                    <group string="Production Result (Computed)" invisible="not context.get('is_harvesting') or not is_independent">
+                        <group>
+                            <field name="yield_per_ha" readonly="1" />
+                            <field name="yield_performance_pct" readonly="1" />
+                            <field name="fertilizer_efficiency" readonly="1" />
+                        </group>
+                        <group>
+                            <field name="land_utilization_rate" readonly="1" />
+                            <field name="seed_productivity" readonly="1" />
+                        </group>
+                    </group>
+
+                    <group string="Clustered Harvest" invisible="not context.get('is_harvesting') or not is_clustered">
+                        <field name="production_cluster_line_ids" nolabel="1" colspan="2" readonly="registry_harvesting_state != 'draft'">
+                            <tree editable="bottom" create="false" delete="false">
+                                <field name="cluster_info_id" readonly="1" force_save="1" />
+                                <field name="crop_maturity_status" />
+                                <field name="harvest_date" />
+                                <field name="area_harvested" />
+                                <field name="qty_harvested" />
+                                <field name="post_harvest_loss_pct" optional="hide" />
+                                <field name="qty_stored" optional="hide" />
+                                <field name="qty_sold" optional="hide" />
+                            </tree>
+                        </field>
+                    </group>
+
+                    <group string="Survey Personnel">
+                        <group>
+                            <field name="surveyor_name" readonly="((context.get('is_harvesting') and registry_harvesting_state != 'draft') or (not context.get('is_harvesting') and registry_sowing_state != 'draft'))" />
+                            <field name="surveyor_mobile_number" readonly="((context.get('is_harvesting') and registry_harvesting_state != 'draft') or (not context.get('is_harvesting') and registry_sowing_state != 'draft'))" />
+                        </group>
+                        <group>
+                            <field name="supervisor_name" readonly="((context.get('is_harvesting') and registry_harvesting_state != 'draft') or (not context.get('is_harvesting') and registry_sowing_state != 'draft'))" />
+                            <field name="supervisor_mobile_number" readonly="((context.get('is_harvesting') and registry_harvesting_state != 'draft') or (not context.get('is_harvesting') and registry_sowing_state != 'draft'))" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW -->
+    <record id="view_g2p_crop_production_menu_search" model="ir.ui.view">
+        <field name="name">g2p.crop.production.menu.search</field>
+        <field name="model">g2p.crop.production</field>
+        <field name="arch" type="xml">
+            <search string="Search Production">
+                <field name="crop_registry_id" />
+                <field name="land_info_id" />
+                <field name="crop_name_id" />
+            </search>
+        </field>
+    </record>
+</odoo>

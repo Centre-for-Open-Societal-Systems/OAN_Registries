@@ -189,11 +189,12 @@ class G2PATIConsentController(http.Controller):
 
         return (farmer.mobile or farmer.phone or "").strip()
 
+
+
     def _get_fayda_otp_config(self):
         mock_host = (os.getenv("MOCK_FAYDA_HOST") or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_host"]).strip()
         mock_port = (os.getenv("MOCK_FAYDA_PORT") or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_port"]).strip()
-        mock_base_url = "http://%s:%s" % (mock_host or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_host"], 
-                                                    mock_port or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_port"])
+        mock_base_url = "http://%s:%s" % (mock_host or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_host"], mock_port or self._FAYDA_OTP_LOCAL_DEFAULTS["mock_port"])
 
         client_id = (
             os.getenv("G2P_FAYDA_OTP_CLIENT_ID")
@@ -249,8 +250,8 @@ class G2PATIConsentController(http.Controller):
     def _get_fayda_otp_session_store(self):
         store = request.session.get(self._FAYDA_OTP_SESSION_KEY)
         if not isinstance(store, dict):
-            request.session[self._FAYDA_OTP_SESSION_KEY] = {}
-            store = request.session.get(self._FAYDA_OTP_SESSION_KEY) or {}
+            store = {}
+            request.session[self._FAYDA_OTP_SESSION_KEY] = store
         return store
 
     def _get_liveness_config(self):
@@ -812,12 +813,12 @@ class G2PATIConsentController(http.Controller):
         if national_id:
             search_value = str(national_id).strip()
             partner_ids = set()
-            
+
             # Search by unique_id
             farmers = partner_obj.search(base_domain + [("unique_id", "=", search_value)], limit=1)
             if farmers:
                 return farmers[0]
-            
+
             # Search by reg_ids.value (any ID type)
             reg_ids = reg_id_obj.search([("value", "=", search_value)], limit=100)
             if reg_ids:
@@ -1826,7 +1827,7 @@ class G2PATIConsentController(http.Controller):
             )
             if not consent_reason:
                 return {"error": "invalid_consent_reason"}
-        
+
         consent_reason_str = (post.get("purpose") or "").strip()
         if not consent_reason and not consent_reason_str:
             return {"error": "missing_purpose"}
@@ -1839,7 +1840,7 @@ class G2PATIConsentController(http.Controller):
                 return {"error": "invalid_purpose"}
 
         purpose = consent_reason.name if consent_reason else consent_reason_str
-        
+
         validity_months = post.get("validity_months")
         try:
             validity_months = int(validity_months) if validity_months else 12
@@ -1859,7 +1860,7 @@ class G2PATIConsentController(http.Controller):
         if not allowed_data_field_ids and post.get("allowed_data_field_ids"):
             val = post.get("allowed_data_field_ids")
             allowed_data_field_ids = val if isinstance(val, list) else [val]
-        
+
         allowed_ids = []
         for fid in allowed_data_field_ids:
             try:
@@ -2013,15 +2014,15 @@ class G2PATIConsentController(http.Controller):
         farm_res = self._process_farmer(post)
         if "error" in farm_res:
             return farm_res
-        
+
         rsn_res = self._process_consent_reason(post)
         if "error" in rsn_res:
             return rsn_res
-        
+
         fld_res = self._process_allowed_fields(post, partner, is_api)
         if "error" in fld_res:
             return fld_res
-        
+
         now = fields.Datetime.now()
         validity_from = now
         validity_to = now + timedelta(days=rsn_res["validity_months"] * 30)
@@ -2040,7 +2041,7 @@ class G2PATIConsentController(http.Controller):
         }
         if fld_res["allowed_ids"]:
             vals["allowed_data_field_ids"] = [(6, 0, fld_res["allowed_ids"])]
-            
+
         return {"vals": vals, "farmer": farm_res["farmer"], "allowed_ids": fld_res["allowed_ids"]}
 
     @http.route("/consent/request/submit", type="http", auth="user", methods=["POST"], csrf=True)
@@ -2085,7 +2086,7 @@ class G2PATIConsentController(http.Controller):
             otp_transaction_id = None
             liveness_challenge_id = None
             attachment_ids = []
-            
+
             try:
                 files = request.httprequest.files or {}
                 upload = files.get("attachment")
@@ -2113,7 +2114,7 @@ class G2PATIConsentController(http.Controller):
                 return _reject("server_error")
 
             liveness_challenge_id = post.get("liveness_challenge_id")
-            
+
             app_res = self._create_and_approve_consent(
                 vals, auto_approve_requested, auto_approve_method, otp_transaction_id, liveness_challenge_id, is_api=False
             )
@@ -2156,7 +2157,7 @@ class G2PATIConsentController(http.Controller):
             acc_res = self._check_submit_access(post)
             if "error" in acc_res:
                 return self._error(acc_res["error"], code=403 if acc_res["error"] == "access_denied" else 400)
-            
+
             partner = acc_res["partner"]
             user_id = acc_res.get("user_id", False)
             posted_farmer = acc_res.get("posted_farmer", "")
@@ -2175,7 +2176,7 @@ class G2PATIConsentController(http.Controller):
                 )
                 code = 404 if err == "farmer_not_found" else 400
                 return self._error(err, code=code)
-            
+
             vals = build_res["vals"]
             farmer = build_res["farmer"]
             allowed_ids = build_res["allowed_ids"]
@@ -2543,7 +2544,7 @@ class G2PATIConsentController(http.Controller):
         """Fetch allowed data fields for a consent partner."""
         payload = kwargs
         partner_id = payload.get("partner_id") or payload.get("partner_record_id")
-        
+
         if not partner_id:
             partner = self._get_consent_partner()
             if not partner:
@@ -2552,7 +2553,7 @@ class G2PATIConsentController(http.Controller):
             partner = request.env["res.partner"].sudo().browse(int(partner_id))
             if not partner.exists() or not partner.is_consent_parent:
                 return self._error("Consent partner not found", code=404)
-        
+
         fields = partner.allowed_data_field_ids
         data = [{"id": f.id, "name": f.name, "code": f.code} for f in fields]
         return self._success(data)

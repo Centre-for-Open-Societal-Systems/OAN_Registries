@@ -1,0 +1,95 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_g2p_crop_registry,g2p.crop.registry,model_g2p_crop_registry,base.group_user,1,1,0,0
+access_g2p_crop_production,g2p.crop.production,model_g2p_crop_production,base.group_user,1,1,1,1
+
+access_g2p_water_resource_line,g2p.water.resource.line,model_g2p_water_resource_line,base.group_user,1,1,1,1
+access_g2p_annual_line,g2p.annual.line,model_g2p_annual_line,base.group_user,1,1,1,1
+access_g2p_annual_actual_line,g2p.annual.actual.line,model_g2p_annual_actual_line,base.group_user,1,1,1,1
+access_g2p_crop_pest_line,g2p.crop.pest.line,model_g2p_crop_pest_line,base.group_user,1,1,1,1
+access_g2p_crop_weed_line,g2p.crop.weed.line,model_g2p_crop_weed_line,base.group_user,1,1,1,1
+
+
+access_g2p_actual_water_resource_line,g2p.actual.water.resource.line,model_g2p_actual_water_resource_line,base.group_user,1,1,1,1
+access_g2p_land_prep_method,g2p.land.prep.method,model_g2p_land_prep_method,base.group_user,1,1,1,1
+access_g2p_cluster_farmer_line,g2p.cluster.farmer.line,model_g2p_cluster_farmer_line,base.group_user,1,1,1,1
+access_g2p_cluster_information,g2p.cluster.information,model_g2p_cluster_information,base.group_user,1,1,1,1
+access_g2p_cluster_status,g2p.cluster.status,model_g2p_cluster_status,base.group_user,1,1,1,1
+access_g2p_crop_production_cluster_line,g2p.crop.production.cluster.line,model_g2p_crop_production_cluster_line,base.group_user,1,1,1,1
+access_g2p_crop_infestation_incident,g2p.crop.infestation.incident,model_g2p_crop_infestation_incident,base.group_user,1,1,1,1
+access_g2p_infestation_type,g2p.infestation.type,model_g2p_infestation_type,base.group_user,1,1,1,1
+access_g2p_crop_disease_line,g2p.crop.disease.line,model_g2p_crop_disease_line,base.group_user,1,1,1,1
+access_g2p_crop_nutrient_line,g2p.crop.nutrient.line,model_g2p_crop_nutrient_line,base.group_user,1,1,1,1
+access_g2p_crop_climate_line,g2p.crop.climate.line,model_g2p_crop_climate_line,base.group_user,1,1,1,1
+
+
+access_wah_crop_registry,g2p.crop.registry WAH,model_g2p_crop_registry,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_crop_production,g2p.crop.production WAH,model_g2p_crop_production,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_annual_line,g2p.annual.line WAH,model_g2p_annual_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_annual_actual_line,g2p.annual.actual.line WAH,model_g2p_annual_actual_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_cluster_information,g2p.cluster.information WAH,model_g2p_cluster_information,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_cluster_farmer_line,g2p.cluster.farmer.line WAH,model_g2p_cluster_farmer_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_cluster_status,g2p.cluster.status WAH,model_g2p_cluster_status,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_crop_production_cluster_line,g2p.crop.production.cluster.line WAH,model_g2p_crop_production_cluster_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_water_resource_line,g2p.water.resource.line WAH,model_g2p_water_resource_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_actual_water_resource_line,g2p.actual.water.resource.line WAH,model_g2p_actual_water_resource_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_land_prep_method,g2p.land.prep.method WAH,model_g2p_land_prep_method,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_crop_pest_line,g2p.crop.pest.line WAH,model_g2p_crop_pest_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_crop_weed_line,g2p.crop.weed.line WAH,model_g2p_crop_weed_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_crop_infestation_incident,g2p.crop.infestation.incident WAH,model_g2p_crop_infestation_incident,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_infestation_type,g2p.infestation.type WAH,model_g2p_infestation_type,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_crop_disease_line,g2p.crop.disease.line WAH,model_g2p_crop_disease_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_crop_nutrient_line,g2p.crop.nutrient.line WAH,model_g2p_crop_nutrient_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_wah_crop_climate_line,g2p.crop.climate.line WAH,model_g2p_crop_climate_line,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_g2p_crop_reject_wizard,g2p.crop.reject.wizard,model_g2p_crop_reject_wizard,base.group_user,1,1,1,1
+access_wah_crop_reject_wizard,g2p.crop.reject.wizard WAH,model_g2p_crop_reject_wizard,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_g2p_crop_change_request,g2p.crop.change.request,model_g2p_crop_change_request,base.group_user,1,1,1,0
+access_wah_crop_change_request,g2p.crop.change.request WAH,model_g2p_crop_change_request,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_g2p_crop_edit_request,g2p.crop.edit.request,model_g2p_crop_edit_request,base.group_user,1,1,1,0
+access_wah_crop_edit_request,g2p.crop.edit.request WAH,model_g2p_crop_edit_request,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_g2p_crop_request_wiz,g2p.crop.request.wiz,model_g2p_crop_request_wiz,base.group_user,1,1,1,0
+access_wah_crop_request_wiz,g2p.crop.request.wiz WAH,model_g2p_crop_request_wiz,g2p_crop_registry.group_woreda_agri_office_head,1,1,1,1
+access_sms_crop_registry,g2p.crop.registry SMS,model_g2p_crop_registry,g2p_crop_registry.group_woreda_sms,1,1,0,0
+access_sms_crop_production,g2p.crop.production SMS,model_g2p_crop_production,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_annual_line,g2p.annual.line SMS,model_g2p_annual_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_annual_actual_line,g2p.annual.actual.line SMS,model_g2p_annual_actual_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_cluster_information,g2p.cluster.information SMS,model_g2p_cluster_information,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_cluster_farmer_line,g2p.cluster.farmer.line SMS,model_g2p_cluster_farmer_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_cluster_status,g2p.cluster.status SMS,model_g2p_cluster_status,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_crop_production_cluster_line,g2p.crop.production.cluster.line SMS,model_g2p_crop_production_cluster_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_water_resource_line,g2p.water.resource.line SMS,model_g2p_water_resource_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_actual_water_resource_line,g2p.actual.water.resource.line SMS,model_g2p_actual_water_resource_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_land_prep_method,g2p.land.prep.method SMS,model_g2p_land_prep_method,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_crop_pest_line,g2p.crop.pest.line SMS,model_g2p_crop_pest_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_crop_weed_line,g2p.crop.weed.line SMS,model_g2p_crop_weed_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_crop_infestation_incident,g2p.crop.infestation.incident SMS,model_g2p_crop_infestation_incident,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_infestation_type,g2p.infestation.type SMS,model_g2p_infestation_type,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_crop_disease_line,g2p.crop.disease.line SMS,model_g2p_crop_disease_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_crop_nutrient_line,g2p.crop.nutrient.line SMS,model_g2p_crop_nutrient_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_crop_climate_line,g2p.crop.climate.line SMS,model_g2p_crop_climate_line,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_crop_reject_wizard,g2p.crop.reject.wizard SMS,model_g2p_crop_reject_wizard,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_crop_change_request,g2p.crop.change.request SMS,model_g2p_crop_change_request,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_crop_edit_request,g2p.crop.edit.request SMS,model_g2p_crop_edit_request,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_sms_crop_request_wiz,g2p.crop.request.wiz SMS,model_g2p_crop_request_wiz,g2p_crop_registry.group_woreda_sms,1,1,1,1
+access_da_crop_registry,g2p.crop.registry DA,model_g2p_crop_registry,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_crop_production,g2p.crop.production DA,model_g2p_crop_production,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_annual_line,g2p.annual.line DA,model_g2p_annual_line,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_annual_actual_line,g2p.annual.actual.line DA,model_g2p_annual_actual_line,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_cluster_information,g2p.cluster.information DA,model_g2p_cluster_information,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_cluster_farmer_line,g2p.cluster.farmer.line DA,model_g2p_cluster_farmer_line,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_cluster_status,g2p.cluster.status DA,model_g2p_cluster_status,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_crop_production_cluster_line,g2p.crop.production.cluster.line DA,model_g2p_crop_production_cluster_line,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_water_resource_line,g2p.water.resource.line DA,model_g2p_water_resource_line,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_actual_water_resource_line,g2p.actual.water.resource.line DA,model_g2p_actual_water_resource_line,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_land_prep_method,g2p.land.prep.method DA,model_g2p_land_prep_method,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_crop_pest_line,g2p.crop.pest.line DA,model_g2p_crop_pest_line,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_crop_weed_line,g2p.crop.weed.line DA,model_g2p_crop_weed_line,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_crop_infestation_incident,g2p.crop.infestation.incident DA,model_g2p_crop_infestation_incident,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_infestation_type,g2p.infestation.type DA,model_g2p_infestation_type,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_crop_disease_line,g2p.crop.disease.line DA,model_g2p_crop_disease_line,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_crop_nutrient_line,g2p.crop.nutrient.line DA,model_g2p_crop_nutrient_line,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_crop_climate_line,g2p.crop.climate.line DA,model_g2p_crop_climate_line,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_crop_reject_wizard,g2p.crop.reject.wizard DA,model_g2p_crop_reject_wizard,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_crop_change_request,g2p.crop.change.request DA,model_g2p_crop_change_request,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_crop_edit_request,g2p.crop.edit.request DA,model_g2p_crop_edit_request,g2p_crop_registry.group_development_agent,1,1,1,1
+access_da_crop_request_wiz,g2p.crop.request.wiz DA,model_g2p_crop_request_wiz,g2p_crop_registry.group_development_agent,1,1,1,1

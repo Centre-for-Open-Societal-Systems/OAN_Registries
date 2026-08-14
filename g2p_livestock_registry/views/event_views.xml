@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="g2p_livestock_health_event_tree" model="ir.ui.view">
+        <field name="name">g2p.livestock.health.event.tree</field>
+        <field name="model">g2p.livestock.health.event</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="livestock_id"/>
+                <field name="event_type"/>
+                <field name="disease_type"/>
+                <field name="date_onset"/>
+                <field name="date_resolution"/>
+                <field name="treatment"/>
+                <field name="veterinarian_id"/>
+                <field name="location"/>
+                <field name="location_details"/>
+                <field name="is_notifiable"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="g2p_livestock_vaccination_tree" model="ir.ui.view">
+        <field name="name">g2p.livestock.vaccination.tree</field>
+        <field name="model">g2p.livestock.vaccination</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="livestock_id"/>
+                <field name="vaccine_type"/>
+                <field name="vaccination_date"/>
+                <field name="next_due_date"/>
+                <field name="batch_number"/>
+                <field name="administering_user_id"/>
+                <field name="due_soon_reminder_sent" optional="hide"/>
+                <field name="overdue_reminder_sent" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="g2p_livestock_vital_event_tree" model="ir.ui.view">
+        <field name="name">g2p.livestock.vital.event.tree</field>
+        <field name="model">g2p.livestock.vital.event</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="livestock_id"/>
+                <field name="event_type"/>
+                <field name="date"/>
+                <field name="cause"/>
+                <field name="location"/>
+                <field name="location_details"/>
+                <field name="disease_type"/>
+                <field name="created_offspring_ids" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="g2p_livestock_breeding_tree" model="ir.ui.view">
+        <field name="name">g2p.livestock.breeding.tree</field>
+        <field name="model">g2p.livestock.breeding</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="livestock_id"/>
+                <field name="event_type"/>
+                <field name="breeding_date"/>
+                <field name="sire_or_semen_id"/>
+                <field name="location"/>
+                <field name="location_details"/>
+                <field name="ai_technician_id"
+                       context="{'form_view_ref': 'g2p_livestock_registry.view_technician_partner_form_minimal'}"/>
+                <field name="expected_calving_date"/>
+                <field name="pregnancy_confirmed"/>
+                <field name="outcome"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

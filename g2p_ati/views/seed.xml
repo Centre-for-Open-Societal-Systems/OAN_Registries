@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Views for g2p.seed.catalog -->
+    <record id="view_g2p_seed_catalog_tree" model="ir.ui.view">
+        <field name="name">g2p.seed.catalog.tree</field>
+        <field name="model">g2p.seed.catalog</field>
+        <field name="arch" type="xml">
+            <tree string="Seed Catalog">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_seed_catalog_form" model="ir.ui.view">
+        <field name="name">g2p.seed.catalog.form</field>
+        <field name="model">g2p.seed.catalog</field>
+        <field name="arch" type="xml">
+            <form string="Seed Catalog">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_g2p_seed_catalog" model="ir.actions.act_window">
+        <field name="name">Seed Catalog</field>
+        <field name="res_model">g2p.seed.catalog</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_g2p_seed_catalog_tree"/>
+    </record>
+
+    <!-- Views for g2p.seed.demand.summary -->
+    <record id="view_g2p_seed_demand_summary_tree" model="ir.ui.view">
+        <field name="name">g2p.seed.demand.summary.tree</field>
+        <field name="model">g2p.seed.demand.summary</field>
+        <field name="arch" type="xml">
+            <tree string="Seed Demand Summary">
+                <field name="budget_year"/>
+                <field name="total_entries"/>
+                <field name="total_quantity_demanded"/>
+                <field name="average_quantity_per_entry"/>
+                <field name="total_estimated_land_ha"/>
+                <field name="average_estimated_land_ha"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_seed_demand_summary_form" model="ir.ui.view">
+        <field name="name">g2p.seed.demand.summary.form</field>
+        <field name="model">g2p.seed.demand.summary</field>
+        <field name="arch" type="xml">
+            <form string="Seed Demand Summary">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="budget_year"/>
+                            <field name="total_entries"/>
+                            <field name="total_quantity_demanded"/>
+                        </group>
+                        <group>
+                            <field name="average_quantity_per_entry"/>
+                            <field name="total_estimated_land_ha"/>
+                            <field name="average_estimated_land_ha"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_g2p_seed_demand_summary" model="ir.actions.act_window">
+        <field name="name">Demand Summary</field>
+        <field name="res_model">g2p.seed.demand.summary</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Views for g2p.seed.demand.trend -->
+    <record id="view_g2p_seed_demand_trend_tree" model="ir.ui.view">
+        <field name="name">g2p.seed.demand.trend.tree</field>
+        <field name="model">g2p.seed.demand.trend</field>
+        <field name="arch" type="xml">
+            <tree string="Seed Demand Trend">
+                <field name="budget_year"/>
+                <field name="seed_class"/>
+                <field name="quantity_demanded"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_seed_demand_trend_form" model="ir.ui.view">
+        <field name="name">g2p.seed.demand.trend.form</field>
+        <field name="model">g2p.seed.demand.trend</field>
+        <field name="arch" type="xml">
+            <form string="Seed Demand Trend">
+                <sheet>
+                    <group>
+                        <field name="budget_year"/>
+                        <field name="seed_class"/>
+                        <field name="quantity_demanded"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_g2p_seed_demand_trend" model="ir.actions.act_window">
+        <field name="name">Demand Trend</field>
+        <field name="res_model">g2p.seed.demand.trend</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Views for g2p.seed.demand.trend.by.crop -->
+    <record id="view_g2p_seed_demand_trend_by_crop_tree" model="ir.ui.view">
+        <field name="name">g2p.seed.demand.trend.by.crop.tree</field>
+        <field name="model">g2p.seed.demand.trend.by.crop</field>
+        <field name="arch" type="xml">
+            <tree string="Seed Demand Trend By Crop">
+                <field name="crop_id"/>
+                <field name="crop_name"/>
+                <field name="budget_year"/>
+                <field name="seed_class"/>
+                <field name="quantity_demanded"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_seed_demand_trend_by_crop_form" model="ir.ui.view">
+        <field name="name">g2p.seed.demand.trend.by.crop.form</field>
+        <field name="model">g2p.seed.demand.trend.by.crop</field>
+        <field name="arch" type="xml">
+            <form string="Seed Demand Trend By Crop">
+                <sheet>
+                    <group>
+                        <field name="crop_id"/>
+                        <field name="crop_name"/>
+                        <field name="budget_year"/>
+                        <field name="seed_class"/>
+                        <field name="quantity_demanded"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_g2p_seed_demand_trend_by_crop" model="ir.actions.act_window">
+        <field name="name">Demand Trend By Crop</field>
+        <field name="res_model">g2p.seed.demand.trend.by.crop</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem
+        id="menu_g2p_seed_root"
+        name="Seed"
+        parent="g2p_registry_base.g2p_configuration_menu_root"
+        sequence="615"
+    />
+
+    <menuitem
+        id="menu_g2p_seed_catalog"
+        name="Seed Catalog"
+        parent="menu_g2p_seed_root"
+        action="action_g2p_seed_catalog"
+        sequence="10"
+    />
+
+    <menuitem
+        id="menu_g2p_seed_demand_summary"
+        name="Demand Summary"
+        parent="menu_g2p_seed_root"
+        action="action_g2p_seed_demand_summary"
+        sequence="20"
+    />
+
+    <menuitem
+        id="menu_g2p_seed_demand_trend"
+        name="Demand Trend"
+        parent="menu_g2p_seed_root"
+        action="action_g2p_seed_demand_trend"
+        sequence="30"
+    />
+
+    <menuitem
+        id="menu_g2p_seed_demand_trend_by_crop"
+        name="Demand Trend By Crop"
+        parent="menu_g2p_seed_root"
+        action="action_g2p_seed_demand_trend_by_crop"
+        sequence="40"
+    />
+
+</odoo>

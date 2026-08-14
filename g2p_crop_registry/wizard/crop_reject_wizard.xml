@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_crop_reject_wizard_form" model="ir.ui.view">
+            <field name="name">g2p.crop.reject.wizard.form</field>
+            <field name="model">g2p.crop.reject.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Enter Rejection Reason">
+                    <group>
+                        <field name="reason"/>
+                    </group>
+                    <footer>
+                        <button name="confirm_rejection" string="Confirm" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_crop_reject_wizard" model="ir.actions.act_window">
+            <field name="name">Enter Rejection Reason</field>
+            <field name="res_model">g2p.crop.reject.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>

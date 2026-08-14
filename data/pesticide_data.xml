@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Insecticides -->
+        <record id="pesticide_insecticide_chlorpyrifos" model="g2p.pesticide">
+            <field name="name">Chlorpyrifos</field>
+            <field name="code">chlorpyrifos</field>
+            <field name="pesticide_type">insecticide</field>
+        </record>
+        <record id="pesticide_insecticide_imidacloprid" model="g2p.pesticide">
+            <field name="name">Imidacloprid</field>
+            <field name="code">imidacloprid</field>
+            <field name="pesticide_type">insecticide</field>
+        </record>
+        <record id="pesticide_insecticide_malathion" model="g2p.pesticide">
+            <field name="name">Malathion</field>
+            <field name="code">malathion</field>
+            <field name="pesticide_type">insecticide</field>
+        </record>
+        <record id="pesticide_insecticide_cypermethrin" model="g2p.pesticide">
+            <field name="name">Cypermethrin</field>
+            <field name="code">cypermethrin</field>
+            <field name="pesticide_type">insecticide</field>
+        </record>
+        <record id="pesticide_insecticide_deltamethrin" model="g2p.pesticide">
+            <field name="name">Deltamethrin</field>
+            <field name="code">deltamethrin</field>
+            <field name="pesticide_type">insecticide</field>
+        </record>
+        <record id="pesticide_insecticide_thiamethoxam" model="g2p.pesticide">
+            <field name="name">Thiamethoxam</field>
+            <field name="code">thiamethoxam</field>
+            <field name="pesticide_type">insecticide</field>
+        </record>
+        <record id="pesticide_insecticide_acephate" model="g2p.pesticide">
+            <field name="name">Acephate</field>
+            <field name="code">acephate</field>
+            <field name="pesticide_type">insecticide</field>
+        </record>
+        <record id="pesticide_insecticide_lambda_cyhalothrin" model="g2p.pesticide">
+            <field name="name">Lambda-cyhalothrin</field>
+            <field name="code">lambda_cyhalothrin</field>
+            <field name="pesticide_type">insecticide</field>
+        </record>
+        <record id="pesticide_insecticide_bifenthrin" model="g2p.pesticide">
+            <field name="name">Bifenthrin</field>
+            <field name="code">bifenthrin</field>
+            <field name="pesticide_type">insecticide</field>
+        </record>
+        <record id="pesticide_insecticide_spinosad" model="g2p.pesticide">
+            <field name="name">Spinosad</field>
+            <field name="code">spinosad</field>
+            <field name="pesticide_type">insecticide</field>
+        </record>
+
+        <!-- Fungicides -->
+        <record id="pesticide_fungicide_mancozeb" model="g2p.pesticide">
+            <field name="name">Mancozeb</field>
+            <field name="code">mancozeb</field>
+            <field name="pesticide_type">fungicide</field>
+        </record>
+        <record id="pesticide_fungicide_carbendazim" model="g2p.pesticide">
+            <field name="name">Carbendazim</field>
+            <field name="code">carbendazim</field>
+            <field name="pesticide_type">fungicide</field>
+        </record>
+        <record id="pesticide_fungicide_copper_oxychloride" model="g2p.pesticide">
+            <field name="name">Copper Oxychloride</field>
+            <field name="code">copper_oxychloride</field>
+            <field name="pesticide_type">fungicide</field>
+        </record>
+        <record id="pesticide_fungicide_propiconazole" model="g2p.pesticide">
+            <field name="name">Propiconazole</field>
+            <field name="code">propiconazole</field>
+            <field name="pesticide_type">fungicide</field>
+        </record>
+        <record id="pesticide_fungicide_tebuconazole" model="g2p.pesticide">
+            <field name="name">Tebuconazole</field>
+            <field name="code">tebuconazole</field>
+            <field name="pesticide_type">fungicide</field>
+        </record>
+        <record id="pesticide_fungicide_hexaconazole" model="g2p.pesticide">
+            <field name="name">Hexaconazole</field>
+            <field name="code">hexaconazole</field>
+            <field name="pesticide_type">fungicide</field>
+        </record>
+        <record id="pesticide_fungicide_thiram" model="g2p.pesticide">
+            <field name="name">Thiram</field>
+            <field name="code">thiram</field>
+            <field name="pesticide_type">fungicide</field>
+        </record>
+        <record id="pesticide_fungicide_captan" model="g2p.pesticide">
+            <field name="name">Captan</field>
+            <field name="code">captan</field>
+            <field name="pesticide_type">fungicide</field>
+        </record>
+        <record id="pesticide_fungicide_iprodione" model="g2p.pesticide">
+            <field name="name">Iprodione</field>
+            <field name="code">iprodione</field>
+            <field name="pesticide_type">fungicide</field>
+        </record>
+        <record id="pesticide_fungicide_azoxystrobin" model="g2p.pesticide">
+            <field name="name">Azoxystrobin</field>
+            <field name="code">azoxystrobin</field>
+            <field name="pesticide_type">fungicide</field>
+        </record>
+
+        <!-- Herbicides -->
+        <record id="pesticide_herbicide_glyphosate" model="g2p.pesticide">
+            <field name="name">Glyphosate</field>
+            <field name="code">glyphosate</field>
+            <field name="pesticide_type">herbicide</field>
+        </record>
+        <record id="pesticide_herbicide_atrazine" model="g2p.pesticide">
+            <field name="name">Atrazine</field>
+            <field name="code">atrazine</field>
+            <field name="pesticide_type">herbicide</field>
+        </record>
+        <record id="pesticide_herbicide_24_d" model="g2p.pesticide">
+            <field name="name">2,4-D</field>
+            <field name="code">2_4_d</field>
+            <field name="pesticide_type">herbicide</field>
+        </record>
+        <record id="pesticide_herbicide_pendimethalin" model="g2p.pesticide">
+            <field name="name">Pendimethalin</field>
+            <field name="code">pendimethalin</field>
+            <field name="pesticide_type">herbicide</field>
+        </record>
+        <record id="pesticide_herbicide_paraquat" model="g2p.pesticide">
+            <field name="name">Paraquat</field>
+            <field name="code">paraquat</field>
+            <field name="pesticide_type">herbicide</field>
+        </record>
+        <record id="pesticide_herbicide_butachlor" model="g2p.pesticide">
+            <field name="name">Butachlor</field>
+            <field name="code">butachlor</field>
+            <field name="pesticide_type">herbicide</field>
+        </record>
+        <record id="pesticide_herbicide_metribuzin" model="g2p.pesticide">
+            <field name="name">Metribuzin</field>
+            <field name="code">metribuzin</field>
+            <field name="pesticide_type">herbicide</field>
+        </record>
+        <record id="pesticide_herbicide_oxyfluorfen" model="g2p.pesticide">
+            <field name="name">Oxyfluorfen</field>
+            <field name="code">oxyfluorfen</field>
+            <field name="pesticide_type">herbicide</field>
+        </record>
+        <record id="pesticide_herbicide_imazethapyr" model="g2p.pesticide">
+            <field name="name">Imazethapyr</field>
+            <field name="code">imazethapyr</field>
+            <field name="pesticide_type">herbicide</field>
+        </record>
+        <record id="pesticide_herbicide_pretilachlor" model="g2p.pesticide">
+            <field name="name">Pretilachlor</field>
+            <field name="code">pretilachlor</field>
+            <field name="pesticide_type">herbicide</field>
+        </record>
+
+        <!-- Rodenticides -->
+        <record id="pesticide_rodenticide_bromadiolone" model="g2p.pesticide">
+            <field name="name">Bromadiolone</field>
+            <field name="code">bromadiolone</field>
+            <field name="pesticide_type">rodenticide</field>
+        </record>
+        <record id="pesticide_rodenticide_brodifacoum" model="g2p.pesticide">
+            <field name="name">Brodifacoum</field>
+            <field name="code">brodifacoum</field>
+            <field name="pesticide_type">rodenticide</field>
+        </record>
+        <record id="pesticide_rodenticide_zinc_phosphide" model="g2p.pesticide">
+            <field name="name">Zinc Phosphide</field>
+            <field name="code">zinc_phosphide</field>
+            <field name="pesticide_type">rodenticide</field>
+        </record>
+        <record id="pesticide_rodenticide_warfarin" model="g2p.pesticide">
+            <field name="name">Warfarin</field>
+            <field name="code">warfarin</field>
+            <field name="pesticide_type">rodenticide</field>
+        </record>
+        <record id="pesticide_rodenticide_coumatetralyl" model="g2p.pesticide">
+            <field name="name">Coumatetralyl</field>
+            <field name="code">coumatetralyl</field>
+            <field name="pesticide_type">rodenticide</field>
+        </record>
+        <record id="pesticide_rodenticide_difethialone" model="g2p.pesticide">
+            <field name="name">Difethialone</field>
+            <field name="code">difethialone</field>
+            <field name="pesticide_type">rodenticide</field>
+        </record>
+        <record id="pesticide_rodenticide_flocoumafen" model="g2p.pesticide">
+            <field name="name">Flocoumafen</field>
+            <field name="code">flocoumafen</field>
+            <field name="pesticide_type">rodenticide</field>
+        </record>
+        <record id="pesticide_rodenticide_aluminium_phosphide" model="g2p.pesticide">
+            <field name="name">Aluminium Phosphide</field>
+            <field name="code">aluminium_phosphide</field>
+            <field name="pesticide_type">rodenticide</field>
+        </record>
+
+        <!-- Bactericides -->
+        <record id="pesticide_bactericide_streptomycin" model="g2p.pesticide">
+            <field name="name">Streptomycin</field>
+            <field name="code">streptomycin</field>
+            <field name="pesticide_type">bactericide</field>
+        </record>
+        <record id="pesticide_bactericide_copper_hydroxide" model="g2p.pesticide">
+            <field name="name">Copper Hydroxide</field>
+            <field name="code">copper_hydroxide</field>
+            <field name="pesticide_type">bactericide</field>
+        </record>
+        <record id="pesticide_bactericide_kasugamycin" model="g2p.pesticide">
+            <field name="name">Kasugamycin</field>
+            <field name="code">kasugamycin</field>
+            <field name="pesticide_type">bactericide</field>
+        </record>
+        <record id="pesticide_bactericide_oxytetracycline" model="g2p.pesticide">
+            <field name="name">Oxytetracycline</field>
+            <field name="code">oxytetracycline</field>
+            <field name="pesticide_type">bactericide</field>
+        </record>
+        <record id="pesticide_bactericide_bordeaux_mixture" model="g2p.pesticide">
+            <field name="name">Bordeaux Mixture</field>
+            <field name="code">bordeaux_mixture</field>
+            <field name="pesticide_type">bactericide</field>
+        </record>
+        <record id="pesticide_bactericide_validamycin" model="g2p.pesticide">
+            <field name="name">Validamycin</field>
+            <field name="code">validamycin</field>
+            <field name="pesticide_type">bactericide</field>
+        </record>
+        <!-- Nematicides -->
+        <record id="pesticide_nematicide_carbofuran" model="g2p.pesticide">
+            <field name="name">Carbofuran</field>
+            <field name="code">carbofuran</field>
+            <field name="pesticide_type">nematicide</field>
+        </record>
+        <record id="pesticide_nematicide_fenamiphos" model="g2p.pesticide">
+            <field name="name">Fenamiphos</field>
+            <field name="code">fenamiphos</field>
+            <field name="pesticide_type">nematicide</field>
+        </record>
+        <record id="pesticide_nematicide_ethoprophos" model="g2p.pesticide">
+            <field name="name">Ethoprophos</field>
+            <field name="code">ethoprophos</field>
+            <field name="pesticide_type">nematicide</field>
+        </record>
+        <record id="pesticide_nematicide_oxamyl" model="g2p.pesticide">
+            <field name="name">Oxamyl</field>
+            <field name="code">oxamyl</field>
+            <field name="pesticide_type">nematicide</field>
+        </record>
+        <record id="pesticide_nematicide_cadusafos" model="g2p.pesticide">
+            <field name="name">Cadusafos</field>
+            <field name="code">cadusafos</field>
+            <field name="pesticide_type">nematicide</field>
+        </record>
+        <record id="pesticide_nematicide_fluopyram" model="g2p.pesticide">
+            <field name="name">Fluopyram</field>
+            <field name="code">fluopyram</field>
+            <field name="pesticide_type">nematicide</field>
+        </record>
+
+        <!-- Acaricide / Miticide -->
+        <record id="pesticide_acaricide_abamectin" model="g2p.pesticide">
+            <field name="name">Abamectin</field>
+            <field name="code">abamectin</field>
+            <field name="pesticide_type">acaricide</field>
+        </record>
+        <record id="pesticide_acaricide_dicofol" model="g2p.pesticide">
+            <field name="name">Dicofol</field>
+            <field name="code">dicofol</field>
+            <field name="pesticide_type">acaricide</field>
+        </record>
+        <record id="pesticide_acaricide_propargite" model="g2p.pesticide">
+            <field name="name">Propargite</field>
+            <field name="code">propargite</field>
+            <field name="pesticide_type">acaricide</field>
+        </record>
+        <record id="pesticide_acaricide_hexythiazox" model="g2p.pesticide">
+            <field name="name">Hexythiazox</field>
+            <field name="code">hexythiazox</field>
+            <field name="pesticide_type">acaricide</field>
+        </record>
+        <record id="pesticide_acaricide_spiromesifen" model="g2p.pesticide">
+            <field name="name">Spiromesifen</field>
+            <field name="code">spiromesifen</field>
+            <field name="pesticide_type">acaricide</field>
+        </record>
+        <record id="pesticide_acaricide_bifenazate" model="g2p.pesticide">
+            <field name="name">Bifenazate</field>
+            <field name="code">bifenazate</field>
+            <field name="pesticide_type">acaricide</field>
+        </record>
+        <record id="pesticide_acaricide_clofentezine" model="g2p.pesticide">
+            <field name="name">Clofentezine</field>
+            <field name="code">clofentezine</field>
+            <field name="pesticide_type">acaricide</field>
+        </record>
+
+        <!-- Molluscicides -->
+        <record id="pesticide_molluscicide_metaldehyde" model="g2p.pesticide">
+            <field name="name">Metaldehyde</field>
+            <field name="code">metaldehyde</field>
+            <field name="pesticide_type">molluscicide</field>
+        </record>
+        <record id="pesticide_molluscicide_methiocarb" model="g2p.pesticide">
+            <field name="name">Methiocarb</field>
+            <field name="code">methiocarb</field>
+            <field name="pesticide_type">molluscicide</field>
+        </record>
+        <record id="pesticide_molluscicide_iron_phosphate" model="g2p.pesticide">
+            <field name="name">Iron Phosphate</field>
+            <field name="code">iron_phosphate</field>
+            <field name="pesticide_type">molluscicide</field>
+        </record>
+        <record id="pesticide_molluscicide_niclosamide" model="g2p.pesticide">
+            <field name="name">Niclosamide</field>
+            <field name="code">niclosamide</field>
+            <field name="pesticide_type">molluscicide</field>
+        </record>
+
+        <!-- Termiticides -->
+        <record id="pesticide_termiticide_fipronil" model="g2p.pesticide">
+            <field name="name">Fipronil</field>
+            <field name="code">fipronil</field>
+            <field name="pesticide_type">termiticide</field>
+        </record>
+        <record id="pesticide_termiticide_imidacloprid" model="g2p.pesticide">
+            <field name="name">Imidacloprid</field>
+            <field name="code">imidacloprid</field>
+            <field name="pesticide_type">termiticide</field>
+        </record>
+        <record id="pesticide_termiticide_bifenthrin" model="g2p.pesticide">
+            <field name="name">Bifenthrin</field>
+            <field name="code">bifenthrin</field>
+            <field name="pesticide_type">termiticide</field>
+        </record>
+        <record id="pesticide_termiticide_chlorpyrifos" model="g2p.pesticide">
+            <field name="name">Chlorpyrifos</field>
+            <field name="code">chlorpyrifos</field>
+            <field name="pesticide_type">termiticide</field>
+        </record>
+        <record id="pesticide_termiticide_permethrin" model="g2p.pesticide">
+            <field name="name">Permethrin</field>
+            <field name="code">permethrin</field>
+            <field name="pesticide_type">termiticide</field>
+        </record>
+        <record id="pesticide_termiticide_hexaflumuron" model="g2p.pesticide">
+            <field name="name">Hexaflumuron</field>
+            <field name="code">hexaflumuron</field>
+            <field name="pesticide_type">termiticide</field>
+        </record>
+
+        <!-- Avicides -->
+        <record id="pesticide_avicide_avitrol" model="g2p.pesticide">
+            <field name="name">Avitrol</field>
+            <field name="code">avitrol</field>
+            <field name="pesticide_type">avicide</field>
+        </record>
+        <record id="pesticide_avicide_starlicide" model="g2p.pesticide">
+            <field name="name">Starlicide</field>
+            <field name="code">starlicide</field>
+            <field name="pesticide_type">avicide</field>
+        </record>
+        <record id="pesticide_avicide_methiocarb" model="g2p.pesticide">
+            <field name="name">Methiocarb</field>
+            <field name="code">methiocarb</field>
+            <field name="pesticide_type">avicide</field>
+        </record>
+
+        <!-- Piscicides -->
+        <record id="pesticide_piscicide_rotenone" model="g2p.pesticide">
+            <field name="name">Rotenone</field>
+            <field name="code">rotenone</field>
+            <field name="pesticide_type">piscicide</field>
+        </record>
+        <record id="pesticide_piscicide_antimycin_a" model="g2p.pesticide">
+            <field name="name">Antimycin A</field>
+            <field name="code">antimycin_a</field>
+            <field name="pesticide_type">piscicide</field>
+        </record>
+        <record id="pesticide_piscicide_tfm" model="g2p.pesticide">
+            <field name="name">TFM</field>
+            <field name="code">tfm</field>
+            <field name="pesticide_type">piscicide</field>
+        </record>
+        <!-- Algicides -->
+        <record id="pesticide_algicide_copper_sulphate" model="g2p.pesticide">
+            <field name="name">Copper Sulphate</field>
+            <field name="code">copper_sulphate</field>
+            <field name="pesticide_type">algicide</field>
+        </record>
+        <record id="pesticide_algicide_simazine" model="g2p.pesticide">
+            <field name="name">Simazine</field>
+            <field name="code">simazine</field>
+            <field name="pesticide_type">algicide</field>
+        </record>
+        <record id="pesticide_algicide_diquat" model="g2p.pesticide">
+            <field name="name">Diquat</field>
+            <field name="code">diquat</field>
+            <field name="pesticide_type">algicide</field>
+        </record>
+        <record id="pesticide_algicide_endothall" model="g2p.pesticide">
+            <field name="name">Endothall</field>
+            <field name="code">endothall</field>
+            <field name="pesticide_type">algicide</field>
+        </record>
+
+        <!-- Virucides -->
+        <record id="pesticide_virucide_virus_x" model="g2p.pesticide">
+            <field name="name">Virus-X</field>
+            <field name="code">virus_x</field>
+            <field name="pesticide_type">virucide</field>
+        </record>
+        <record id="pesticide_virucide_salicylic_acid" model="g2p.pesticide">
+            <field name="name">Salicylic Acid</field>
+            <field name="code">salicylic_acid</field>
+            <field name="pesticide_type">virucide</field>
+        </record>
+        <record id="pesticide_virucide_neem_oil" model="g2p.pesticide">
+            <field name="name">Neem Oil</field>
+            <field name="code">neem_oil</field>
+            <field name="pesticide_type">virucide</field>
+        </record>
+    </data>
+</odoo>
