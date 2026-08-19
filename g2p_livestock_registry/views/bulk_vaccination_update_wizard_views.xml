@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_bulk_vaccination_update_wizard_form" model="ir.ui.view">
+        <field name="name">g2p.livestock.bulk.vaccination.wizard.form</field>
+        <field name="model">g2p.livestock.bulk.vaccination.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Bulk Update Vaccination Status">
+                <group>
+                    <field name="livestock_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="vaccination_status"/>
+                    <field name="notes" placeholder="Optional reason for this change..."/>
+                </group>
+                <footer>
+                    <button name="action_apply" string="Apply" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bulk_vaccination_update_wizard" model="ir.actions.act_window">
+        <field name="name">Bulk Update Vaccination Status</field>
+        <field name="res_model">g2p.livestock.bulk.vaccination.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_g2p_livestock_registry_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="context">{'default_livestock_ids': active_ids}</field>
+    </record>
+
+</odoo>

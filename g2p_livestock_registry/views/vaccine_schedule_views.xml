@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Tree View -->
+    <record id="view_g2p_livestock_vaccine_schedule_tree" model="ir.ui.view">
+        <field name="name">g2p.livestock.vaccine.schedule.tree</field>
+        <field name="model">g2p.livestock.vaccine.schedule</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="vaccine_name"/>
+                <field name="species_id"/>                    <!-- Updated -->
+                <field name="interval_days"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View (Recommended - Add this if not present) -->
+    <record id="view_g2p_livestock_vaccine_schedule_form" model="ir.ui.view">
+        <field name="name">g2p.livestock.vaccine.schedule.form</field>
+        <field name="model">g2p.livestock.vaccine.schedule</field>
+        <field name="arch" type="xml">
+            <form string="Vaccine Schedule">
+                <sheet>
+                    <group>
+                        <field name="vaccine_name"/>
+                        <field name="species_id"/>            <!-- Updated -->
+                        <field name="interval_days"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_g2p_livestock_vaccine_schedule" model="ir.actions.act_window">
+        <field name="name">Vaccine Schedules</field>
+        <field name="res_model">g2p.livestock.vaccine.schedule</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define how often each vaccine needs repeating, per species.
+            </p>
+            <p>Leave Species blank if a vaccine's schedule applies to all species. Once a vaccine is
+               listed here, it becomes selectable on Vaccination records — free typing is not allowed,
+               so the automatic Next Due Date calculation always works reliably.</p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_livestock_vaccine_schedule"
+              name="Vaccine Schedules"
+              parent="g2p_livestock_registry_menu_item_id"
+              action="action_g2p_livestock_vaccine_schedule"
+              sequence="6"
+              groups="g2p_livestock_registry.group_livestock_federal_admin,g2p_livestock_registry.group_livestock_regional_vet"/>
+
+</odoo>

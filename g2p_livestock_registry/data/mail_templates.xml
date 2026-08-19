@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="mail_template_vaccination_due_soon" model="mail.template">
+            <field name="name">Livestock: Vaccination Due Soon</field>
+            <field name="model_id" ref="model_g2p_livestock_vaccination"/>
+            <field name="subject">Reminder: Vaccination due soon for {{ object.ear_tag_id or 'animal' }}</field>
+            <field name="email_from">{{ (object.env.company.email or user.email) }}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
+                    <p>Hello <t t-out="object.administering_user_id.name or ''"/>,</p>
+                    <p>
+                        This is a reminder that the next vaccination for the animal below
+                        is coming up soon.
+                    </p>
+                    <table style="border-collapse: collapse; margin: 12px 0;">
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Ear Tag</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.ear_tag_id or '-'"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Vaccine</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.vaccine_type.vaccine_name or '-'"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Owner</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.line_id.owner_id.name or '-'"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Next Due Date</b></td>
+                            <td style="padding: 4px 0;"><t t-out="format_date(object.next_due_date)"/></td>
+                        </tr>
+                    </table>
+                    <p>Please arrange for this vaccination to be administered on time.</p>
+                    <p style="color: #888; font-size: 12px;">
+                        This is an automated reminder from the Livestock Registry.
+                    </p>
+                </div>
+            </field>
+        </record>
+
+        <record id="mail_template_vaccination_overdue" model="mail.template">
+            <field name="name">Livestock: Vaccination Overdue</field>
+            <field name="model_id" ref="model_g2p_livestock_vaccination"/>
+            <field name="subject">Overdue: Vaccination for {{ object.ear_tag_id or 'animal' }} is past due</field>
+            <field name="email_from">{{ (object.env.company.email or user.email) }}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
+                    <p>Hello <t t-out="object.administering_user_id.name or ''"/>,</p>
+                    <p>
+                        The vaccination for the animal below is now
+                        <b style="color: #c00;">overdue</b>. Please follow up as soon as possible.
+                    </p>
+                    <table style="border-collapse: collapse; margin: 12px 0;">
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Ear Tag</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.ear_tag_id or '-'"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Vaccine</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.vaccine_type.vaccine_name or '-'"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Owner</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.line_id.owner_id.name or '-'"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Was Due On</b></td>
+                            <td style="padding: 4px 0;"><t t-out="format_date(object.next_due_date)"/></td>
+                        </tr>
+                    </table>
+                    <p style="color: #888; font-size: 12px;">
+                        This is an automated reminder from the Livestock Registry.
+                    </p>
+                </div>
+            </field>
+        </record>
+
+        <record id="mail_template_outbreak_alert" model="mail.template">
+            <field name="name">Livestock: Possible Disease Outbreak</field>
+            <field name="model_id" ref="model_g2p_livestock_health_event"/>
+            <field name="subject">⚠ Possible outbreak: {{ object.disease_type or '' }} in {{ object.livestock_id.woreda_id.name or '' }}</field>
+            <field name="email_from">{{ (object.env.company.email or user.email) }}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
+                    <p>Hello,</p>
+                    <p>
+                        <b style="color: #c00;">3 or more notifiable disease cases</b>
+                        of the same disease have been recorded in the same woreda within the
+                        last 14 days. This may indicate a disease outbreak and needs review.
+                    </p>
+                    <table style="border-collapse: collapse; margin: 12px 0;">
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Disease</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.disease_type or '-'"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Woreda</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.livestock_id.woreda_id.name or '-'"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Region</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.livestock_id.region_id.name or '-'"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Most Recent Case</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.ear_tag_id or '-'"/> (<t t-out="format_date(object.date_onset)"/>)</td>
+                        </tr>
+                    </table>
+                    <p>Please investigate and coordinate a response as needed.</p>
+                    <p style="color: #888; font-size: 12px;">
+                        This is an automated alert from the Livestock Registry.
+                    </p>
+                </div>
+            </field>
+        </record>
+
+        <record id="mail_template_approval_pending" model="mail.template">
+            <field name="name">Livestock: Approval Pending Too Long</field>
+            <field name="model_id" ref="model_g2p_livestock_registry"/>
+            <field name="subject">Action needed: {{ object.name or 'Livestock record' }} awaiting your approval</field>
+            <field name="email_from">{{ (object.env.company.email or user.email) }}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
+                    <p>Hello,</p>
+                    <p>
+                        The livestock record below has been waiting at the
+                        <b><t t-out="dict(object._fields['state'].selection).get(object.state, object.state)"/></b>
+                        stage for a few days and needs your review.
+                    </p>
+                    <table style="border-collapse: collapse; margin: 12px 0;">
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>OAN ID</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.name or '-'"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Farmer</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.owner_id.name or '-'"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Location</b></td>
+                            <td style="padding: 4px 0;">
+                                <t t-out="object.kebele_id.name or ''"/><t t-if="object.kebele_id and object.woreda_id">, </t>
+                                <t t-out="object.woreda_id.name or ''"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Waiting Since</b></td>
+                            <td style="padding: 4px 0;"><t t-out="format_date(object.state_date)"/></td>
+                        </tr>
+                    </table>
+                    <p>Please log in and approve or return it for correction.</p>
+                    <p style="color: #888; font-size: 12px;">
+                        This is an automated reminder from the Livestock Registry.
+                    </p>
+                </div>
+            </field>
+        </record>
+
+        <record id="mail_template_calving_reminder" model="mail.template">
+            <field name="name">Livestock: Upcoming Calving</field>
+            <field name="model_id" ref="model_g2p_livestock_breeding"/>
+            <field name="subject">Reminder: Expected calving soon for {{ object.ear_tag_id or 'animal' }}</field>
+            <field name="email_from">{{ (object.env.company.email or user.email) }}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333;">
+                    <p>Hello <t t-out="object.create_uid.name or ''"/>,</p>
+                    <p>
+                        This is a reminder that the animal below is expected to give
+                        birth soon. Please plan to check in and record the birth
+                        (or mortality) outcome when it happens.
+                    </p>
+                    <table style="border-collapse: collapse; margin: 12px 0;">
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Ear Tag</b></td>
+                            <td style="padding: 4px 0;"><t t-out="object.ear_tag_id or '-'"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Breeding Type</b></td>
+                            <td style="padding: 4px 0;"><t t-out="dict(object._fields['event_type'].selection).get(object.event_type, object.event_type)"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Breeding Date</b></td>
+                            <td style="padding: 4px 0;"><t t-out="format_date(object.breeding_date)"/></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 12px 4px 0;"><b>Expected Calving Date</b></td>
+                            <td style="padding: 4px 0;"><t t-out="format_date(object.expected_calving_date)"/></td>
+                        </tr>
+                    </table>
+                    <p style="color: #888; font-size: 12px;">
+                        This is an automated reminder from the Livestock Registry.
+                    </p>
+                </div>
+            </field>
+        </record>
+
+    </data>
+</odoo>
