@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Search View -->
+    <record id="g2p_livestock_registry_search" model="ir.ui.view">
+        <field name="name">g2p.livestock.registry.search</field>
+        <field name="model">g2p.livestock.registry</field>
+        <field name="arch" type="xml">
+            <search string="Search Livestock">
+                <field name="name" string="OAN ID"/>
+                <field name="ear_tag_id" invisible="1"/>
+                <field name="owner_id"/>
+                <field name="species_id" invisible="1"/>
+                <field name="region_id"/>
+                <field name="woreda_id"/>
+
+                <separator/>
+                <filter name="last_30_days" string="Registered Last 30 Days"
+                        domain="[('registration_date', '>=', (context_today() - datetime.timedelta(days=30)).strftime('%%Y-%%m-%%d'))]"/>
+                <filter name="pending_sync" string="Pending Sync" domain="[('sync_status', '=', 'pending')]"/>
+                <filter name="sync_conflicts" string="Sync Conflicts" domain="[('sync_status', '=', 'conflict')]"/>
+
+                <group expand="0" string="Group By">
+                    <filter name="group_species" string="Species" context="{'group_by': 'species_id'}"/>
+                    <filter name="group_region" string="Region" context="{'group_by': 'region_id'}"/>
+                    <filter name="group_woreda" string="Woreda" context="{'group_by': 'woreda_id'}"/>
+                    <filter name="group_owner" string="Farmer/Owner" context="{'group_by': 'owner_id'}"/>
+                    <filter name="group_source" string="Source System" context="{'group_by': 'source_system'}"/>
+                    <filter name="group_registration_month" string="Registration Month"
+                            context="{'group_by': 'registration_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="g2p_livestock_registry_tree" model="ir.ui.view">
+        <field name="name">g2p.livestock.registry.tree</field>
+        <field name="model">g2p.livestock.registry</field>
+        <field name="arch" type="xml">
+            <tree decoration-muted="state == 'archived'" multi_edit="1">
+                <field name="name"/>
+                <!--                <field name="ear_tag_id" invisible="1"/>-->
+                <!--                <field name="species" invisible="1"/>-->
+                <!--                <field name="breed" invisible="1"/>-->
+                <field name="owner_id"/>
+                <field name="farmer_id" optional="show"/>
+                <field name="fayda_id" optional="show"/>
+                <field name="woreda_id"/>
+                <field name="line_ids" string="Animals" widget="many2many_tags"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'"
+                       decoration-warning="state in ('kebele_approved', 'woreda_approved', 'zone_approved')"
+                       decoration-success="state == 'verified'" decoration-muted="state == 'archived'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Main Form View -->
+    <record id="g2p_livestock_registry_form" model="ir.ui.view">
+        <field name="name">g2p.livestock.registry.form</field>
+        <field name="model">g2p.livestock.registry</field>
+        <field name="arch" type="xml">
+            <form string="Livestock Profile">
+                <header>
+                    <button name="action_approve_kebele" string="Approve (Kebele)" type="object" class="oe_highlight"
+                            invisible="state != 'draft'"
+                            groups="g2p_livestock_registry.group_livestock_kebele_approver,g2p_livestock_registry.group_livestock_federal_admin"/>
+                    <button name="action_approve_woreda" string="Approve (Woreda)" type="object" class="oe_highlight"
+                            invisible="state != 'kebele_approved'"
+                            groups="g2p_livestock_registry.group_livestock_woreda_approver,g2p_livestock_registry.group_livestock_federal_admin"/>
+                    <button name="action_approve_zone" string="Approve (Zone)" type="object" class="oe_highlight"
+                            invisible="state != 'woreda_approved'"
+                            groups="g2p_livestock_registry.group_livestock_zone_approver,g2p_livestock_registry.group_livestock_federal_admin"/>
+                    <button name="action_approve_region" string="Approve (Region)" type="object" class="oe_highlight"
+                            invisible="state != 'zone_approved'"
+                            groups="g2p_livestock_registry.group_livestock_region_approver,g2p_livestock_registry.group_livestock_federal_admin"/>
+                    <button name="action_reject_to_draft" string="Reject to Draft" type="object"
+                            invisible="state not in ('kebele_approved', 'woreda_approved', 'zone_approved')"
+                            groups="g2p_livestock_registry.group_livestock_kebele_approver,g2p_livestock_registry.group_livestock_woreda_approver,g2p_livestock_registry.group_livestock_zone_approver,g2p_livestock_registry.group_livestock_region_approver,g2p_livestock_registry.group_livestock_federal_admin"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object"
+                            invisible="state != 'verified'"/>
+                    <button name="action_archive_record" string="Archive" type="object"
+                            invisible="state == 'archived'"/>
+                    <button name="action_unarchive_record" string="Unarchive" type="object"
+                            invisible="state != 'archived'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,kebele_approved,woreda_approved,zone_approved,verified,archived"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                        <h3>
+                            <field name="sync_status" widget="badge"
+                                   decoration-success="sync_status == 'synced'"
+                                   decoration-warning="sync_status == 'pending'"
+                                   decoration-danger="sync_status in ('conflict', 'failed')"
+                                   invisible="sync_status == 'synced'"/>
+                        </h3>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="owner_id" context="{'show_farmer_id': True}" options="{'no_create': True}"/>
+                            <field name="fayda_id" readonly="1" force_save="1"/>
+                            <field name="farmer_id" readonly="1" force_save="1"/>
+                            <field name="state_date" readonly="1"
+                                   help="Date this record last changed approval stage. Used by the approval-pending reminder emails."/>
+
+                            <!--                            <field name="ear_tag_id"/>-->
+                            <!--                            <field name="secondary_identifier"/>-->
+                            <!--                            <field name="species"/>-->
+                            <!--                            <field name="breed"/>-->
+                            <!--                            <field name="source_system" readonly="1"/>-->
+                        </group>
+                        <group>
+                            <field name="region_id" readonly="1" force_save="1"/>
+                            <field name="zone_id" readonly="1" force_save="1"/>
+                            <field name="woreda_id" readonly="1" force_save="1"/>
+                            <field name="kebele_id" readonly="1" force_save="1"/>
+                            <!--                            <field name="date_of_birth"/>-->
+                            <!--                            <field name="age" readonly="1"/>-->
+                            <!--                            <field name="registration_date"/>-->
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Livestock">
+                            <field name="line_ids">
+                                <tree>
+                                    <field name="ear_tag_id"/>
+                                    <field name="species_id" options="{'no_create': True, 'no_create_edit': True, 'no_open': True}"/>
+                                    <field name="breed"/>
+                                    <field name="gender"/>
+                                    <field name="weight"/>
+                                    <field name="health_status" widget="badge"
+                                           decoration-success="health_status == 'healthy'"
+                                           decoration-warning="health_status == 'sick'"
+                                           decoration-danger="health_status in ('quarantined', 'deceased')"/>
+                                    <field name="vaccination_status" widget="badge"
+                                           decoration-success="vaccination_status == 'up_to_date'"
+                                           decoration-warning="vaccination_status == 'overdue'"
+                                           decoration-muted="vaccination_status == 'none'"/>
+                                    <control>
+                                        <create string="Add an Animal"/>
+                                    </control>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <group>
+                                            <field name="ear_tag_id"/>
+                                            <field name="species_id" options="{'no_create': True, 'no_create_edit': True, 'no_open': True}"/>
+                                            <field name="breed"/>
+                                            <field name="gender"/>
+                                            <field name="weight"/>
+                                        </group>
+                                        <group>
+                                            <field name="health_status" readonly="id"/>
+                                            <field name="vaccination_status" readonly="id"/>
+                                            <field name="date_of_birth"/>
+                                            <field name="age" readonly="1"/>
+                                            <field name="registration_date"/>
+                                        </group>
+                                    </group>
+                                    <div class="alert alert-info" role="alert" invisible="not id">
+                                        Health Status and Vaccination Status can only be changed by logging a
+                                        Health Event or Vaccination record for this animal below — not edited
+                                        directly here — so every status change stays traceable.
+                                    </div>
+                                </form>
+
+                            </field>
+                        </page>
+                        <page string="Health Events">
+                            <field name="health_event_ids">
+                                <tree>
+                                    <field name="line_id" string="Animal (Ear Tag)"/>  <!-- NEW -->
+                                    <field name="event_type"/>
+                                    <field name="disease_type"/>
+                                    <field name="date_onset"/>
+                                    <field name="treatment"/>
+                                    <control>
+                                        <create string="Add a Health Event"/>
+                                    </control>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <group>
+                                            <field name="livestock_id" invisible="1"/>
+                                            <field name="line_id"
+                                                   string="Animal (Ear Tag)"
+                                                   domain="[('registry_id', '=', livestock_id)]"/>  <!-- NEW -->
+                                            <field name="event_type"/>
+                                            <field name="disease_type"
+                                                   string="Disease Type / Diagnosis"
+                                                   invisible="event_type != 'disease'"
+                                                   required="event_type == 'disease'"/>
+                                            <field name="date_onset"
+                                                   string="Date of Onset"
+                                                   invisible="event_type not in ('disease', 'injury', 'treatment')"/>
+                                            <field name="date_resolution"
+                                                   string="Date of Resolution / Recovery"
+                                                   invisible="event_type not in ('disease', 'injury', 'recovery')"/>
+                                            <field name="is_notifiable"
+                                                   invisible="event_type != 'disease'"/>
+                                        </group>
+                                        <group>
+                                            <field name="treatment"
+                                                   invisible="event_type not in ('disease', 'injury', 'treatment')"/>
+                                            <field name="veterinarian_id"/>
+                                            <field name="location"/>
+                                            <field name="location_details" placeholder="e.g. exact address, clinic name..."/>
+                                        </group>
+                                    </group>
+                                    <field name="notes" placeholder="Additional notes..."/>
+                                </form>
+                            </field>
+                        </page>
+
+                        <page string="Vaccinations">
+                            <field name="vaccination_ids">
+                                <tree>
+                                    <field name="line_id" string="Animal (Ear Tag)"/>  <!-- NEW -->
+                                    <field name="vaccine_type"/>
+                                    <field name="vaccination_date"/>
+                                    <field name="batch_number"/>
+                                    <field name="next_due_date"/>
+                                    <control>
+                                        <create string="Add a Vaccination"/>
+                                    </control>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <group>
+                                            <field name="livestock_id" invisible="1"/>
+                                            <field name="line_id"
+                                                   string="Animal (Ear Tag)"
+                                                   domain="[('registry_id', '=', livestock_id)]"/>  <!-- NEW -->
+                                            <field name="line_species_id" invisible="1"/>
+                                            <field name="vaccine_type"
+                                                   domain="[('species_id', 'in', [line_species_id, False])]"/>
+                                            <field name="vaccination_date"/>
+                                            <field name="batch_number"/>
+                                            <field name="next_due_date"/>
+                                        </group>
+                                        <group>
+                                            <field name="administering_user_id"/>
+                                        </group>
+                                    </group>
+                                    <field name="notes" placeholder="Vaccination notes..."/>
+                                </form>
+                            </field>
+                        </page>
+
+                        <page string="Vital Events">
+                            <field name="vital_event_ids">
+                                <tree>
+                                    <field name="line_id" string="Animal (Ear Tag)"/>  <!-- NEW -->
+                                    <field name="event_type"/>
+                                    <field name="date"/>
+                                    <field name="cause"/>
+                                    <field name="location"/>
+                                    <field name="created_offspring_ids" widget="many2many_tags"/>
+                                    <control>
+                                        <create string="Add a Vital Event"/>
+                                    </control>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <group>
+                                            <field name="livestock_id" invisible="1"/>
+                                            <field name="line_id"
+                                                   string="Animal (Ear Tag)"
+                                                   domain="[('registry_id', '=', livestock_id)]"/>  <!-- NEW -->
+                                            <field name="event_type"/>
+                                            <field name="date"/>
+                                        </group>
+                                        <group>
+                                            <field name="cause" invisible="event_type != 'mortality'"/>
+                                            <field name="location" invisible="event_type == 'disease'"/>
+                                            <field name="location_details" placeholder="e.g. exact address, clinic name..."
+                                                   invisible="event_type == 'disease'"/>
+                                            <field name="reporting_officer_id"/>
+                                        </group>
+                                    </group>
+                                    <group string="Disease Details" invisible="event_type != 'disease'">
+                                        <group>
+                                            <field name="disease_type"/>
+                                            <field name="date_onset"/>
+                                            <field name="date_resolution"/>
+                                            <field name="is_notifiable"/>
+                                        </group>
+                                        <group>
+                                            <field name="treatment"/>
+                                            <field name="veterinarian_id"/>
+                                            <field name="location"/>
+                                            <field name="location_details" placeholder="e.g. exact address, clinic name..."/>
+                                        </group>
+                                    </group>
+                                    <group string="Birth Details" invisible="event_type != 'birth'">
+                                        <field name="offspring_count"/>
+                                        <field name="offspring_ear_tag_prefix"/>
+                                        <field name="created_offspring_ids" widget="many2many_tags" readonly="1"/>
+                                    </group>
+                                    <field name="notes" placeholder="Event details..."/>
+                                </form>
+                            </field>
+                        </page>
+
+                        <page string="Breeding">
+                            <field name="breeding_ids">
+                                <tree>
+                                    <field name="line_id" string="Animal (Ear Tag)"/>  <!-- NEW -->
+                                    <field name="event_type"/>
+                                    <field name="breeding_date"/>
+                                    <field name="location"/>
+                                    <field name="expected_calving_date"/>
+                                    <field name="outcome"/>
+                                    <control>
+                                        <create string="Add a Breeding Event"/>
+                                    </control>
+                                </tree>
+                                <form>
+                                    <header>
+                                        <button name="action_confirm_pregnancy" string="Confirm Pregnancy" type="object"
+                                                class="oe_highlight"/>
+                                        <button name="action_mark_failed" string="Mark Failed" type="object"/>
+                                    </header>
+                                    <group>
+                                        <group>
+                                            <field name="livestock_id" invisible="1"/>
+                                            <field name="line_id"
+                                                   string="Animal (Ear Tag)"
+                                                   domain="[('registry_id', '=', livestock_id), ('gender', '=', 'female')]"/>  <!-- NEW -->
+                                            <field name="event_type"/>
+                                            <field name="breeding_date"/>
+                                            <field name="location"/>
+                                            <field name="location_details" placeholder="e.g. exact address, clinic name..."/>
+                                            <field name="sire_or_semen_id" invisible="event_type != 'natural'"/>
+                                        </group>
+                                        <group invisible="event_type != 'ai'">
+                                            <field name="ai_technician_id"
+                                                   context="{'form_view_ref': 'g2p_livestock_registry.view_technician_partner_form_minimal'}"/>
+                                            <field name="ai_technique"/>
+                                            <field name="semen_batch_number"/>
+                                            <!--                                            <field name="dovar_reference"/>-->
+                                        </group>
+                                    </group>
+                                    <group>
+                                        <field name="expected_calving_date"/>
+                                        <field name="pregnancy_confirmed"/>
+                                        <field name="pregnancy_confirmation_date"/>
+                                        <field name="outcome"/>
+                                    </group>
+                                    <field name="notes" placeholder="Breeding notes..."/>
+                                </form>
+                            </field>
+                        </page>
+
+                        <page string="Audit Logs"
+                              groups="g2p_livestock_registry.group_livestock_auditor,g2p_livestock_registry.group_livestock_federal_admin">
+                            <field name="audit_log_ids" readonly="1">
+                                <tree>
+                                    <field name="timestamp"/>
+                                    <field name="user_id"/>
+                                    <field name="user_role"/>
+                                    <field name="action_type"/>
+                                    <field name="changes"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page string="Notes">
+                            <group>
+                                <field name="notes"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="action_g2p_livestock_registry" model="ir.actions.act_window">
+        <field name="name">Livestock Animals</field>
+        <field name="res_model">g2p.livestock.registry</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="g2p_livestock_registry_search"/>
+    </record>
+
+    <record id="action_g2p_livestock_registry_form_only" model="ir.actions.act_window">
+        <field name="name">New Animal Registration</field>
+        <field name="res_model">g2p.livestock.registry</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'default_state': 'draft'}</field>
+    </record>
+</odoo>
