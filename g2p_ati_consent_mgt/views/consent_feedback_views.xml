@@ -1,12 +1,98 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
+    <record id="view_g2p_consent_feedback_search" model="ir.ui.view">
+        <field name="name">g2p.consent.feedback.search</field>
+        <field name="model">g2p.consent.feedback</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" />
+                <field name="consent_request_id" />
+                <field name="bank_partner_id" />
+                <field name="farmer_id" />
+                <field name="feedback_type" />
+                <group expand="0" string="Group By">
+                    <filter name="group_by_feedback_type" string="Feedback Type" context="{'group_by': 'feedback_type'}" />
+                    <filter name="group_by_bank" string="Bank" context="{'group_by': 'bank_partner_id'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_g2p_consent_feedback_tree" model="ir.ui.view">
+        <field name="name">g2p.consent.feedback.tree</field>
+        <field name="model">g2p.consent.feedback</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="consent_request_id" />
+                <field name="bank_partner_id" />
+                <field name="farmer_id" />
+                <field name="feedback_type" />
+                <field name="submitted_by_user_id" />
+                <field name="submitted_at" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_g2p_consent_feedback_form" model="ir.ui.view">
+        <field name="name">g2p.consent.feedback.form</field>
+        <field name="model">g2p.consent.feedback</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button
+                        name="action_open_consent_request"
+                        type="object"
+                        string="Open Consent Request"
+                        class="btn-primary"
+                    />
+                </header>
+                <sheet>
+                    <group col="2">
+                        <group>
+                            <field name="name" readonly="1" />
+                            <field name="consent_request_id" />
+                            <field name="bank_partner_id" />
+                            <field name="farmer_id" readonly="1" />
+                        </group>
+                        <group>
+                            <field name="feedback_type" />
+                            <field name="submitted_by_user_id" readonly="1" />
+                            <field name="submitted_at" readonly="1" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Remarks">
+                            <field name="remarks" widget="text" />
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_g2p_consent_feedback" model="ir.actions.act_window">
+        <field name="name">Consent Feedback</field>
+        <field name="res_model">g2p.consent.feedback</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_g2p_consent_feedback_search" />
+    </record>
+
+    <menuitem
+        id="menu_g2p_consent_feedback"
+        name="Feedback"
+        parent="g2p_ati_consent_mgt.menu_g2p_ati_consent_management_root"
+        action="action_g2p_consent_feedback"
+        sequence="26"
+    />
+
     <record id="view_g2p_consent_feedback_pivot" model="ir.ui.view">
         <field name="name">g2p.consent.feedback.pivot</field>
         <field name="model">g2p.consent.feedback</field>
         <field name="arch" type="xml">
             <pivot string="Consent Feedback Statistics">
-                <field name="bank_partner_id" type="row"/>
-                <field name="feedback_type" type="col"/>
+                <field name="bank_partner_id" type="row" />
+                <field name="feedback_type" type="col" />
             </pivot>
         </field>
     </record>
@@ -16,7 +102,7 @@
         <field name="model">g2p.consent.feedback</field>
         <field name="arch" type="xml">
             <graph string="Consent Feedback Statistics" type="bar">
-                <field name="feedback_type" type="row"/>
+                <field name="feedback_type" type="row" />
             </graph>
         </field>
     </record>
@@ -25,9 +111,8 @@
         <field name="name">Consent vs Loan Statistics</field>
         <field name="res_model">g2p.consent.feedback</field>
         <field name="view_mode">graph,pivot</field>
-        <field name="views"
-               eval="[(ref('view_g2p_consent_feedback_graph'), 'graph'), (ref('view_g2p_consent_feedback_pivot'), 'pivot')]"/>
-        <field name="search_view_id" ref="view_g2p_consent_feedback_search"/>
+        <field name="views" eval="[(ref('view_g2p_consent_feedback_graph'), 'graph'), (ref('view_g2p_consent_feedback_pivot'), 'pivot')]" />
+        <field name="search_view_id" ref="view_g2p_consent_feedback_search" />
         <field name="context">{'search_default_group_by_feedback_type': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -41,11 +126,10 @@
     </record>
 
     <menuitem
-            id="menu_g2p_consent_loan_stats"
-            name="Consent vs Loan Statistics"
-            parent="g2p_ati_consent_mgt.menu_g2p_ati_consent_management_root"
-            action="action_g2p_consent_loan_stats"
-            sequence="27"
+        id="menu_g2p_consent_loan_stats"
+        name="Consent vs Loan Statistics"
+        parent="g2p_ati_consent_mgt.menu_g2p_ati_consent_management_root"
+        action="action_g2p_consent_loan_stats"
+        sequence="27"
     />
-
 </odoo>
