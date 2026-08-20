@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_g2p_consent_feedback_pivot" model="ir.ui.view">
+        <field name="name">g2p.consent.feedback.pivot</field>
+        <field name="model">g2p.consent.feedback</field>
+        <field name="arch" type="xml">
+            <pivot string="Consent Feedback Statistics">
+                <field name="bank_partner_id" type="row"/>
+                <field name="feedback_type" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_g2p_consent_feedback_graph" model="ir.ui.view">
+        <field name="name">g2p.consent.feedback.graph</field>
+        <field name="model">g2p.consent.feedback</field>
+        <field name="arch" type="xml">
+            <graph string="Consent Feedback Statistics" type="bar">
+                <field name="feedback_type" type="row"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_g2p_consent_loan_stats" model="ir.actions.act_window">
+        <field name="name">Consent vs Loan Statistics</field>
+        <field name="res_model">g2p.consent.feedback</field>
+        <field name="view_mode">graph,pivot</field>
+        <field name="views"
+               eval="[(ref('view_g2p_consent_feedback_graph'), 'graph'), (ref('view_g2p_consent_feedback_pivot'), 'pivot')]"/>
+        <field name="search_view_id" ref="view_g2p_consent_feedback_search"/>
+        <field name="context">{'search_default_group_by_feedback_type': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No feedback recorded yet.
+            </p>
+            <p>
+                This shows how many consent requests exist versus how many were reported as used for a loan
+                (feedback type "Used For Loan"), broken down by bank and feedback type.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+            id="menu_g2p_consent_loan_stats"
+            name="Consent vs Loan Statistics"
+            parent="g2p_ati_consent_mgt.menu_g2p_ati_consent_management_root"
+            action="action_g2p_consent_loan_stats"
+            sequence="27"
+    />
+
+</odoo>
