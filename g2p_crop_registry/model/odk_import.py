@@ -687,13 +687,35 @@ class OdkImport(models.Model):
                 import time as _time
                 temp_id = f"TEMP-{int(_time.time())}"
 
+                full_name = mapped_json.get('farmer_display_id') or mapped_json.get('farmer_name') or 'Unknown Farmer (Temp)'
                 partner_vals = {
-                    'name': mapped_json.get('farmer_display_id') or mapped_json.get('farmer_name') or 'Unknown Farmer (Temp)',
+                    'name': full_name,
                     'is_farmer': 'yes',
                     'farmer_id': temp_id,
                     'is_registrant': True,
                     'is_group': False,
                 }
+
+                # Try to map specific name fields from ODK payload
+                g_name = mapped_json.get('given_name') or mapped_json.get('first_name')
+                f_name = mapped_json.get('family_name') or mapped_json.get('father_name')
+                gf_name = mapped_json.get('gf_name_eng') or mapped_json.get('grand_father_name')
+
+                if g_name:
+                    partner_vals['given_name'] = g_name
+                    if f_name:
+                        partner_vals['family_name'] = f_name
+                    if gf_name:
+                        partner_vals['gf_name_eng'] = gf_name
+                # If no specific name fields provided, split the full name
+                elif full_name and full_name != 'Unknown Farmer (Temp)':
+                    parts = full_name.split()
+                    if len(parts) >= 1:
+                        partner_vals['given_name'] = parts[0]
+                    if len(parts) >= 2:
+                        partner_vals['family_name'] = parts[1]
+                    if len(parts) >= 3:
+                        partner_vals['gf_name_eng'] = " ".join(parts[2:])
 
                 # Extract and assign Geo fields (Region, Zone, Woreda, Kebele)
                 for field_name, odk_key, model_name in [
@@ -1246,6 +1268,34 @@ class OdkImport(models.Model):
                                             if not c_cmd[2].get(hf):
                                                 c_cmd[2][hf] = hv
 
+                        # Transform cluster lines to avoid triggering unlink on them, which crashes
+                        if isinstance(prod_vals.get('production_cluster_line_ids'), list):
+                            cl_cmds = prod_vals['production_cluster_line_ids']
+                            has_five = any(isinstance(c, (list, tuple)) and c[0] == 5 for c in cl_cmds)
+                            if has_five:
+                                new_cl_cmds = []
+                                ex_prod = self.env['g2p.crop.production'].sudo().browse(matched_prod_id) if matched_prod_id else None
+                                for c in cl_cmds:
+                                    if isinstance(c, (list, tuple)) and c[0] == 5:
+                                        continue
+                                    elif isinstance(c, (list, tuple)) and c[0] == 0 and isinstance(c[2], dict) and ex_prod and ex_prod.exists() and ex_prod.production_cluster_line_ids:
+                                        c_vals = c[2]
+                                        c_info_id = c_vals.get('cluster_info_id')
+                                        match_cl = False
+                                        if c_info_id:
+                                            ex_cl = ex_prod.production_cluster_line_ids.filtered(lambda l: l.cluster_info_id.id == c_info_id)
+                                            if ex_cl:
+                                                new_cl_cmds.append((1, ex_cl[0].id, c_vals))
+                                                match_cl = True
+                                        if not match_cl and len(ex_prod.production_cluster_line_ids) == 1:
+                                            new_cl_cmds.append((1, ex_prod.production_cluster_line_ids[0].id, c_vals))
+                                            match_cl = True
+                                        if not match_cl:
+                                            new_cl_cmds.append(c)
+                                    else:
+                                        new_cl_cmds.append(c)
+                                prod_vals['production_cluster_line_ids'] = new_cl_cmds
+
                         if matched_prod_id and cmd[0] == 0:
                             cmd[0] = 1
                             cmd[1] = matched_prod_id
@@ -1502,28 +1552,9 @@ class OdkImport(models.Model):
 
             if existing:
                 _logger.info("WRITING to existing crop registry id=%s", existing.id)
-                # SQL cleanup: remove production cluster lines that reference cluster_information
-                # records belonging to this registry's crop lines. The (5,0,0) command will
-                # cascade-delete old lines -> cascade-delete their clusters, but
-                # g2p_crop_production_cluster_line has a non-cascade FK to cluster_information
-                # which blocks the deletion unless we remove the referencing rows first.
-                try:
-                    self.env.cr.execute("""
-                        DELETE FROM g2p_crop_production_cluster_line
-                        WHERE cluster_info_id IN (
-                            SELECT ci.id FROM g2p_cluster_information ci
-                            LEFT JOIN g2p_annual_actual_line  aal ON ci.actual_annual_line_id    = aal.id
-                            LEFT JOIN g2p_annual_line     al ON ci.annual_line_id     = al.id
-                            WHERE aal.crop_registry_id = %s
-                               OR al.crop_registry_id  = %s
-                        )
-                    """, (existing.id, existing.id))
-                    del_count = self.env.cr.rowcount
-                    if del_count:
-                        _logger.info("SQL-deleted %s production cluster lines before registry update (id=%s)", del_count, existing.id)
-                    self.env.invalidate_all()
-                except Exception as e:
-                    _logger.warning("SQL cleanup of production cluster lines failed: %s", e)
+                # The SQL cleanup block for production cluster lines was removed here
+                # because it causes 'Record does not exist' errors when the ORM tries
+                # to update these lines via (1, id, vals) commands generated by ODK mapping.
                 _logger.info("MAPPED JSON GPS BEFORE WRITE: %s", mapped_json.get("gps"))
 
                 # 1. Protect existing Farmer Identity fields from being overwritten
