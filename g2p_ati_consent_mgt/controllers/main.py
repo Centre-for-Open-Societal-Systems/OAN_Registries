@@ -2557,3 +2557,86 @@ class G2PATIConsentController(http.Controller):
         fields = partner.allowed_data_field_ids
         data = [{"id": f.id, "name": f.name, "code": f.code} for f in fields]
         return self._success(data)
+
+
+
+    @http.route("/api/consent/feedback/submit", type="json", auth="user", methods=["POST"], csrf=False)
+    def submit_consent_feedback(self, **kwargs):
+        payload = kwargs
+        consent_id = payload.get("consent_id")
+        consent_request_id = payload.get("consent_creation_request_id")
+        feedback_type = payload.get("feedback_type")
+        remarks = payload.get("remarks")
+
+        partner = self._get_consent_partner()
+        if not partner:
+            return self._error("Access denied", code=403)
+
+        allowed_feedback_types = dict(
+            request.env["g2p.consent.feedback"]._fields["feedback_type"].selection
+        )
+        if not feedback_type or feedback_type not in allowed_feedback_types:
+            return self._error(
+                f"feedback_type must be one of: {', '.join(allowed_feedback_types)}"
+            )
+
+        domain = self._get_portal_consent_request_domain(partner)
+        if consent_id:
+            domain.append(("id", "=", int(consent_id)))
+        elif consent_request_id:
+            domain.append(("consent_creation_request_id", "=", consent_request_id))
+        else:
+            return self._error("Provide consent_id or consent_creation_request_id")
+
+        consent = request.env["g2p.consent.request"].sudo().search(domain, limit=1)
+        if not consent:
+            return self._error("Consent request not found", code=404)
+
+        feedback = request.env["g2p.consent.feedback"].sudo().create(
+            {
+                "consent_request_id": consent.id,
+                "bank_partner_id": partner.id,
+                "feedback_type": feedback_type,
+                "remarks": remarks,
+            }
+        )
+
+        return self._success(
+            {
+                "id": feedback.id,
+                "consent_id": consent.id,
+                "consent_creation_request_id": consent.consent_creation_request_id,
+                "feedback_type": feedback.feedback_type,
+                "submitted_at": feedback.submitted_at.isoformat() if feedback.submitted_at else None,
+            },
+            message="Feedback submitted",
+        )
+
+    @http.route("/api/consent/feedback/stats", type="json", auth="user", methods=["POST"], csrf=False)
+    def consent_feedback_stats(self, **kwargs):
+        partner = self._get_consent_partner()
+        if not partner:
+            return self._error("Access denied", code=403)
+
+        consent_domain = self._get_portal_consent_request_domain(partner)
+        consent_count = request.env["g2p.consent.request"].sudo().search_count(consent_domain)
+
+        feedback_domain = [("bank_partner_id", "=", partner.id)]
+        loans_issued_count = request.env["g2p.consent.feedback"].sudo().search_count(
+            feedback_domain + [("feedback_type", "=", "used_for_loan")]
+        )
+
+        feedback_type_groups = request.env["g2p.consent.feedback"].sudo().read_group(
+            feedback_domain, ["feedback_type"], ["feedback_type"]
+        )
+        feedback_by_type = {
+            group["feedback_type"]: group["feedback_type_count"] for group in feedback_type_groups
+        }
+
+        return self._success(
+            {
+                "consent_count": consent_count,
+                "loans_issued_count": loans_issued_count,
+                "feedback_by_type": feedback_by_type,
+            }
+        )

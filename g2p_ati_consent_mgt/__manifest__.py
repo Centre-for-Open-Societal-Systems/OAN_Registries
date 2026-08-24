@@ -27,6 +27,7 @@
         "views/res_partner_consent_views.xml",
         "views/portal_consent_management_templates.xml",
         "views/portal_consent_management_hierarchy_templates.xml",
+        "views/consent_feedback_views.xml",
     ],
     "installable": True,
     "application": False,
