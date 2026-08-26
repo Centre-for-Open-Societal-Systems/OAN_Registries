@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Default ODK Configuration for Livestock Registry -->
+        <record id="odk_config_livestock_registry" model="odk.config">
+            <field name="name">Livestock Registry</field>
+            <field name="base_url">https://odk.13.207.43.8.nip.io</field>
+            <field name="username">vilbertraj21@gmail.com</field>
+            <field name="password">odksandbox</field>
+            <field name="project">11</field>
+            <field name="form_id">livestock_registry</field>
+        </record>
+
+        <!-- Default ODK Import for Livestock Registry -->
+        <record id="odk_import_livestock_registry" model="odk.import">
+            <field name="odk_config" ref="odk_config_livestock_registry"/>
+            <field name="target_registry">g2p.livestock.registry</field>
+            <field name="json_formatter">{
+  "fayda_id": .fayda_id,
+  "owner_id": .owner_id,
+  "region_id": .region_id,
+  "zone_id": .zone_id,
+  "woreda_id": .woreda_id,
+  "kebele_id": .kebele_id,
+  "line_ids": (
+    .livestock // []
+    | map({
+        "ear_tag_id": .ear_tag_id,
+        "species_id": .species_id,
+        "breed": .breed,
+        "gender": .gender,
+        "weight": .weight,
+        "health_status": .health_status,
+        "vaccination_status": .vaccination_status,
+        "date_of_birth": .date_of_birth,
+        "registration_date": .registration_date
+    })
+  ),
+  "health_event_ids": (
+    (
+      [ .livestock[]? | .ear_tag_id as $ear | (.health_events // .health_tab // .health // .disease_details // .health_event // [])[]? | {
+          "ear_tag_id": (.ear_tag_id // $ear),
+          "event_type": (.health_event_type // .event_type // .type),
+          "disease_type": (.disease_type // .disease // .illness),
+          "date_onset": (.date_onset // .date_of_onset // .date),
+          "date_resolution": (.date_resolution // .date_of_resolution),
+          "is_notifiable": ((.is_notifiable // null) == "yes"),
+          "treatment": (.treatment // .treatment_administered),
+          "veterinarian_id": (.veterinarian_id // .veterinarian // .officer_id // .officer),
+          "location": .location,
+          "location_details": .location_details,
+          "notes": (.health_event_notes // .notes // .details)
+      } ]
+    ) + (
+      [ (.health_events // .health_tab // .health // .health_event // .health_events_repeat // [])[]? | {
+          "ear_tag_id": (.ear_tag_id // .animal_tag // .animal_ear_tag // .ear_tag // .tag),
+          "event_type": (.health_event_type // .event_type // .type),
+          "disease_type": (.disease_type // .disease // .illness),
+          "date_onset": (.date_onset // .date_of_onset // .date),
+          "date_resolution": (.date_resolution // .date_of_resolution),
+          "is_notifiable": ((.is_notifiable // null) == "yes"),
+          "treatment": (.treatment // .treatment_administered),
+          "veterinarian_id": (.veterinarian_id // .veterinarian // .officer_id // .officer),
+          "location": .location,
+          "location_details": .location_details,
+          "notes": (.health_event_notes // .notes // .details)
+      } ]
+    )
+  ),
+  "vaccination_ids": (
+    (
+      [ .livestock[]? | .ear_tag_id as $ear | .species_id as $species | (.vaccinations // .vaccination_tab // .vaccine_tab // [])[]? | {
+          "ear_tag_id": (.ear_tag_id // $ear),
+          "species_id": $species,
+          "vaccination_date": (.vaccination_date // .date),
+          "batch_number": .batch_number,
+          "notes": (.vaccination_notes // .notes // .details)
+      } ]
+    ) + (
+      [ (.vaccinations // .vaccination_tab // .vaccine_tab // [])[]? | {
+          "ear_tag_id": (.ear_tag_id // .animal_tag // .animal_ear_tag // .ear_tag // .tag),
+          "species_id": .species_id,
+          "vaccination_date": (.vaccination_date // .date),
+          "batch_number": .batch_number,
+          "notes": (.vaccination_notes // .notes // .details)
+      } ]
+    )
+  ),
+  "vital_event_ids": (
+    (
+      [ .livestock[]? | .ear_tag_id as $ear | (.vital_events // .vital_tab // .vitals // [])[]? | {
+          "ear_tag_id": (.ear_tag_id // $ear),
+          "event_type": (.vital_event_type // .event_type // .type),
+          "date": (.date // .vital_event_date // .event_date),
+          "location": .location,
+          "location_details": .location_details,
+          "reporting_officer_id": (.reporting_officer_id // .reporting_officer // .officer_id // .officer),
+          "notes": (.vital_event_details // .notes // .details),
+          "offspring_count": (.birth_details.offspring_count // .offspring_count),
+          "offspring_ear_tag_prefix": (.birth_details.offspring_ear_tag_prefix // .offspring_ear_tag_prefix),
+          "disease_type": (.disease_details.disease_type // null),
+          "treatment": (.disease_details.treatment // null),
+          "veterinarian_id": (.disease_details.veterinarian_id // null),
+          "is_notifiable": ((.disease_details.is_notifiable // null) == "yes"),
+          "cause": .cause
+      } ]
+    ) + (
+      [ (.vital_events // .vital_tab // .vitals // [])[]? | {
+          "ear_tag_id": (.ear_tag_id // .animal_tag // .animal_ear_tag // .ear_tag // .tag),
+          "event_type": (.vital_event_type // .event_type // .type),
+          "date": (.date // .vital_event_date // .event_date),
+          "location": .location,
+          "location_details": .location_details,
+          "reporting_officer_id": (.reporting_officer_id // .reporting_officer // .officer_id // .officer),
+          "notes": (.vital_event_details // .notes // .details),
+          "offspring_count": (.birth_details.offspring_count // .offspring_count),
+          "offspring_ear_tag_prefix": (.birth_details.offspring_ear_tag_prefix // .offspring_ear_tag_prefix),
+          "disease_type": (.disease_details.disease_type // null),
+          "treatment": (.disease_details.treatment // null),
+          "veterinarian_id": (.disease_details.veterinarian_id // null),
+          "is_notifiable": ((.disease_details.is_notifiable // null) == "yes"),
+          "cause": .cause
+      } ]
+    )
+  ),
+  "breeding_ids": (
+    (
+      [ .livestock[]? | .ear_tag_id as $ear | (.breeding_events // .breeding_tab // .breeding // .breeding_event // [])[]? | {
+          "ear_tag_id": (.ear_tag_id // $ear),
+          "event_type": (.breeding_event_type // .breeding_type // .event_type // .type),
+          "breeding_date": (.breeding_date // .date),
+          "location": .location,
+          "location_details": .location_details,
+          "sire_or_semen_id": (.sire_or_semen_id // .artificial_insemination_tab.semen_batch_number // .sire_id),
+          "expected_calving_date": (.expected_calving_date // .expected_calving_date_calc),
+          "notes": (.breeding_notes // .notes),
+          "ai_technician_id": (.artificial_insemination_tab.ai_technician_id // .ai_technician_id // .veterinarian_id // null),
+          "ai_technique": (.artificial_insemination_tab.ai_technique // .ai_technique // null),
+          "semen_batch_number": (.artificial_insemination_tab.semen_batch_number // .semen_batch_number // null)
+      } ]
+    ) + (
+      [ (.breeding_events // .breeding_tab // .breeding // .breeding_event // [])[]? | {
+          "ear_tag_id": (.ear_tag_id // .animal_tag // .animal_ear_tag // .ear_tag // .tag),
+          "event_type": (.breeding_event_type // .breeding_type // .event_type // .type),
+          "breeding_date": (.breeding_date // .date),
+          "location": .location,
+          "location_details": .location_details,
+          "sire_or_semen_id": (.sire_or_semen_id // .artificial_insemination_tab.semen_batch_number // .sire_id),
+          "expected_calving_date": (.expected_calving_date // .expected_calving_date_calc),
+          "notes": (.breeding_notes // .notes),
+          "ai_technician_id": (.artificial_insemination_tab.ai_technician_id // .ai_technician_id // .veterinarian_id // null),
+          "ai_technique": (.artificial_insemination_tab.ai_technique // .ai_technique // null),
+          "semen_batch_number": (.artificial_insemination_tab.semen_batch_number // .semen_batch_number // null)
+      } ]
+    )
+  ),
+  "notes": (
+    [ .livestock[]? | (.notes_tab // .notes // [])[]? | .notes ] | join("\n")
+  )
+}</field>
+        </record>
+    </data>
+</odoo>
