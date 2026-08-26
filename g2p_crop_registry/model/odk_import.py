@@ -1,4 +1,5 @@
-from odoo import models, fields
+from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 import jq
 import logging
 
@@ -876,6 +877,7 @@ class OdkImport(models.Model):
 
                         if isinstance(line_vals, dict) and line_vals.get('land_info_id'):
                             found_crop = None
+                            found_season = None
                             matched_plan_line = None
                             matched_cult_line = None
 
@@ -894,11 +896,15 @@ class OdkImport(models.Model):
                                     if p_line:
                                         if p_line[0].crop_name_id:
                                             found_crop = p_line[0].crop_name_id.id
+                                        if hasattr(p_line[0], 'season_id') and p_line[0].season_id:
+                                            found_season = p_line[0].season_id.id
                                         matched_plan_line = p_line[0]
                                         break
 
                             if not line_vals.get('crop_name_id') and found_crop:
                                 line_vals['crop_name_id'] = found_crop
+                            if not line_vals.get('season_id') and found_season:
+                                line_vals['season_id'] = found_season
 
                             if not line_vals.get('sync_id') and matched_plan_line and hasattr(matched_plan_line, 'sync_id') and matched_plan_line.sync_id:
                                 line_vals['sync_id'] = matched_plan_line.sync_id
@@ -1090,6 +1096,8 @@ class OdkImport(models.Model):
                                 pl = plan_line[0]
                                 matched_plan = {
                                     'sync_id': pl.sync_id if hasattr(pl, 'sync_id') else False,
+                                    'season_id': pl.season_id.id if hasattr(pl, 'season_id') and pl.season_id else False,
+                                    'crop_name_id': pl.crop_name_id.id if hasattr(pl, 'crop_name_id') and pl.crop_name_id else False,
                                     'expected_yield': getattr(pl, 'crop_expected', getattr(pl, 'expected_yield', False)),
                                     'planned_area': getattr(pl, 'crop_planned_area', getattr(pl, 'planned_area', False)),
                                 }
@@ -1145,6 +1153,10 @@ class OdkImport(models.Model):
                                         cult_line[0].sudo().write({'sync_id': matched_plan['sync_id']})
                                     except Exception:
                                         pass
+                            if not prod_vals.get('season_id') and matched_plan.get('season_id'):
+                                prod_vals['season_id'] = matched_plan['season_id']
+                            if not prod_vals.get('crop_name_id') and matched_plan.get('crop_name_id'):
+                                prod_vals['crop_name_id'] = matched_plan['crop_name_id']
                             if not prod_vals.get('expected_yield') and matched_plan.get('expected_yield'):
                                 prod_vals['expected_yield'] = matched_plan['expected_yield']
                             if not prod_vals.get('planned_area') and matched_plan.get('planned_area'):
@@ -1328,17 +1340,13 @@ class OdkImport(models.Model):
                             if op == 0 and isinstance(line_vals, dict):
                                 # Check if it has season_id and crop_name_id (required for both now)
                                 if not line_vals.get('season_id') or not line_vals.get('crop_name_id'):
-                                    _logger.warning("Skipping line because season_id (%s) or crop_name_id (%s) is missing/invalid: %s",
-                                                    line_vals.get('season_id'), line_vals.get('crop_name_id'), line_vals)
-                                    continue
+                                    raise ValidationError(f"Import Rejected: Season or Crop Name is missing or not found in Odoo Configuration. Please ensure they exist in Odoo before importing. (Found season_id={line_vals.get('season_id')}, crop_name_id={line_vals.get('crop_name_id')})")
                             elif op == 1 and isinstance(line_vals, dict):
                                 # Check if season_id or crop_name_id is set to False
                                 if 'season_id' in line_vals and not line_vals['season_id']:
-                                    _logger.warning("Skipping line update because season_id is missing/invalid: %s", line_vals)
-                                    continue
+                                    raise ValidationError("Import Rejected: Season is not found in Odoo Configuration. Please ensure it exists in Odoo before importing.")
                                 if 'crop_name_id' in line_vals and not line_vals['crop_name_id']:
-                                    _logger.warning("Skipping line update because crop_name_id is missing/invalid: %s", line_vals)
-                                    continue
+                                    raise ValidationError("Import Rejected: Crop Name is not found in Odoo Configuration. Please ensure it exists in Odoo before importing.")
                         filtered_cmds.append(cmd)
                     if len(filtered_cmds) == 1 and filtered_cmds[0][0] == 5:
                         mapped_json[field] = False
@@ -1975,10 +1983,10 @@ class OdkImport(models.Model):
             'expected_yield_quintal': ['crop_expected', 'actual_yield'],
 
             # Actual details for Cultivation / Sowing / Harvesting
-            'actual_season': ['actual_season_id'],
-            'actual_crop': ['actual_crop_name_id'],
-            'actual_crop_category': ['actual_crop_category_id'],
-            'actual_crop_variety': ['actual_crop_variety_id'],
+            'actual_season': ['season_id', 'actual_season_id'],
+            'actual_crop': ['crop_name_id', 'actual_crop_name_id'],
+            'actual_crop_category': ['crop_category_id', 'actual_crop_category_id'],
+            'actual_crop_variety': ['crop_variety_id', 'actual_crop_variety_id'],
             'actual_seed_type': ['actual_seed_class'],
             'actual_seed_qty_kg': ['actual_seed_qty'],
             'actual_fertilizer_qty_kg': ['actual_fertilizer_qty'],
@@ -2604,6 +2612,10 @@ class OdkImport(models.Model):
                                 record = comodel.sudo().search([('name', '=ilike', value_str)], limit=1)
                             if not record and 'name' in comodel._fields:
                                 record = comodel.sudo().search([('name', '=ilike', f'%{value_str}%')], limit=1)
+                            if not record and 'name' in comodel._fields and '_' in value_str:
+                                # Fuzzy match for ODK keys (e.g., 'sweet_hot_pepper' -> 'Sweet/Hot Pepper')
+                                fuzzy_val = f"%{value_str.replace('_', '%')}%"
+                                record = comodel.sudo().search([('name', '=ilike', fuzzy_val)], limit=1)
 
                             # Auto-create for specific models if not found
                             if not record and model_name in ['g2p.crop.variety', 'g2p.cluster.information']:
@@ -2612,9 +2624,17 @@ class OdkImport(models.Model):
                                     create_vals['cluster_name'] = value_str
                                 if 'code' in comodel._fields:
                                     create_vals['code'] = value_str.upper().replace(' ', '_')
-                                if model_name == 'g2p.crop.variety' and val.get('crop_name_id'):
-                                    create_vals['crop_id'] = val.get('crop_name_id')
-                                record = comodel.sudo().create(create_vals)
+
+                                can_create = True
+                                if model_name == 'g2p.crop.variety':
+                                    linked_crop = val.get('crop_name_id') or val.get('actual_crop_name_id')
+                                    if linked_crop:
+                                        create_vals['crop_id'] = linked_crop
+                                    else:
+                                        can_create = False
+
+                                if can_create:
+                                    record = comodel.sudo().create(create_vals)
 
                             if record:
                                 val[field] = record.id
