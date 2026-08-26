@@ -14,7 +14,7 @@ and immutable audit logging.
     'category': 'Agriculture',
     'author': 'OpenAgriNet',
     'license': 'LGPL-3',
-    'depends': ['base', 'mail','g2p_ati'],
+    'depends': ['base', 'mail', 'g2p_ati', 'g2p_odk_importer', 'g2p_odk_importer_ati'],
     'external_dependencies': {
         'python': ['xlsxwriter', 'reportlab', 'openpyxl'],
     },
@@ -26,6 +26,7 @@ and immutable audit logging.
         'data/sequences.xml',
         'data/mail_templates.xml',
         'data/cron.xml',
+        'data/odk_import_data.xml',
 
         'views/g2p_livestock_registry_views.xml',
         'views/event_views.xml',
