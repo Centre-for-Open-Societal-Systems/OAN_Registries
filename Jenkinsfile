@@ -48,7 +48,7 @@ pipeline {
         stage('Build Image') {
             steps {
                 sh """
-                    docker build \
+                    docker build --no-cache --pull \
                         --build-arg OPENG2P_REGISTRY_REF=${OPENG2P_REGISTRY_REF} \
                         --build-arg OPENG2P_SOCIAL_REGISTRY_REF=${OPENG2P_SOCIAL_REGISTRY_REF} \
                         --build-arg OPENG2P_COMMUNITY_REF=${OPENG2P_COMMUNITY_REF} \
@@ -74,7 +74,7 @@ pipeline {
                 withCredentials([file(credentialsId: 'dev-kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
                         kubectl set image deployment/${DEPLOYMENT_NAME} \
-                            odoo=${FULL_IMAGE} \
+                            odoo=${BUILD_IMAGE} \
                             -n dev
 
                         kubectl rollout status deployment/${DEPLOYMENT_NAME} -n dev --timeout=120s
@@ -91,7 +91,7 @@ pipeline {
                     input message: "Approve deploy of openg2p-at:${IMAGE_TAG} to staging (oan-sr-odoo-staging)?"
                     sh """
                         kubectl set image deployment/${DEPLOYMENT_NAME} \
-                            odoo=${FULL_IMAGE} \
+                            odoo=${BUILD_IMAGE} \
                             -n dev
 
                         kubectl rollout status deployment/${DEPLOYMENT_NAME} -n dev --timeout=120s
