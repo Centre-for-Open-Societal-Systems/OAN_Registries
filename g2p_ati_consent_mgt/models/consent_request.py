@@ -61,6 +61,12 @@ class G2PConsentRequest(models.Model):
         required=True,
         help="Requested fields for this consent.",
     )
+
+    partner_allowed_data_field_ids = fields.Many2many(
+    related="partner_record_id.allowed_data_field_ids",
+    string="Partner Allowed Data Points",
+    )
+
     consent_provider_register = fields.Char()
     consent_provider_person_id = fields.Char()
     consent_target_object_ids = fields.Text(help='JSON list[dict], e.g. [{"register": ["<ids>"]}]')

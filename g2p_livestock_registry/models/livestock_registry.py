@@ -28,29 +28,25 @@ class G2PLivestockRegistry(models.Model):
 
     breed = fields.Char(string='Breed', tracking=True)
 
-    # Farmer ID with strict format validation
+    # Farmer selection: choose the farmer here (labeled "Farmer ID" to match
+    # Crop Registry's selector — you pick by farmer name, and Farmer Code,
+    # Fayda ID, Region/Zone/Woreda/Kebele all auto-generate below).
     owner_id = fields.Many2one(
         'res.partner',
-        string='Farmer Name',
+        string='Farmer ID',
         required=True,
         tracking=True,
         ondelete='restrict',
-        readonly="True",
+        domain="[('is_farmer', '=', 'yes')]",
     )
 
-    # Auto-filled from selected farmer
-    # farmer_id = fields.Char(
-    #     string='Farmer ID',
-    #     related='owner_id.farmer_id',
-    #     store=True,
-    #     readonly=True,
-    #     tracking=True
-    # )
-
+    # Auto-filled from the selected farmer (owner_id) — not manually typed.
     farmer_id = fields.Char(
-        string='Farmer ID',
+        string='Farmer Id',
         tracking=True,
-        help="FR- followed by 10 digits",
+        readonly=True,
+        copy=False,
+        help="Auto-filled from the selected Farmer. FR- followed by 10 digits.",
     )
 
     fayda_id = fields.Char(
@@ -58,8 +54,11 @@ class G2PLivestockRegistry(models.Model):
         tracking=True,
         readonly=True,
         copy=False,
+        required=True,
         help="Auto-fetched from the Farmer's (Individual's) UID entry under "
-             "Individuals > IDs. Not editable here.",
+             "Individuals > IDs. Not editable here. The selected Farmer must "
+             "have a valid Fayda ID (FAN- followed by 16 digits) on file "
+             "before a livestock record can be saved.",
     )
 
     line_ids = fields.One2many('g2p.livestock.registry.line', 'registry_id', string='Animals')
@@ -137,6 +136,21 @@ class G2PLivestockRegistry(models.Model):
                       "FR- followed by exactly 10 digits.\n\n"
                       "Correct Example: FR-1234567890")
                 )
+
+    # =====================================================================
+    # Fayda ID Format Validation (FAN- + 16 digits) — same rule as Crop
+    # Registry. Since fayda_id is required, an empty value is already
+    # blocked by the field's "required" constraint; this only checks the
+    # format once a value is present.
+    # =====================================================================
+    @api.constrains('fayda_id')
+    def _check_fayda_id_format(self):
+        for rec in self:
+            if rec.fayda_id:
+                if not re.match(r'^FAN-\d{16}$', rec.fayda_id):
+                    raise ValidationError(
+                        _("Fayda ID must be in this format: FAN-1234567890123456")
+                    )
 
     # =====================================================================
     # Fayda ID — auto-fetched from the Farmer's (res.partner) UID ID line
@@ -332,6 +346,10 @@ class G2PLivestockRegistry(models.Model):
                 partner = self.env['res.partner'].browse(vals['owner_id'])
                 if partner.farmer_id:
                     vals['farmer_id'] = partner.farmer_id
+                vals['region_id'] = partner.region.id if partner.region else False
+                vals['zone_id'] = partner.zone.id if partner.zone else False
+                vals['woreda_id'] = partner.woreda.id if partner.woreda else False
+                vals['kebele_id'] = partner.kebele.id if partner.kebele else False
                 vals['fayda_id'] = self._get_fayda_id_for_partner(partner)
 
             if not vals.get('name') or vals.get('name') == _('New'):
@@ -380,7 +398,24 @@ class G2PLivestockRegistry(models.Model):
                 })
         elif vals.get('owner_id'):
             partner = self.env['res.partner'].browse(vals['owner_id'])
-            vals['fayda_id'] = self._get_fayda_id_for_partner(partner)
+            if partner.farmer_id:
+                vals['farmer_id'] = partner.farmer_id
+            vals.update({
+                'region_id': partner.region.id if partner.region else False,
+                'zone_id': partner.zone.id if partner.zone else False,
+                'woreda_id': partner.woreda.id if partner.woreda else False,
+                'kebele_id': partner.kebele.id if partner.kebele else False,
+                'fayda_id': self._get_fayda_id_for_partner(partner),
+            })
+        elif 'owner_id' in vals and not vals.get('owner_id'):
+            vals.update({
+                'farmer_id': False,
+                'region_id': False,
+                'zone_id': False,
+                'woreda_id': False,
+                'kebele_id': False,
+                'fayda_id': False,
+            })
 
         if vals.get('state'):
             vals['state_date'] = fields.Date.today()
