@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="module_category_livestock_registry" model="ir.module.category">
+            <field name="name">Livestock Registry</field>
+        </record>
+        <record id="group_livestock_field_officer" model="res.groups">
+            <field name="name">Field Officer</field>
+            <field name="category_id" ref="module_category_livestock_registry"/>
+        </record>
+        <record id="group_livestock_data_entry_clerk" model="res.groups">
+            <field name="name">Data Entry Clerk</field>
+            <field name="category_id" ref="module_category_livestock_registry"/>
+        </record>
+        <record id="group_livestock_regional_vet" model="res.groups">
+                                        <field name="name">Regional Vet Officer</field>
+            <field name="category_id" ref="module_category_livestock_registry"/>
+            <field name="implied_ids" eval="[(4, ref('group_livestock_field_officer'))]"/>
+        </record>
+        <record id="group_livestock_federal_admin" model="res.groups">
+            <field name="name">Federal Admin</field>
+            <field name="category_id" ref="module_category_livestock_registry"/>
+            <field name="implied_ids" eval="[(4, ref('group_livestock_regional_vet'))]"/>
+        </record>
+        <record id="group_livestock_auditor" model="res.groups">
+            <field name="name">Auditor (Read-only)</field>
+            <field name="category_id" ref="module_category_livestock_registry"/>
+        </record>
+
+        <!-- Hierarchical approval chain: Kebele -> Woreda -> Zone -> Region.
+             Each level is independent (not implied by the others) so a
+             person can hold exactly one approval role. Federal Admin
+             already implies group_livestock_regional_vet above and, in
+             the model code, is treated as able to approve at any level. -->
+        <record id="group_livestock_kebele_approver" model="res.groups">
+            <field name="name">Kebele Approver</field>
+            <field name="category_id" ref="module_category_livestock_registry"/>
+        </record>
+        <record id="group_livestock_woreda_approver" model="res.groups">
+            <field name="name">Woreda Approver</field>
+            <field name="category_id" ref="module_category_livestock_registry"/>
+        </record>
+        <record id="group_livestock_zone_approver" model="res.groups">
+            <field name="name">Zone Approver</field>
+            <field name="category_id" ref="module_category_livestock_registry"/>
+        </record>
+        <record id="group_livestock_region_approver" model="res.groups">
+            <field name="name">Region Approver</field>
+            <field name="category_id" ref="module_category_livestock_registry"/>
+        </record>
+    </data>
+</odoo>
