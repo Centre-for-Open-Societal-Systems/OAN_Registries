@@ -88,7 +88,6 @@ pipeline {
             agent { label 'vpn-agent' }
             steps {
                 withCredentials([file(credentialsId: 'dev-kubeconfig', variable: 'KUBECONFIG')]) {
-                    input message: "Approve deploy of openg2p-at:${IMAGE_TAG} to staging (oan-sr-odoo-staging)?"
                     sh """
                         kubectl set image deployment/${DEPLOYMENT_NAME} \
                             odoo=${BUILD_IMAGE} \
