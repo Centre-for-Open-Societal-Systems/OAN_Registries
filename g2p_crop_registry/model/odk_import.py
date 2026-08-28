@@ -199,6 +199,17 @@ class OdkImport(models.Model):
                     if cluster_smallholders is not None:
                         merged_cluster['cluster_smallholders'] = cluster_smallholders
 
+                    # Map to actual Odoo fields in g2p.cluster.information
+                    cluster_key_mapping = {
+                        'cluster_size': 'cluster_area_timad',
+                        'number_of_smallholders': 'cluster_smallholders',
+                        'agro_ecological_zone': 'cluster_agro_ecological_zone',
+                        'cluster_collected_land_quintal': 'cluster_collected_quintal',
+                    }
+                    for old_k, new_k in cluster_key_mapping.items():
+                        if old_k in merged_cluster:
+                            merged_cluster[new_k] = merged_cluster.pop(old_k)
+
                     if isinstance(farmer_list, list) and farmer_list:
                         farmer_cmds = []
                         for sh in farmer_list:
@@ -234,6 +245,8 @@ class OdkImport(models.Model):
                     for loc_field in ['gps', 'region', 'zone', 'woreda', 'kebele', 'region_name_id', 'zone_name_id', 'woreda_name_id', 'kebele_id']:
                         if loc_field in raw_line and not merged_cluster.get(loc_field):
                             val = raw_line[loc_field]
+                            if not val or (isinstance(val, str) and val.strip().lower() in ('none', 'false', 'null', '')):
+                                continue
                             # If it's a raw GeoJSON dictionary here, format it too
                             if loc_field == 'gps' and isinstance(val, dict) and 'coordinates' in val:
                                 coords = val.get('coordinates', [])
@@ -537,15 +550,23 @@ class OdkImport(models.Model):
                         if fayda_reg:
                             mapped_json['fyda_id'] = fayda_reg[0].value
 
-                # Auto-populate geographic fields to mapped_json if they were updated or exist
-                for field_name in ['region', 'zone', 'woreda', 'kebele']:
-                    if not mapped_json.get(f"{field_name}_id") and hasattr(partner, field_name) and getattr(partner, field_name):
-                        mapped_json[f"{field_name}_id"] = getattr(partner, field_name).id
+                # Auto-populate geographic fields to mapped_json from existing farmer UNCONDITIONALLY
+                if partner.name:
+                    mapped_json['farmer_display_id'] = partner.name
+                    mapped_json['farmer_name'] = partner.name
 
-                if not mapped_json.get('gps'):
-                    if hasattr(partner, 'partner_latitude') and hasattr(partner, 'partner_longitude'):
-                        if partner.partner_latitude and partner.partner_longitude:
-                            mapped_json['gps'] = f"{partner.partner_latitude}, {partner.partner_longitude}"
+                for field_name in ['region', 'zone', 'woreda', 'kebele']:
+                    if hasattr(partner, field_name) and getattr(partner, field_name):
+                        mapped_json[f"{field_name}_id"] = getattr(partner, field_name).id
+                        # Also override the string representations if they exist in mapped_json
+                        if field_name in mapped_json:
+                            mapped_json[field_name] = getattr(partner, field_name).name
+                        if f"{field_name}_display_id" in mapped_json:
+                            mapped_json[f"{field_name}_display_id"] = getattr(partner, field_name).name
+
+                if hasattr(partner, 'partner_latitude') and hasattr(partner, 'partner_longitude'):
+                    if partner.partner_latitude and partner.partner_longitude:
+                        mapped_json['gps'] = f"{partner.partner_latitude}, {partner.partner_longitude}"
 
                 # Resolve land_info_id from farmer's existing land records
                 # and overwrite line land details from the existing record
@@ -567,6 +588,17 @@ class OdkImport(models.Model):
                                         matched_land = farmer_lands.filtered(lambda l: l.land_id == land_ref)
                                     elif isinstance(land_ref, int):
                                         matched_land = farmer_lands.filtered(lambda l: l.id == land_ref)
+
+                                    # Fallback: ODK might send index (e.g. "1", "2") instead of full land_id
+                                    if not matched_land:
+                                        if len(farmer_lands) == 1:
+                                            matched_land = farmer_lands
+                                        elif str(land_ref).strip().isdigit():
+                                            idx = int(str(land_ref).strip()) - 1
+                                            if 0 <= idx < len(farmer_lands):
+                                                sorted_lands = farmer_lands.sorted(key=lambda l: l.id)
+                                                matched_land = sorted_lands[idx]
+
                                     if matched_land:
                                         land = matched_land[0]
                                         # Set land_info_id to the actual DB record ID
@@ -592,8 +624,14 @@ class OdkImport(models.Model):
                                                     line_vals['zone_name_id'] = land.land_kebele.woreda.zone.id
                                                     if land.land_kebele.woreda.zone.region:
                                                         line_vals['region_name_id'] = land.land_kebele.woreda.zone.region.id
-                                        if hasattr(land, 'soil_fertility') and land.soil_fertility:
-                                            line_vals['soil_fertility'] = land.soil_fertility.lower() if isinstance(land.soil_fertility, str) else land.soil_fertility
+                                            if hasattr(land, 'soil_fertility') and land.soil_fertility:
+                                                line_vals['soil_fertility'] = land.soil_fertility.lower() if isinstance(land.soil_fertility, str) else land.soil_fertility
+                                            elif line_vals.get('soil_fertility'):
+                                                # If land lacks soil fertility but it came from ODK, save it to the land
+                                                try:
+                                                    land.sudo().write({'soil_fertility': line_vals['soil_fertility']})
+                                                except Exception:
+                                                    pass
                                         # GPS: prefer ODK-submitted value, fall back to land record, sync both ways
                                         odk_gps = line_vals.get('gps')
                                         if odk_gps:
@@ -624,9 +662,19 @@ class OdkImport(models.Model):
                                         # Ensure a valid land_information record exists for this farmer
                                         land_rec = False
                                         if isinstance(land_ref, str) and str(land_ref).strip() and str(land_ref).strip() != 'False':
-                                            land_rec = self.env['g2p.land.information'].sudo().search([('land_id', '=', land_ref), ('partner_id', '=', partner.id)], limit=1)
+                                            l_id_str = str(land_ref).strip()
+                                            domain_partner = [('partner_id', '=', partner.id)]
+                                            domain_any = []
+                                            if l_id_str.isdigit():
+                                                domain_partner.append(('land_id', 'in', [l_id_str, f"Plot {partner.id}-{l_id_str}"]))
+                                                domain_any.append(('land_id', 'in', [l_id_str, f"Plot {partner.id}-{l_id_str}"]))
+                                            else:
+                                                domain_partner.append(('land_id', '=', l_id_str))
+                                                domain_any.append(('land_id', '=', l_id_str))
+
+                                            land_rec = self.env['g2p.land.information'].sudo().search(domain_partner, limit=1)
                                             if not land_rec:
-                                                land_rec = self.env['g2p.land.information'].sudo().search([('land_id', '=', land_ref)], limit=1)
+                                                land_rec = self.env['g2p.land.information'].sudo().search(domain_any, limit=1)
                                         elif isinstance(land_ref, int):
                                             land_rec = self.env['g2p.land.information'].sudo().search([('id', '=', land_ref)], limit=1)
 
@@ -663,9 +711,15 @@ class OdkImport(models.Model):
                                                 if isinstance(mg, str) and str(mg).strip().lower() not in ('none', 'false', 'null', ''):
                                                     line_gps = mg
                                                     line_vals['gps'] = line_gps
+                                            land_id_val = str(land_ref).strip()
+                                            if not land_id_val or land_id_val in ('False', 'None', ''):
+                                                land_id_val = f"Plot {partner.id}-1"
+                                            elif land_id_val.isdigit():
+                                                land_id_val = f"Plot {partner.id}-{land_id_val}"
+
                                             land_vals = {
                                                 'partner_id': partner.id,
-                                                'land_id': str(land_ref).strip() if (land_ref and str(land_ref).strip() not in ('False', 'None', '')) else f"Plot {partner.id}-1",
+                                                'land_id': land_id_val,
                                                 'total_land_area': line_vals.get('land_area', 0.0),
                                                 'ownership_type': line_vals.get('ownership_type') or 'owner',
                                             }
@@ -683,6 +737,19 @@ class OdkImport(models.Model):
                                                 if hasattr(land_rec, 'polygon_data') and land_rec.polygon_data:
                                                     line_vals['gps'] = land_rec.polygon_data
 
+                                        # INJECT LOCATION HIERARCHY FOR EXISTING FARMER
+                                        if line_vals.get('cluster_info_ids') and isinstance(line_vals['cluster_info_ids'], list):
+                                            c_gps = line_vals.get('gps')
+                                            for c_cmd in line_vals['cluster_info_ids']:
+                                                if isinstance(c_cmd, (list, tuple)) and len(c_cmd) == 3 and c_cmd[0] in [0, 1]:
+                                                    c_dict = c_cmd[2]
+                                                    if isinstance(c_dict, dict):
+                                                        for k in ['region_name_id', 'zone_name_id', 'woreda_name_id', 'kebele_id']:
+                                                            if line_vals.get(k) and not c_dict.get(k):
+                                                                c_dict[k] = line_vals[k]
+                                                        if c_gps and not c_dict.get('gps_location'):
+                                                            c_dict['gps_location'] = c_gps
+
             else:
                 # ---- Farmer NOT Found: create a new temp farmer ----
                 import time as _time
@@ -698,9 +765,9 @@ class OdkImport(models.Model):
                 }
 
                 # Try to map specific name fields from ODK payload
-                g_name = mapped_json.get('given_name') or mapped_json.get('first_name')
-                f_name = mapped_json.get('family_name') or mapped_json.get('father_name')
-                gf_name = mapped_json.get('gf_name_eng') or mapped_json.get('grand_father_name')
+                g_name = (mapped_json.get('given_name') or mapped_json.get('first_name') or '').strip()
+                f_name = (mapped_json.get('family_name') or mapped_json.get('father_name') or '').strip()
+                gf_name = (mapped_json.get('gf_name_eng') or mapped_json.get('grand_father_name') or '').strip()
 
                 if g_name:
                     partner_vals['given_name'] = g_name
@@ -822,17 +889,27 @@ class OdkImport(models.Model):
                                     land_ref_key = str(land_ref)
                                     if land_ref_key in seen_land_ids:
                                         # Already created this land, just resolve the ID
-                                        existing_land = self.env['g2p.land.information'].sudo().search([
-                                            ('land_id', '=', land_ref if isinstance(land_ref, str) else False),
-                                            ('partner_id', '=', new_partner.id)
-                                        ], limit=1)
+                                        l_id_val = str(land_ref).strip()
+                                        domain = [('partner_id', '=', new_partner.id)]
+                                        if l_id_val.isdigit():
+                                            domain.append(('land_id', 'in', [l_id_val, f"Plot {new_partner.id}-{l_id_val}"]))
+                                        else:
+                                            domain.append(('land_id', '=', l_id_val))
+
+                                        existing_land = self.env['g2p.land.information'].sudo().search(domain, limit=1)
                                         if existing_land:
                                             line_vals['land_info_id'] = existing_land.id
                                         continue
                                     seen_land_ids.add(land_ref_key)
+                                    land_id_val = str(land_ref).strip()
+                                    if not land_id_val or land_id_val in ('False', 'None', ''):
+                                        land_id_val = f"Plot {new_partner.id}-1"
+                                    elif land_id_val.isdigit():
+                                        land_id_val = f"Plot {new_partner.id}-{land_id_val}"
+
                                     land_vals = {
                                         'partner_id': new_partner.id,
-                                        'land_id': str(land_ref).strip() if (land_ref and str(land_ref).strip() not in ('False', 'None', '')) else f"Plot {new_partner.id}-1",
+                                        'land_id': land_id_val,
                                         'total_land_area': line_vals.get('land_area', 0.0),
                                         'ownership_type': line_vals.get('ownership_type') or 'owner',
                                     }
@@ -851,8 +928,37 @@ class OdkImport(models.Model):
                                         elif isinstance(line_vals['kebele_id'], int):
                                             land_vals['land_kebele'] = line_vals['kebele_id']
 
+                                    if line_vals.get('soil_fertility'):
+                                        land_vals['soil_fertility'] = line_vals['soil_fertility']
+
                                     new_land = self.env['g2p.land.information'].sudo().create(land_vals)
                                     line_vals['land_info_id'] = new_land.id
+
+                                # INJECT LOCATION HIERARCHY
+                                if line_vals.get('land_info_id'):
+                                    f_land = self.env['g2p.land.information'].sudo().browse(line_vals['land_info_id'])
+                                    if f_land.exists():
+                                        if f_land.land_kebele:
+                                            line_vals['kebele_id'] = f_land.land_kebele.id
+                                            if f_land.land_kebele.woreda:
+                                                line_vals['woreda_name_id'] = f_land.land_kebele.woreda.id
+                                                if f_land.land_kebele.woreda.zone:
+                                                    line_vals['zone_name_id'] = f_land.land_kebele.woreda.zone.id
+                                                    if f_land.land_kebele.woreda.zone.region:
+                                                        line_vals['region_name_id'] = f_land.land_kebele.woreda.zone.region.id
+
+                                        c_gps = f_land.polygon_data or line_vals.get('gps')
+
+                                        if line_vals.get('cluster_info_ids') and isinstance(line_vals['cluster_info_ids'], list):
+                                            for c_cmd in line_vals['cluster_info_ids']:
+                                                if isinstance(c_cmd, (list, tuple)) and len(c_cmd) == 3 and c_cmd[0] in [0, 1]:
+                                                    c_dict = c_cmd[2]
+                                                    if isinstance(c_dict, dict):
+                                                        for k in ['region_name_id', 'zone_name_id', 'woreda_name_id', 'kebele_id']:
+                                                            if line_vals.get(k) and not c_dict.get(k):
+                                                                c_dict[k] = line_vals[k]
+                                                        if c_gps and not c_dict.get('gps_location'):
+                                                            c_dict['gps_location'] = c_gps
 
             if not mapped_json.get('farmer_display_id'):
                 mapped_json['farmer_display_id'] = 'Unknown Farmer'
@@ -888,11 +994,26 @@ class OdkImport(models.Model):
                                     ex_cults = existing.actual_annual_line_ids.filtered(lambda l: l.land_info_id.id == line_vals['land_info_id'])
                                     if ex_cults:
                                         matched_cult_line = ex_cults[0]
+                                    elif line_vals.get('crop_name_id') and line_vals.get('season_id'):
+                                        ex_cults_fb = existing.actual_annual_line_ids.filtered(
+                                            lambda l: l.crop_name_id.id == line_vals['crop_name_id'] and getattr(l, 'season_id', False) and l.season_id.id == line_vals['season_id']
+                                        )
+                                        if len(ex_cults_fb) == 1:
+                                            matched_cult_line = ex_cults_fb[0]
+                                            line_vals['land_info_id'] = matched_cult_line.land_info_id.id
 
                                 # Match existing planning line
                                 for plan_f in ['annual_line_ids', 'perennial_line_ids', 'biennial_line_ids']:
                                     existing_lines = getattr(existing, plan_f, self.env['g2p.annual.line'].browse())
                                     p_line = existing_lines.filtered(lambda l: l.land_info_id.id == line_vals['land_info_id'])
+
+                                    if not p_line and line_vals.get('crop_name_id') and line_vals.get('season_id'):
+                                        p_line_fb = existing_lines.filtered(
+                                            lambda l: l.crop_name_id.id == line_vals['crop_name_id'] and getattr(l, 'season_id', False) and l.season_id.id == line_vals['season_id']
+                                        )
+                                        if len(p_line_fb) == 1:
+                                            p_line = p_line_fb
+
                                     if p_line:
                                         if p_line[0].crop_name_id:
                                             found_crop = p_line[0].crop_name_id.id
@@ -900,6 +1021,20 @@ class OdkImport(models.Model):
                                             found_season = p_line[0].season_id.id
                                         matched_plan_line = p_line[0]
                                         break
+
+                            # 2. Match with incoming planning lines in the same payload
+                            matched_plan_dict = None
+                            if not matched_plan_line and 'annual_line_ids' in mapped_json and isinstance(mapped_json['annual_line_ids'], list):
+                                for pcmd in mapped_json['annual_line_ids']:
+                                    if isinstance(pcmd, (list, tuple)) and len(pcmd) == 3 and pcmd[0] in [0, 1]:
+                                        p_vals = pcmd[2]
+                                        if isinstance(p_vals, dict) and p_vals.get('land_info_id') == line_vals['land_info_id']:
+                                            matched_plan_dict = p_vals
+                                            if not found_crop and p_vals.get('crop_name_id'):
+                                                found_crop = p_vals['crop_name_id']
+                                            if not found_season and p_vals.get('season_id'):
+                                                found_season = p_vals['season_id']
+                                            break
 
                             if not line_vals.get('crop_name_id') and found_crop:
                                 line_vals['crop_name_id'] = found_crop
@@ -909,9 +1044,45 @@ class OdkImport(models.Model):
                             if not line_vals.get('sync_id') and matched_plan_line and hasattr(matched_plan_line, 'sync_id') and matched_plan_line.sync_id:
                                 line_vals['sync_id'] = matched_plan_line.sync_id
 
+                            # Fallback for soil_fertility from planning line
+                            if not line_vals.get('soil_fertility'):
+                                sf_val = None
+                                if matched_plan_line and hasattr(matched_plan_line, 'soil_fertility') and matched_plan_line.soil_fertility:
+                                    sf_val = matched_plan_line.soil_fertility
+                                elif matched_plan_dict and matched_plan_dict.get('soil_fertility'):
+                                    sf_val = matched_plan_dict['soil_fertility']
+
+                                # Active database search fallback if still not found
+                                if not sf_val:
+                                    fayda_id_to_search = mapped_json.get('fyda_id') or farmer.get('fayda_id')
+                                    if fayda_id_to_search and line_vals.get('land_info_id'):
+                                        plan_line_search = self.env['g2p.annual.line'].sudo().search([
+                                            ('land_info_id', '=', line_vals['land_info_id']),
+                                            ('crop_registry_id.fyda_id', '=', fayda_id_to_search)
+                                        ], limit=1)
+                                        if plan_line_search and plan_line_search.soil_fertility:
+                                            sf_val = plan_line_search.soil_fertility
+
+                                if sf_val:
+                                    line_vals['soil_fertility'] = sf_val.lower() if isinstance(sf_val, str) else sf_val
+                                    # Also update land if it doesn't have it
+                                    land = self.env['g2p.land.information'].sudo().browse(line_vals['land_info_id'])
+                                    if land.exists() and hasattr(land, 'soil_fertility') and not land.soil_fertility:
+                                        try:
+                                            land.sudo().write({'soil_fertility': line_vals['soil_fertility']})
+                                        except Exception:
+                                            pass
+
                             # Handle Cluster Separation (Option 1)
                             cult_cluster = matched_cult_line.cluster_info_ids[0] if matched_cult_line and hasattr(matched_cult_line, 'cluster_info_ids') and matched_cult_line.cluster_info_ids else None
                             plan_cluster = matched_plan_line.cluster_info_ids[0] if matched_plan_line and hasattr(matched_plan_line, 'cluster_info_ids') and matched_plan_line.cluster_info_ids else None
+
+                            plan_cluster_dict = None
+                            if not plan_cluster and matched_plan_dict and matched_plan_dict.get('cluster_info_ids'):
+                                for ccmd in matched_plan_dict['cluster_info_ids']:
+                                    if isinstance(ccmd, (list, tuple)) and len(ccmd) == 3 and ccmd[0] in [0, 1]:
+                                        plan_cluster_dict = ccmd[2]
+                                        break
 
                             if cult_cluster:
                                 # A cultivation cluster already exists. Just update it.
@@ -929,27 +1100,44 @@ class OdkImport(models.Model):
                                     line_vals['cluster_info_ids'] = new_cluster_cmds
                                 else:
                                     line_vals['cluster_info_ids'] = [(4, cult_cluster.id)]
-                            elif plan_cluster:
+                            elif plan_cluster or plan_cluster_dict:
                                 # No cultivation cluster yet, but planning cluster exists. Create a NEW independent cluster.
-                                new_cluster_vals = {
-                                    'cluster_id': plan_cluster.cluster_id,
-                                    'cluster_name': plan_cluster.cluster_name,
-                                    'cluster_smallholders': plan_cluster.cluster_smallholders,
-                                }
-                                # Copy farmers
-                                farmer_cmds = []
-                                for f in plan_cluster.cluster_farmer_line_ids:
-                                    farmer_cmds.append((0, 0, {
-                                        'farmer_id': f.farmer_id.id if f.farmer_id else False,
-                                        'fayda_id': f.fayda_id,
-                                        'farmer_name': f.farmer_name,
-                                        'region_id': f.region_id.id if f.region_id else False,
-                                        'zone_id': f.zone_id.id if f.zone_id else False,
-                                        'woreda_id': f.woreda_id.id if f.woreda_id else False,
-                                        'kebele_id': f.kebele_id.id if f.kebele_id else False,
-                                    }))
-                                if farmer_cmds:
-                                    new_cluster_vals['cluster_farmer_line_ids'] = farmer_cmds
+                                new_cluster_vals = {}
+                                if plan_cluster:
+                                    new_cluster_vals = {
+                                        'cluster_id': plan_cluster.cluster_id,
+                                        'cluster_name': plan_cluster.cluster_name,
+                                        'cluster_smallholders': plan_cluster.cluster_smallholders,
+                                        'gps_location': plan_cluster.gps_location if hasattr(plan_cluster, 'gps_location') else False,
+                                        'sub_kebele': plan_cluster.sub_kebele if hasattr(plan_cluster, 'sub_kebele') else False,
+                                        'cluster_agro_ecological_zone': plan_cluster.cluster_agro_ecological_zone if hasattr(plan_cluster, 'cluster_agro_ecological_zone') else False,
+                                        'cluster_area_timad': plan_cluster.cluster_area_timad if hasattr(plan_cluster, 'cluster_area_timad') else False,
+                                        'cluster_plan': plan_cluster.cluster_plan if hasattr(plan_cluster, 'cluster_plan') else False,
+                                        'region_name_id': plan_cluster.region_name_id.id if hasattr(plan_cluster, 'region_name_id') and plan_cluster.region_name_id else False,
+                                        'zone_name_id': plan_cluster.zone_name_id.id if hasattr(plan_cluster, 'zone_name_id') and plan_cluster.zone_name_id else False,
+                                        'woreda_name_id': plan_cluster.woreda_name_id.id if hasattr(plan_cluster, 'woreda_name_id') and plan_cluster.woreda_name_id else False,
+                                        'kebele_id': plan_cluster.kebele_id.id if hasattr(plan_cluster, 'kebele_id') and plan_cluster.kebele_id else False,
+                                    }
+                                    # Copy farmers
+                                    farmer_cmds = []
+                                    for f in plan_cluster.cluster_farmer_line_ids:
+                                        farmer_cmds.append((0, 0, {
+                                            'farmer_id': f.farmer_id.id if f.farmer_id else False,
+                                            'fayda_id': f.fayda_id,
+                                            'farmer_name': f.farmer_name,
+                                            'region_id': f.region_id.id if f.region_id else False,
+                                            'zone_id': f.zone_id.id if f.zone_id else False,
+                                            'woreda_id': f.woreda_id.id if f.woreda_id else False,
+                                            'kebele_id': f.kebele_id.id if f.kebele_id else False,
+                                        }))
+                                    if farmer_cmds:
+                                        new_cluster_vals['cluster_farmer_line_ids'] = farmer_cmds
+                                else:
+                                    for k in ['cluster_id', 'cluster_name', 'cluster_smallholders', 'gps_location', 'sub_kebele', 'cluster_agro_ecological_zone', 'cluster_area_timad', 'cluster_plan', 'region_name_id', 'zone_name_id', 'woreda_name_id', 'kebele_id']:
+                                        if k in plan_cluster_dict:
+                                            new_cluster_vals[k] = plan_cluster_dict[k]
+                                    if 'cluster_farmer_line_ids' in plan_cluster_dict:
+                                        new_cluster_vals['cluster_farmer_line_ids'] = list(plan_cluster_dict['cluster_farmer_line_ids'])
 
                                 if line_vals.get('cluster_info_ids') and isinstance(line_vals['cluster_info_ids'], list):
                                     for c_cmd in line_vals['cluster_info_ids']:
@@ -1004,6 +1192,30 @@ class OdkImport(models.Model):
                         if not isinstance(prod_vals, dict):
                             continue
                         prod_land_id = prod_vals.get('land_info_id')
+
+                        # Match by string land_id if available
+                        if not prod_land_id and existing and prod_vals.get('land_id'):
+                            land_val = str(prod_vals['land_id']).strip()
+                            partner_id = existing.partner_id.id if existing.partner_id else None
+                            if partner_id:
+                                # 1. Check in cultivation lines
+                                for pl in existing.actual_annual_line_ids:
+                                    if pl.land_info_id:
+                                        pl_land_name = pl.land_info_id.name or ''
+                                        if pl_land_name == land_val or (land_val.isdigit() and pl_land_name == f"Plot {partner_id}-{land_val}"):
+                                            prod_land_id = pl.land_info_id.id
+                                            prod_vals['land_info_id'] = prod_land_id
+                                            break
+                                # 2. Check in planning lines if not found
+                                if not prod_land_id:
+                                    for pl in existing.annual_line_ids:
+                                        if pl.land_info_id:
+                                            pl_land_name = pl.land_info_id.name or ''
+                                            if pl_land_name == land_val or (land_val.isdigit() and pl_land_name == f"Plot {partner_id}-{land_val}"):
+                                                prod_land_id = pl.land_info_id.id
+                                                prod_vals['land_info_id'] = prod_land_id
+                                                break
+
                         if not prod_land_id:
                             # Try to infer prod_land_id if there is only one cultivation line in payload
                             cult_cmds = mapped_json.get('actual_annual_line_ids', [])
@@ -1042,11 +1254,28 @@ class OdkImport(models.Model):
                         # 2. Check in existing registry record's cultivation and planning lines
                         if not matched_cult and existing:
                             cult_line = existing.actual_annual_line_ids.filtered(lambda l: l.land_info_id.id == prod_land_id)
+
+                            if not cult_line and (prod_vals.get('crop_name_id') or prod_vals.get('actual_crop_name')):
+                                raw_c = prod_vals.get('crop_name_id') or prod_vals.get('actual_crop_name')
+                                if isinstance(raw_c, int):
+                                    cult_line = existing.actual_annual_line_ids.filtered(lambda l: l.crop_name_id.id == raw_c)
+                                elif isinstance(raw_c, str):
+                                    cult_line = existing.actual_annual_line_ids.filtered(lambda l: l.crop_name_id.name and raw_c.lower() in l.crop_name_id.name.lower())
+                                if len(cult_line) == 1:
+                                    prod_land_id = cult_line[0].land_info_id.id
+                                    prod_vals['land_info_id'] = prod_land_id
+                                elif len(cult_line) > 1 and prod_vals.get('season_id'):
+                                    cl2 = cult_line.filtered(lambda l: getattr(l, 'season_id', False) and l.season_id.id == prod_vals['season_id'])
+                                    if len(cl2) == 1:
+                                        cult_line = cl2
+                                        prod_land_id = cult_line[0].land_info_id.id
+                                        prod_vals['land_info_id'] = prod_land_id
+
                             if not cult_line:
                                 cult_line = existing.annual_line_ids.filtered(lambda l: l.land_info_id.id == prod_land_id)
-                            if not cult_line:
+                            if not cult_line and hasattr(existing, 'perennial_line_ids'):
                                 cult_line = existing.perennial_line_ids.filtered(lambda l: l.land_info_id.id == prod_land_id)
-                            if not cult_line:
+                            if not cult_line and hasattr(existing, 'biennial_line_ids'):
                                 cult_line = existing.biennial_line_ids.filtered(lambda l: l.land_info_id.id == prod_land_id)
                             if not cult_line and hasattr(existing, 'production_detail_ids'):
                                 cult_line = existing.production_detail_ids.filtered(lambda l: l.land_info_id.id == prod_land_id)
@@ -1088,9 +1317,9 @@ class OdkImport(models.Model):
                                     break
                         if not matched_plan and existing:
                             plan_line = existing.annual_line_ids.filtered(lambda l: l.land_info_id.id == prod_land_id)
-                            if not plan_line:
+                            if not plan_line and hasattr(existing, 'perennial_line_ids'):
                                 plan_line = existing.perennial_line_ids.filtered(lambda l: l.land_info_id.id == prod_land_id)
-                            if not plan_line:
+                            if not plan_line and hasattr(existing, 'biennial_line_ids'):
                                 plan_line = existing.biennial_line_ids.filtered(lambda l: l.land_info_id.id == prod_land_id)
                             if plan_line:
                                 pl = plan_line[0]
@@ -2491,7 +2720,13 @@ class OdkImport(models.Model):
             if 'land_info_id' in val:
                 land_val = val['land_info_id']
                 if land_val:
-                    land_rec = self.env['g2p.land.information'].sudo().search([('land_id', '=', land_val)], limit=1)
+                    land_val_str = str(land_val).strip()
+                    domain_any = []
+                    if land_val_str.isdigit() and current_partner_id:
+                        domain_any.append(('land_id', 'in', [land_val_str, f"Plot {current_partner_id}-{land_val_str}"]))
+                    else:
+                        domain_any.append(('land_id', '=', land_val_str))
+                    land_rec = self.env['g2p.land.information'].sudo().search(domain_any, limit=1)
                     if not land_rec:
                         try:
                             land_db_id = int(land_val)
