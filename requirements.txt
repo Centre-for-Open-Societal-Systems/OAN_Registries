@@ -2,3 +2,5 @@
 # example:
 # requests==2.31.0
 # phonenumbers==8.13.0
+openpyxl
+jq

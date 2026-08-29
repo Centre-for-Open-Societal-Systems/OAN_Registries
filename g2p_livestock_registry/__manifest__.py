@@ -16,7 +16,7 @@ and immutable audit logging.
     'license': 'LGPL-3',
     'depends': ['base', 'mail', 'g2p_ati', 'g2p_odk_importer', 'g2p_odk_importer_ati'],
     'external_dependencies': {
-        'python': ['xlsxwriter', 'reportlab', 'openpyxl'],
+        'python': ['xlsxwriter', 'reportlab', 'openpyxl', 'jq'],
     },
     'data': [
         'security/livestock_security.xml',
