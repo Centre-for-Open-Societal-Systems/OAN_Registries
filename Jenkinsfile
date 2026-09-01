@@ -3,7 +3,8 @@
 //
 //  TWO staging deploy targets, routed by branch:
 //    staging_aws -> AWS staging: build `openg2p-at`, then `kubectl set image` on the
-//                   in-cluster Odoo deployment (oan-sr-odoo-staging, ns dev). The registries
+//                   in-cluster Odoo deployment (oan-sr-odoo-staging, ns dev) via the vpn-agent (VPN to the
+//                   dev cluster). The registries
 //                   team's existing deploy, unchanged apart from the branch gate.
 //    staging_ati -> on-prem ATI cluster (node 41) via GitOps: build `oan/registries`,
 //                   then ci/update-kustomize-ati.sh bumps the oan-kustomize
@@ -105,6 +106,7 @@ pipeline {
 
         stage('Deploy to Dev') {
             when { branch 'develop' }
+            agent { label 'vpn-agent' }   // kubectl to the dev cluster (10.15.0.1) is reachable only via the vpn-agent's VPN
             steps {
                 withCredentials([file(credentialsId: 'dev-kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
@@ -119,6 +121,7 @@ pipeline {
         // re-gated from the old `staging` branch to `staging_aws`. Unchanged otherwise.
         stage('Deploy to Staging (AWS)') {
             when { branch 'staging_aws' }
+            agent { label 'vpn-agent' }   // kubectl to oan-sr-odoo-staging (dev cluster) needs the vpn-agent's VPN
             steps {
                 withCredentials([file(credentialsId: 'dev-kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
