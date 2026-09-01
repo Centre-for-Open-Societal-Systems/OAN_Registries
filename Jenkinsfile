@@ -3,8 +3,8 @@
 //
 //  TWO staging deploy targets, routed by branch:
 //    staging_aws -> AWS staging: build `openg2p-at`, then `kubectl set image` on the
-//                   in-cluster Odoo deployment (oan-sr-odoo-staging, ns dev) via the
-//                   vpn-agent. This is the registries team's existing deploy, unchanged.
+//                   in-cluster Odoo deployment (oan-sr-odoo-staging, ns dev). The registries
+//                   team's existing deploy, unchanged apart from the branch gate.
 //    staging_ati -> on-prem ATI cluster (node 41) via GitOps: build `oan/registries`,
 //                   then ci/update-kustomize-ati.sh bumps the oan-kustomize
 //                   apps/registries/overlays/staging overlay; ArgoCD syncs.
@@ -105,7 +105,6 @@ pipeline {
 
         stage('Deploy to Dev') {
             when { branch 'develop' }
-            agent { label 'vpn-agent' }
             steps {
                 withCredentials([file(credentialsId: 'dev-kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
@@ -120,7 +119,6 @@ pipeline {
         // re-gated from the old `staging` branch to `staging_aws`. Unchanged otherwise.
         stage('Deploy to Staging (AWS)') {
             when { branch 'staging_aws' }
-            agent { label 'vpn-agent' }
             steps {
                 withCredentials([file(credentialsId: 'dev-kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
@@ -135,8 +133,8 @@ pipeline {
 
         // staging_ati -> on-prem ATI (41) via GitOps. Bumps the oan-kustomize apps/registries
         // overlay to the freshly built oan/registries image; ArgoCD syncs. Runs on the
-        // default pipeline agent (same workspace as Checkout/Build) so ci/ is present — no
-        // vpn-agent needed (this only pushes to GitHub). Auth: oan-deployer GitHub App.
+        // built-in agent (same workspace as Checkout/Build) so ci/ is present; this only
+        // pushes to GitHub. Auth: oan-deployer GitHub App.
         stage('Deploy to Staging (ATI / GitOps)') {
             when { branch 'staging_ati' }
             steps {
