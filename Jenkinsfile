@@ -1,25 +1,31 @@
 // =============================================================================
 //  Jenkinsfile — OAN_Registries (OpenG2P / Odoo 17 addons). Multibranch.
 //
-//  TWO staging deploy targets, routed by branch:
-//    staging_aws -> AWS staging: build `openg2p-at`, then `kubectl set image` on the
-//                   in-cluster Odoo deployment (oan-sr-odoo-staging, ns dev) via the vpn-agent (VPN to the
-//                   dev cluster). The registries
-//                   team's existing deploy, unchanged apart from the branch gate.
-//    staging_ati -> on-prem ATI cluster (node 41) via GitOps: build `oan/registries`,
+//  All branches publish to the namespaced ECR repo `oan/registries` (develop + staging_aws
+//  migrated off legacy `openg2p-at`). Deploy target routed by branch:
+//    staging_aws -> AWS staging: build `oan/registries:staging-aws-<n>`, then `kubectl set
+//                   image` on the in-cluster Odoo deployment (oan-sr-odoo-staging, ns dev)
+//                   via the vpn-agent (VPN to the dev cluster).
+//    staging_ati -> on-prem ATI cluster (node 41) via GitOps: build `oan/registries:staging-ati-<n>`,
 //                   then ci/update-kustomize-ati.sh bumps the oan-kustomize
 //                   apps/registries/overlays/staging overlay; ArgoCD syncs.
-//    develop     -> dev: build `openg2p-at` + kubectl set image (oan-sr-odoo, ns dev).
+//    develop     -> dev: build `oan/registries:dev-<n>` + kubectl set image (oan-sr-odoo, ns dev).
 //
-//  staging_aws is a PLACEHOLDER-grade path here only in the sense that its logic is the
-//  team's current one, retained verbatim; the ATI (GitOps) path is what this change adds.
+//  staging_aws / staging_ati SHARE the `oan/registries` repo, so each uses a distinct tag
+//  prefix (staging-aws-<n> / staging-ati-<n>) — their build-number sequences are independent,
+//  so a shared prefix could collide on the immutable tag.
 //
 //  PREREQUISITES:
 //    - oan-kustomize has apps/registries/overlays/staging (it does; ArgoCD app exists).
 //    - OPENG2P_ATI_REF = BRANCH_NAME, so the g2p_ati addon source must have a ref named
 //      after the branch (`staging_ati` / `staging_aws`). Create those refs, or pin
 //      OPENG2P_ATI_REF to a fixed ref, before the first build — else the image build fails.
-//    - ECR push on BOTH `openg2p-at` and `oan/registries` (ap-south-1) for aws-ecr-creds.
+//    - ECR push on `oan/registries` (ap-south-1) for aws-ecr-creds.
+//    - The DEV CLUSTER's image-pull auth must allow `oan/registries` (develop + staging_aws
+//      pull it via `kubectl set image`). Same AWS account (379220350808) as the old
+//      `openg2p-at`, so an account-wide ECR pull role/secret already covers it; if a per-repo
+//      IAM policy restricts pulls, add `oan/registries` before the first dev/staging_aws roll
+//      (else the Odoo pod ImagePullBackOffs).
 //
 //  Credentials: AWS_ACCOUNT_ID (string), aws-ecr-creds (AWS), dev-kubeconfig (file),
 //               oan-deployer (GitHub App, contents:write on oan-kustomize).
@@ -41,20 +47,29 @@ pipeline {
         stage('Determine Environment') {
             steps {
                 script {
+                    // All branches now publish to the namespaced repo `oan/registries`
+                    // (develop + staging_aws migrated off legacy `openg2p-at`). Because
+                    // staging_aws and staging_ati share this one repo and each branch has its
+                    // OWN Jenkins build-number sequence, they MUST use distinct tag prefixes
+                    // or their immutable <tag>-<build> tags could collide in ECR. Hence:
+                    //   staging_ati -> staging-ati-<n>   staging_aws -> staging-aws-<n>   develop -> dev-<n>
                     if (env.BRANCH_NAME == 'staging_ati') {
                         // on-prem ATI (41) via GitOps -> apps/registries overlay uses oan/registries
                         env.IS_ATI          = 'true'
                         env.IMAGE_NAME      = 'oan/registries'
-                        env.IMAGE_TAG       = 'staging'
+                        env.IMAGE_TAG       = 'staging-ati'
                     } else if (env.BRANCH_NAME == 'staging_aws') {
                         // AWS staging: imperative kubectl to the dev-ns Odoo deployment
-                        env.IMAGE_NAME      = 'openg2p-at'
-                        env.IMAGE_TAG       = 'staging'
+                        env.IMAGE_NAME      = 'oan/registries'
+                        env.IMAGE_TAG       = 'staging-aws'
                         env.DEPLOYMENT_NAME = 'oan-sr-odoo-staging'
-                    } else {
-                        env.IMAGE_NAME      = 'openg2p-at'
+                    } else if (env.BRANCH_NAME == 'develop') {
+                        // dev: imperative kubectl to the dev-ns Odoo deployment
+                        env.IMAGE_NAME      = 'oan/registries'
                         env.IMAGE_TAG       = 'dev'
                         env.DEPLOYMENT_NAME = 'oan-sr-odoo'
+                    } else {
+                        error "Determine Environment: unexpected branch '${env.BRANCH_NAME}' (expected develop, staging_aws, or staging_ati)"
                     }
                     // g2p_ati addon ref = the built branch (see PREREQUISITES in the header).
                     env.OPENG2P_ATI_REF = env.BRANCH_NAME
