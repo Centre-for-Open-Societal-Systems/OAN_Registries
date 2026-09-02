@@ -175,6 +175,10 @@ pipeline {
                 docker rmi ${BUILD_IMAGE} || true
                 docker image prune -f
             """
+            // Bound the BuildKit cache too: `docker rmi` + `image prune` only touch images,
+            // not the SEPARATE build cache, which otherwise grows unbounded and fills the
+            // shared agent's disk. --max-used-space caps it at ~20GB (buildx v0.34+).
+            sh 'docker buildx prune -f --max-used-space=20GB 2>/dev/null || true'
             sh "docker logout ${ECR_REGISTRY} || true"
         }
     }
