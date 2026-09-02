@@ -6,14 +6,14 @@
 //    staging_aws -> AWS staging: build `oan/registries:staging-aws-<n>`, then `kubectl set
 //                   image` on the in-cluster Odoo deployment (oan-sr-odoo-staging, ns dev)
 //                   via the vpn-agent (VPN to the dev cluster).
-//    staging_ati -> on-prem ATI cluster (node 41) via GitOps: build `oan/registries:staging-<n>`,
+//    staging_ati -> on-prem ATI cluster (node 41) via GitOps: build `oan/registries:staging-ati-<n>`,
 //                   then ci/update-kustomize-ati.sh bumps the oan-kustomize
 //                   apps/registries/overlays/staging overlay; ArgoCD syncs.
 //    develop     -> dev: build `oan/registries:dev-<n>` + kubectl set image (oan-sr-odoo, ns dev).
 //
 //  staging_aws / staging_ati SHARE the `oan/registries` repo, so each uses a distinct tag
-//  prefix (staging-aws-<n> / staging-<n>) — their build-number sequences are independent, so
-//  a shared prefix could collide on the immutable tag.
+//  prefix (staging-aws-<n> / staging-ati-<n>) — their build-number sequences are independent,
+//  so a shared prefix could collide on the immutable tag.
 //
 //  PREREQUISITES:
 //    - oan-kustomize has apps/registries/overlays/staging (it does; ArgoCD app exists).
@@ -52,12 +52,12 @@ pipeline {
                     // staging_aws and staging_ati share this one repo and each branch has its
                     // OWN Jenkins build-number sequence, they MUST use distinct tag prefixes
                     // or their immutable <tag>-<build> tags could collide in ECR. Hence:
-                    //   staging_ati -> staging-<n>   staging_aws -> staging-aws-<n>   develop -> dev-<n>
+                    //   staging_ati -> staging-ati-<n>   staging_aws -> staging-aws-<n>   develop -> dev-<n>
                     if (env.BRANCH_NAME == 'staging_ati') {
                         // on-prem ATI (41) via GitOps -> apps/registries overlay uses oan/registries
                         env.IS_ATI          = 'true'
                         env.IMAGE_NAME      = 'oan/registries'
-                        env.IMAGE_TAG       = 'staging'
+                        env.IMAGE_TAG       = 'staging-ati'
                     } else if (env.BRANCH_NAME == 'staging_aws') {
                         // AWS staging: imperative kubectl to the dev-ns Odoo deployment
                         env.IMAGE_NAME      = 'oan/registries'
